@@ -1,9 +1,10 @@
 package com.wizzardo.httpserver;
 
 import com.wizzardo.epoll.EpollServer;
-import com.wizzardo.epoll.readable.ReadableByteArray;
+import com.wizzardo.epoll.readable.ReadableBytes;
 import com.wizzardo.httpserver.request.Header;
 import com.wizzardo.httpserver.request.RequestHeaders;
+import com.wizzardo.httpserver.response.Response;
 import simplehttpserver.concurrent.NonBlockingQueue;
 
 import java.io.IOException;
@@ -34,49 +35,49 @@ public class HttpServer extends EpollServer<HttpConnection> {
         queue.add(new Runnable() {
             @Override
             public void run() {
-        ByteBuffer b;
-        try {
+                ByteBuffer b;
+                try {
 
-            while ((b = read(connection, connection.getBufferSize())).limit() > 0) {
-                if (!connection.check(b))
+                    while ((b = read(connection, connection.getBufferSize())).limit() > 0) {
+                        if (!connection.check(b))
+                            return;
+                    }
+
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    connection.reset("exception while reading");
+                    close(connection);
                     return;
-            }
+                }
 
-        } catch (IOException e) {
-            e.printStackTrace();
-            connection.reset("exception while reading");
-            close(connection);
-            return;
-        }
+                connection.reset("read headers");
 
-        connection.reset("read headers");
+                try {
+                    Response response = handleRequest(connection);
 
-//        queue.add(new Runnable() {
-//            @Override
-//            public void run() {
-                String s = "HTTP/1.1 200 OK\r\nConnection: Keep-Alive\r\nContent-Length: 5\r\nContent-Type: text/html;charset=UTF-8\r\n\r\nololo";
-//                String s = "HTTP/1.1 200 OK\r\nContent-Length: 5\r\nContent-Type: text/html;charset=UTF-8\r\n\r\nololo";
-                connection.writeData = new ReadableByteArray(s.getBytes());
+                    connection.writeData = response.toReadableByteArray();
+                } catch (Throwable t) {
+                    t.printStackTrace();
+                    //TODO render error page
+                }
 
-//                String s = "HTTP/1.1 200 OK\r\nConnection: Keep-Alive\r\nContent-Length: " + image.length + "\r\nContent-Type: image/jpg;charset=UTF-8\r\n\r\n";
-//                state.writeData = new WriteBuffer();
-//                state.writeData.bb = image;
-//                state.writeData.add(s.getBytes());
-//                state.writeData.add(image);
-
-//                System.out.println(fd + " requested: " + state.requestCounter.incrementAndGet());
-//                server.startWriting(fd);
                 readyToWrite(connection);
             }
         });
 
     }
 
+    public Response handleRequest(HttpConnection connection) {
+        return new Response()
+                .appendHeader("Connection", "Keep-Alive")
+                .appendHeader("Content-Type", "text/html;charset=UTF-8")
+                .setBody("ololo".getBytes());
+    }
 
     @Override
     public void readyToWrite(final HttpConnection connection) {
         try {
-            ReadableByteArray data = connection.writeData;
+            ReadableBytes data = connection.writeData;
             RequestHeaders headers = connection.headers;
             if (data == null || data.isComplete()) {
                 stopWriting(connection);
@@ -96,7 +97,7 @@ public class HttpServer extends EpollServer<HttpConnection> {
         } catch (IOException e) {
             close(connection);
             onCloseConnection(connection);
-            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+            e.printStackTrace();
         }
     }
 
@@ -113,7 +114,7 @@ public class HttpServer extends EpollServer<HttpConnection> {
 
     public static void main(String[] args) {
         HttpServer server = new HttpServer();
-        server.bind(8084,1000);
+        server.bind(8084, 1000);
         server.start();
     }
 }

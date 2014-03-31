@@ -1,7 +1,7 @@
 package com.wizzardo.httpserver;
 
 import com.wizzardo.epoll.Connection;
-import com.wizzardo.epoll.readable.ReadableByteArray;
+import com.wizzardo.epoll.readable.ReadableBytes;
 import com.wizzardo.httpserver.request.HttpHeadersReader;
 import com.wizzardo.httpserver.request.RequestHeaders;
 
@@ -16,7 +16,7 @@ public class HttpConnection extends Connection {
     byte[] data = new byte[1024];
     volatile int r = 0;
     volatile int position = 0;
-    volatile ReadableByteArray writeData;
+    volatile ReadableBytes writeData;
     HttpHeadersReader headersReader;
     RequestHeaders headers;
 
