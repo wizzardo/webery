@@ -71,7 +71,7 @@ public class HttpServer extends EpollServer<HttpConnection> {
         return new Response()
                 .appendHeader(Header.KEY_CONNECTION, Header.VALUE_CONNECTION_KEEP_ALIVE)
                 .appendHeader(Header.KEY_CONTENT_TYPE, Header.VALUE_CONTENT_TYPE_HTML_UTF8)
-                .setBody("ololo".getBytes());
+                .setBody("It's alive!".getBytes());
     }
 
     @Override
