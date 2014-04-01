@@ -82,7 +82,7 @@ public class Response {
         headers = temp;
     }
 
-    public ReadableBytes toReadableByteArray() {
+    public ReadableBytes toReadableBytes() {
         ReadableBuilder builder = new ReadableBuilder(status.header);
         for (int i = 0; i < headersCount; i += 2) {
             builder.append(headers[i])

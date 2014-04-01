@@ -55,7 +55,7 @@ public class HttpServer extends EpollServer<HttpConnection> {
                 try {
                     Response response = handleRequest(connection);
 
-                    connection.writeData = response.toReadableByteArray();
+                    connection.setDataToWrite(response.toReadableBytes());
                 } catch (Throwable t) {
                     t.printStackTrace();
                     //TODO render error page
@@ -77,8 +77,8 @@ public class HttpServer extends EpollServer<HttpConnection> {
     @Override
     public void readyToWrite(final HttpConnection connection) {
         try {
-            ReadableBytes data = connection.writeData;
-            RequestHeaders headers = connection.headers;
+            ReadableBytes data = connection.getDataToWrite();
+            RequestHeaders headers = connection.getHeaders();
             if (data == null || data.isComplete()) {
                 stopWriting(connection);
                 readyToRead(connection);

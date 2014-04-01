@@ -12,13 +12,13 @@ import java.nio.ByteBuffer;
  * Date: 3/14/14
  */
 public class HttpConnection extends Connection {
-    boolean headerReady = false;
-    byte[] data = new byte[1024];
-    volatile int r = 0;
-    volatile int position = 0;
-    volatile ReadableBytes writeData;
-    HttpHeadersReader headersReader;
-    RequestHeaders headers;
+    private boolean headerReady = false;
+    private byte[] data = new byte[1024];
+    private volatile int r = 0;
+    private volatile int position = 0;
+    private volatile ReadableBytes dataToWrite;
+    private HttpHeadersReader headersReader;
+    private RequestHeaders headers;
 
     private static final byte[] EMPTY = new byte[0];
 
@@ -70,4 +70,15 @@ public class HttpConnection extends Connection {
         headersReader = null;
     }
 
+    void setDataToWrite(ReadableBytes dataToWrite) {
+        this.dataToWrite = dataToWrite;
+    }
+
+    ReadableBytes getDataToWrite() {
+        return dataToWrite;
+    }
+
+    public RequestHeaders getHeaders() {
+        return headers;
+    }
 }
