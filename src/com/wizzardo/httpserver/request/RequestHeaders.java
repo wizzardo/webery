@@ -22,16 +22,15 @@ public class RequestHeaders {
             put(header, header.getBytes());
         }
 
+        void put(Header header) {
+            put(header.value, header.bytes);
+        }
+
         {
-            put(Header.KEY_HOST);
-            put(Header.KEY_CONNECTION);
-            put(Header.KEY_CACHE_CONTROL);
-            put(Header.KEY_ACCEPT);
-            put(Header.KEY_PRAGMA);
-            put(Header.KEY_USER_AGENT);
-            put(Header.KEY_ACCEPT_ENCODING);
-            put(Header.KEY_ACCEPT_LANGUAGE);
-            put(Header.KEY_COOKIE);
+            for (Header h : Header.values()) {
+                if (h.name().startsWith("KEY"))
+                    put(h);
+            }
         }
     };
 
@@ -70,6 +69,10 @@ public class RequestHeaders {
         if (length > 0)
             System.arraycopy(value, offset, values, valueOffset + fromBuffer, length);
         size++;
+    }
+
+    public String get(Header k) {
+        return get(k.value);
     }
 
     public String get(String k) {

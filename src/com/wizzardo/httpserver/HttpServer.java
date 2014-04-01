@@ -69,8 +69,8 @@ public class HttpServer extends EpollServer<HttpConnection> {
 
     public Response handleRequest(HttpConnection connection) {
         return new Response()
-                .appendHeader("Connection", "Keep-Alive")
-                .appendHeader("Content-Type", "text/html;charset=UTF-8")
+                .appendHeader(Header.KEY_CONNECTION, Header.VALUE_CONNECTION_KEEP_ALIVE)
+                .appendHeader(Header.KEY_CONTENT_TYPE, Header.VALUE_CONTENT_TYPE_HTML_UTF8)
                 .setBody("ololo".getBytes());
     }
 
@@ -89,7 +89,7 @@ public class HttpServer extends EpollServer<HttpConnection> {
                     startWriting(connection);
                     return;
                 }
-                if (Header.VALUE_CONNECTION_CLOSE.equalsIgnoreCase(headers.get(Header.KEY_CONNECTION))) {
+                if (Header.VALUE_CONNECTION_CLOSE.value.equalsIgnoreCase(headers.get(Header.KEY_CONNECTION))) {
                     close(connection);
                     connection.reset("close. not keep-alive");
                 }

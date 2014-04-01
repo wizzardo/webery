@@ -2,6 +2,7 @@ package com.wizzardo.httpserver.response;
 
 import com.wizzardo.epoll.readable.ReadableBytes;
 import com.wizzardo.httpserver.ReadableBuilder;
+import com.wizzardo.httpserver.request.Header;
 import simplehttpserver.HttpResponse;
 
 import java.util.LinkedHashMap;
@@ -14,7 +15,7 @@ import java.util.Map;
 public class Response {
     private static final byte[] LINE_SEPARATOR = "\r\n".getBytes();
     private static final byte[] HEADER_SEPARATOR = ": ".getBytes();
-    private Map<String, String> headers = new LinkedHashMap<String, String>();
+    private Map<byte[], byte[]> headers = new LinkedHashMap<byte[], byte[]>();
 
     private HttpResponse.Status status = HttpResponse.Status._200;
     private byte[] body;
@@ -25,20 +26,30 @@ public class Response {
     }
 
     public Response appendHeader(String key, String value) {
-        headers.put(key, value);
+        headers.put(key.getBytes(), value.getBytes());
+        return this;
+    }
+
+    public Response appendHeader(Header key, String value) {
+        headers.put(key.bytes, value.getBytes());
+        return this;
+    }
+
+    public Response appendHeader(Header key, Header value) {
+        headers.put(key.bytes, value.bytes);
         return this;
     }
 
     public ReadableBytes toReadableByteArray() {
         ReadableBuilder builder = new ReadableBuilder(status.header);
-        for (Map.Entry<String, String> header : headers.entrySet()) {
-            builder.append(header.getKey().getBytes())
+        for (Map.Entry<byte[], byte[]> header : headers.entrySet()) {
+            builder.append(header.getKey())
                     .append(HEADER_SEPARATOR)
-                    .append(header.getValue().getBytes())
+                    .append(header.getValue())
                     .append(LINE_SEPARATOR);
         }
 
-        builder.append("Content-Length".getBytes())
+        builder.append(Header.KEY_CONTENT_LENGTH.bytes)
                 .append(HEADER_SEPARATOR)
                 .append(String.valueOf(body.length).getBytes())
                 .append(LINE_SEPARATOR);
