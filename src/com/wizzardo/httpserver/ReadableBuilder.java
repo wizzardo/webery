@@ -73,6 +73,6 @@ public class ReadableBuilder implements ReadableBytes {
 
     @Override
     public boolean isComplete() {
-        return position == partsCount - 1;
+        return position == partsCount - 1 && parts[position].isComplete();
     }
 }
