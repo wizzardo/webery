@@ -39,9 +39,11 @@ public class HttpServer extends EpollServer<HttpConnection> {
                 try {
 
                     while ((b = read(connection, connection.getBufferSize())).limit() > 0) {
-                        if (!connection.check(b))
-                            return;
+                        if (connection.check(b))
+                            break;
                     }
+                    if (!connection.isHttpReady())
+                        return;
 
                 } catch (IOException e) {
                     e.printStackTrace();

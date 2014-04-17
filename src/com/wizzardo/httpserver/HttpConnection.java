@@ -20,47 +20,33 @@ public class HttpConnection extends Connection {
     private HttpHeadersReader headersReader;
     private RequestHeaders headers;
 
-    private static final byte[] EMPTY = new byte[0];
-
     public HttpConnection(int fd, int ip, int port) {
         super(fd, ip, port);
     }
 
     int getBufferSize() {
-        return 1024;
+        return data.length - position;
     }
 
     public boolean check(ByteBuffer bb) {
-        if (bb.limit() > data.length - r) {
-            byte[] b = new byte[(int) (bb.limit() * 1.5)];
-            try {
-                System.arraycopy(data, 0, b, 0, r);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-            data = b;
-        }
         int limit = bb.limit();
-        bb.get(data, r, limit);
+        bb.get(data, 0, limit);
         if (headersReader == null)
             headersReader = new HttpHeadersReader();
 
-        int i = headersReader.read(data, r, limit);
-        r += limit;
+        int i = headersReader.read(data, 0, limit);
 
         if (i < 0)
             return false;
         position = i;
+        r = limit;
         headers = headersReader.getHeaders();
+        headerReady = true;
         return true;
     }
 
     public boolean isHttpReady() {
         return headerReady;
-    }
-
-    public int getHeaderLength() {
-        return position - 4;
     }
 
     public void reset(String reason) {
