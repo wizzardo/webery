@@ -1,7 +1,8 @@
 package com.wizzardo.httpserver;
 
 import com.wizzardo.epoll.Connection;
-import com.wizzardo.epoll.readable.ReadableBytes;
+import com.wizzardo.epoll.readable.ReadableData;
+import com.wizzardo.httpserver.request.Header;
 import com.wizzardo.httpserver.request.HttpHeadersReader;
 import com.wizzardo.httpserver.request.RequestHeaders;
 
@@ -11,17 +12,16 @@ import java.nio.ByteBuffer;
  * @author: wizzardo
  * Date: 3/14/14
  */
-public class HttpConnection extends Connection {
+public class HttpConnection extends Connection<HttpServer> {
     private boolean headerReady = false;
     private byte[] data = new byte[1024];
     private volatile int r = 0;
     private volatile int position = 0;
-    private volatile ReadableBytes dataToWrite;
     private HttpHeadersReader headersReader;
     private RequestHeaders headers;
 
-    public HttpConnection(int fd, int ip, int port) {
-        super(fd, ip, port);
+    public HttpConnection(HttpServer server, int fd, int ip, int port) {
+        super(server, fd, ip, port);
     }
 
     int getBufferSize() {
@@ -56,12 +56,11 @@ public class HttpConnection extends Connection {
         headersReader = null;
     }
 
-    void setDataToWrite(ReadableBytes dataToWrite) {
-        this.dataToWrite = dataToWrite;
-    }
-
-    ReadableBytes getDataToWrite() {
-        return dataToWrite;
+    @Override
+    public void onWriteData(ReadableData readable, boolean hasMore) {
+        if (!Header.VALUE_CONNECTION_KEEP_ALIVE.value.equalsIgnoreCase(headers.get(Header.KEY_CONNECTION))) {
+            epoll.close(this);
+        }
     }
 
     public RequestHeaders getHeaders() {

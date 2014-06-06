@@ -1,9 +1,7 @@
 package com.wizzardo.httpserver;
 
 import com.wizzardo.epoll.EpollServer;
-import com.wizzardo.epoll.readable.ReadableBytes;
 import com.wizzardo.httpserver.request.Header;
-import com.wizzardo.httpserver.request.RequestHeaders;
 import com.wizzardo.httpserver.response.Response;
 import simplehttpserver.concurrent.NonBlockingQueue;
 
@@ -18,7 +16,12 @@ public class HttpServer extends EpollServer<HttpConnection> {
 
     private NonBlockingQueue<Runnable> queue = new NonBlockingQueue<Runnable>();
 
-    public HttpServer() {
+    public HttpServer(int port) {
+        this(null, port);
+    }
+
+    public HttpServer(String host, int port) {
+        super(host, port);
         for (int i = 0; i < 16; i++) {
             new Worker(queue, "worker_" + i);
         }
@@ -26,11 +29,11 @@ public class HttpServer extends EpollServer<HttpConnection> {
 
     @Override
     protected HttpConnection createConnection(int fd, int ip, int port) {
-        return new HttpConnection(fd, ip, port);
+        return new HttpConnection(this, fd, ip, port);
     }
 
     @Override
-    public void readyToRead(final HttpConnection connection) {
+    public void onRead(final HttpConnection connection) {
 
         queue.add(new Runnable() {
             @Override
@@ -57,66 +60,43 @@ public class HttpServer extends EpollServer<HttpConnection> {
                 try {
                     Response response = handleRequest(connection);
 
-                    connection.setDataToWrite(response.toReadableBytes());
+                    connection.write(response.toReadableBytes());
                 } catch (Throwable t) {
                     t.printStackTrace();
                     //TODO render error page
                 }
 
-                readyToWrite(connection);
+                onWrite(connection);
             }
         });
 
     }
+//    final byte[] bytes = FileTools.bytes(new File("/usr/share/nginx/html/resources/data/img.jpg"));
 
     public Response handleRequest(HttpConnection connection) {
         return new Response()
                 .appendHeader(Header.KEY_CONNECTION, Header.VALUE_CONNECTION_KEEP_ALIVE)
                 .appendHeader(Header.KEY_CONTENT_TYPE, Header.VALUE_CONTENT_TYPE_HTML_UTF8)
                 .setBody("It's alive!".getBytes());
-    }
-
-    @Override
-    public void readyToWrite(final HttpConnection connection) {
-        try {
-            ReadableBytes data = connection.getDataToWrite();
-            RequestHeaders headers = connection.getHeaders();
-            if (data == null || data.isComplete()) {
-                stopWriting(connection);
-                readyToRead(connection);
-            } else {
-                while (!data.isComplete() && write(connection, data) > 0) {
-                }
-                if (!data.isComplete()) {
-                    startWriting(connection);
-                    return;
-                }
-                if (Header.VALUE_CONNECTION_CLOSE.value.equalsIgnoreCase(headers.get(Header.KEY_CONNECTION))) {
-                    close(connection);
-                    connection.reset("close. not keep-alive");
-                }
-            }
-        } catch (IOException e) {
-            close(connection);
-            onCloseConnection(connection);
-            e.printStackTrace();
-        }
+//        return new Response()
+//                .appendHeader(Header.KEY_CONNECTION, Header.VALUE_CONNECTION_KEEP_ALIVE)
+//                .appendHeader(Header.KEY_CONTENT_TYPE, "image/jpg")
+//                .setBody(bytes);
     }
 
 
     @Override
-    public void onOpenConnection(HttpConnection httpConnection) {
+    public void onConnect(HttpConnection httpConnection) {
 //        System.out.println("new connection " + httpConnection);
     }
 
     @Override
-    public void onCloseConnection(HttpConnection httpConnection) {
+    public void onDisconnect(HttpConnection httpConnection) {
 //        System.out.println("close " + httpConnection);
     }
 
     public static void main(String[] args) {
-        HttpServer server = new HttpServer();
-        server.bind(8084, 1000);
+        HttpServer server = new HttpServer(8084);
         server.start();
     }
 }

@@ -1,6 +1,6 @@
 package com.wizzardo.httpserver.response;
 
-import com.wizzardo.epoll.readable.ReadableBytes;
+import com.wizzardo.epoll.readable.ReadableData;
 import com.wizzardo.httpserver.ReadableBuilder;
 import com.wizzardo.httpserver.request.Header;
 
@@ -82,7 +82,7 @@ public class Response {
         headers = temp;
     }
 
-    public ReadableBytes toReadableBytes() {
+    public ReadableData toReadableBytes() {
         ReadableBuilder builder = new ReadableBuilder(status.header);
         for (int i = 0; i < headersCount; i += 2) {
             builder.append(headers[i])
