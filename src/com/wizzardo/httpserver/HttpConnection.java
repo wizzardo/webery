@@ -4,24 +4,25 @@ import com.wizzardo.epoll.Connection;
 import com.wizzardo.epoll.readable.ReadableData;
 import com.wizzardo.httpserver.request.Header;
 import com.wizzardo.httpserver.request.HttpHeadersReader;
-import com.wizzardo.httpserver.request.RequestHeaders;
 
 import java.nio.ByteBuffer;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 /**
  * @author: wizzardo
  * Date: 3/14/14
  */
-public class HttpConnection extends Connection<HttpServer> {
+public class HttpConnection extends Connection {
     private boolean headerReady = false;
     private byte[] data = new byte[1024];
     private volatile int r = 0;
     private volatile int position = 0;
     private HttpHeadersReader headersReader;
-    private RequestHeaders headers;
+    private Map<String, String> headers;
 
-    public HttpConnection(HttpServer server, int fd, int ip, int port) {
-        super(server, fd, ip, port);
+    public HttpConnection(int fd, int ip, int port) {
+        super(fd, ip, port);
     }
 
     int getBufferSize() {
@@ -32,7 +33,7 @@ public class HttpConnection extends Connection<HttpServer> {
         int limit = bb.limit();
         bb.get(data, 0, limit);
         if (headersReader == null)
-            headersReader = new HttpHeadersReader();
+            headersReader = new HttpHeadersReader(new LinkedHashMap<String, String>(20));
 
         int i = headersReader.read(data, 0, limit);
 
@@ -58,12 +59,8 @@ public class HttpConnection extends Connection<HttpServer> {
 
     @Override
     public void onWriteData(ReadableData readable, boolean hasMore) {
-        if (!Header.VALUE_CONNECTION_KEEP_ALIVE.value.equalsIgnoreCase(headers.get(Header.KEY_CONNECTION))) {
+        if (!Header.VALUE_CONNECTION_KEEP_ALIVE.value.equalsIgnoreCase(headers.get(Header.KEY_CONNECTION.value))) {
             epoll.close(this);
         }
-    }
-
-    public RequestHeaders getHeaders() {
-        return headers;
     }
 }

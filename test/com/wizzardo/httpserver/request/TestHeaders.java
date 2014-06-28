@@ -10,8 +10,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
-import java.util.LinkedHashMap;
-import java.util.Map;
 import java.util.Random;
 
 /**
@@ -109,75 +107,6 @@ public class TestHeaders {
         Assert.assertEquals("en-US,en;q=0.8,ru;q=0.6", hhr.headers.get("Accept-Language"));
         Assert.assertEquals("JSESSIONID=1dt8eiw5zc9t4j2o9asxcgmzq; __utma=107222046.2138525965.1372169768.1372169768.1372685422.2; __utmz=107222046.1372169768.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none)", hhr.headers.get("Cookie"));
 
-    }
-
-    //    @Test
-    public void benchmarkHeaders() throws InterruptedException {
-        Map<String, String> lhm = new LinkedHashMap<String, String>();
-//        Map<String, String> headers = new Headers();
-        RequestHeaders headers = new RequestHeaders();
-
-        put("Host", "moxa.no-ip.biz", lhm, headers);
-        put("Connection", "keep-alive", lhm, headers);
-        put("Cache-Control", "no-cache", lhm, headers);
-        put("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8", lhm, headers);
-        put("Pragma", "no-cache", lhm, headers);
-        put("User-Agent", "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/30.0.1599.114 Safari/537.36", lhm, headers);
-        put("Accept-Encoding", "gzip,deflate,sdch", lhm, headers);
-        put("Accept-Language", "en-US,en;q=0.8,ru;q=0.6", lhm, headers);
-        put("Cookie", "JSESSIONID=1dt8eiw5zc9t4j2o9asxcgmzq; __utma=107222046.2138525965.1372169768.1372169768.1372685422.2; __utmz=107222046.1372169768.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none)", lhm, headers);
-
-
-        Assert.assertEquals("moxa.no-ip.biz", headers.get("Host"));
-        Assert.assertEquals("keep-alive", headers.get("Connection"));
-        Assert.assertEquals("no-cache", headers.get("Cache-Control"));
-        Assert.assertEquals("text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8", headers.get("Accept"));
-        Assert.assertEquals("no-cache", headers.get("Pragma"));
-        Assert.assertEquals("Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/30.0.1599.114 Safari/537.36", headers.get("User-Agent"));
-        Assert.assertEquals("gzip,deflate,sdch", headers.get("Accept-Encoding"));
-        Assert.assertEquals("en-US,en;q=0.8,ru;q=0.6", headers.get("Accept-Language"));
-        Assert.assertEquals("JSESSIONID=1dt8eiw5zc9t4j2o9asxcgmzq; __utma=107222046.2138525965.1372169768.1372169768.1372685422.2; __utmz=107222046.1372169768.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none)", headers.get("Cookie"));
-
-
-        int n = 10000000;
-//        String key = new String("Host");
-//        String key = new String("Cookie");
-        String key = "Cookie";
-//        String key = new String("User-Agent");
-        long total = 0;
-
-        for (int i = 0; i < 10; i++) {
-            long time = System.currentTimeMillis();
-            for (int j = 0; j < n; j++) {
-                total += headers.get(key).length();
-            }
-            time = System.currentTimeMillis() - time;
-            System.out.println("headers time:\t" + time);
-            Thread.sleep(1000);
-
-
-            time = System.currentTimeMillis();
-            for (int j = 0; j < n; j++) {
-                total += lhm.get(key).length();
-            }
-            time = System.currentTimeMillis() - time;
-            System.out.println("lhm time:\t" + time);
-            Thread.sleep(1000);
-
-            System.out.println();
-        }
-
-        System.out.println("total: " + total);
-    }
-
-    private void put(String key, String value, Map<String, String> map1, Map<String, String> map2) {
-        map1.put(key, value);
-        map2.put(key, value);
-    }
-
-    private void put(String key, String value, Map<String, String> map1, RequestHeaders map2) {
-        map1.put(key, value);
-        map2.put(key, value);
     }
 
     //    @Test
