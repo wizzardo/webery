@@ -27,6 +27,18 @@ public class HttpHeadersReader {
         this(null);
     }
 
+    public String getMethod() {
+        return method;
+    }
+
+    public String getPath() {
+        return path;
+    }
+
+    public String getProtocol() {
+        return protocol;
+    }
+
     public HttpHeadersReader(Map<String, String> headers) {
         if (headers == null)
             headers = new LinkedHashMap<String, String>(175);

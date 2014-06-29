@@ -14,12 +14,12 @@ import java.util.Map;
  * Date: 3/14/14
  */
 public class HttpConnection extends Connection {
-    private boolean headerReady = false;
-    private byte[] data = new byte[1024];
+    private volatile byte[] data = new byte[1024];
     private volatile int r = 0;
     private volatile int position = 0;
+    private volatile Map<String, String> headers;
+    private boolean headerReady = false;
     private HttpHeadersReader headersReader;
-    private Map<String, String> headers;
 
     public HttpConnection(int fd, int ip, int port) {
         super(fd, ip, port);
@@ -60,7 +60,11 @@ public class HttpConnection extends Connection {
     @Override
     public void onWriteData(ReadableData readable, boolean hasMore) {
         if (!Header.VALUE_CONNECTION_KEEP_ALIVE.value.equalsIgnoreCase(headers.get(Header.KEY_CONNECTION.value))) {
-            epoll.close(this);
+            close();
         }
+    }
+
+    public HttpHeadersReader getHeadersReader(){
+        return headersReader;
     }
 }
