@@ -1,7 +1,7 @@
 package com.wizzardo.httpserver.response;
 
+import com.wizzardo.epoll.readable.ReadableBuilder;
 import com.wizzardo.epoll.readable.ReadableData;
-import com.wizzardo.httpserver.ReadableBuilder;
 import com.wizzardo.httpserver.request.Header;
 
 import java.util.Arrays;
