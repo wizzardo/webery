@@ -3,7 +3,7 @@ package com.wizzardo.httpserver;
 import com.wizzardo.epoll.Connection;
 import com.wizzardo.epoll.readable.ReadableData;
 import com.wizzardo.httpserver.request.Header;
-import com.wizzardo.httpserver.request.HttpHeadersReader;
+import com.wizzardo.httpserver.request.RequestReader;
 import com.wizzardo.httpserver.request.Request;
 
 import java.nio.ByteBuffer;
@@ -19,7 +19,7 @@ public class HttpConnection extends Connection {
     private volatile int position = 0;
     private volatile Request request;
     private boolean headerReady = false;
-    private HttpHeadersReader headersReader;
+    private RequestReader headersReader;
 
     public HttpConnection(int fd, int ip, int port) {
         super(fd, ip, port);
@@ -33,7 +33,7 @@ public class HttpConnection extends Connection {
         int limit = bb.limit();
         bb.get(data, 0, limit);
         if (headersReader == null)
-            headersReader = new HttpHeadersReader(new LinkedHashMap<String, HeaderValue>(20));
+            headersReader = new RequestReader(new LinkedHashMap<String, HeaderValue>(20));
 
         int i = headersReader.read(data, 0, limit);
 
@@ -64,7 +64,7 @@ public class HttpConnection extends Connection {
         }
     }
 
-    public HttpHeadersReader getHeadersReader() {
+    public RequestReader getHeadersReader() {
         return headersReader;
     }
 

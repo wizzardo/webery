@@ -11,7 +11,7 @@ import java.util.Map;
  * @author: moxa
  * Date: 12/2/13
  */
-public class HttpHeadersReader {
+public class RequestReader {
     protected Map<String, HeaderValue> headers;
     protected String method;
     protected String path;
@@ -24,7 +24,7 @@ public class HttpHeadersReader {
 
     protected boolean complete = false;
 
-    public HttpHeadersReader() {
+    public RequestReader() {
         this(null);
     }
 
@@ -40,7 +40,7 @@ public class HttpHeadersReader {
         return protocol;
     }
 
-    public HttpHeadersReader(Map<String, HeaderValue> headers) {
+    public RequestReader(Map<String, HeaderValue> headers) {
         if (headers == null)
             headers = new LinkedHashMap<String, HeaderValue>(175);
         this.headers = headers;

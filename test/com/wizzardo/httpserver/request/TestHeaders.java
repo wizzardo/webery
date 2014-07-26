@@ -31,68 +31,69 @@ public class TestHeaders {
             "Cookie: JSESSIONID=1dt8eiw5zc9t4j2o9asxcgmzq; __utma=107222046.2138525965.1372169768.1372169768.1372685422.2; __utmz=107222046.1372169768.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none)\r\n" +
             "\r\nololo data foo bar";
 
-    HttpHeadersReader hhr = new HttpHeadersReader();
+    RequestReader reader = new RequestReader();
 
     @Test
     public void test1() {
-        Assert.assertEquals(src.indexOf("\r\n\r\n") + 4, hhr.read(src.getBytes()));
-        test(hhr);
+        Assert.assertEquals(src.indexOf("\r\n\r\n") + 4, reader.read(src.getBytes()));
+        test(reader);
     }
 
     @Test
     public void test2() {
         byte[] bytes = src.getBytes();
-        for (int i = 0; i < bytes.length && !hhr.complete; i++) {
-            hhr.read(bytes, i, 1);
+        for (int i = 0; i < bytes.length && !reader.complete; i++) {
+            reader.read(bytes, i, 1);
         }
 
-        test(hhr);
+        test(reader);
     }
 
     @Test
     public void test3() {
         byte[] bytes = src.getBytes();
-        for (int i = 0; i < bytes.length && !hhr.complete; i += 2) {
-            hhr.read(bytes, i, 2);
+        for (int i = 0; i < bytes.length && !reader.complete; i += 2) {
+            reader.read(bytes, i, 2);
         }
 
-        test(hhr);
+        test(reader);
     }
 
     @Test
     public void test4() {
         byte[] bytes = src.getBytes();
-        for (int i = 0; i < bytes.length && !hhr.complete; i += 3) {
-            hhr.read(bytes, i, 3);
+        for (int i = 0; i < bytes.length && !reader.complete; i += 3) {
+            reader.read(bytes, i, 3);
         }
 
-        test(hhr);
+        test(reader);
     }
+
     @Test
     public void test6() {
         byte[] bytes = src.getBytes();
         int j = 7;
-        for (int i = 0; i < bytes.length && !hhr.complete; i += j) {
-            hhr.read(bytes, i, i+j>bytes.length?bytes.length-i:j);
+        for (int i = 0; i < bytes.length && !reader.complete; i += j) {
+            reader.read(bytes, i, i + j > bytes.length ? bytes.length - i : j);
         }
 
-        test(hhr);
+        test(reader);
     }
 
     @Test
     public void test5() {
         byte[] bytes = src.getBytes();
         for (int j = 1; j < bytes.length; j++) {
-            hhr = new HttpHeadersReader();
+            reader = new RequestReader();
 //            System.out.println(j);
-            for (int i = 0; i < bytes.length && !hhr.complete; i += j) {
-                hhr.read(bytes, i, i+j>bytes.length?bytes.length-i:j);
+            for (int i = 0; i < bytes.length && !reader.complete; i += j) {
+                reader.read(bytes, i, i + j > bytes.length ? bytes.length - i : j);
             }
-            test(hhr);
+            test(reader);
         }
     }
 
-    private void test(HttpHeadersReader hhr) {
+    private void test(RequestReader hhr) {
         Assert.assertEquals("GET", hhr.method);
         Assert.assertEquals("/http/", hhr.path);
         Assert.assertEquals(true, hhr.complete);
@@ -126,11 +127,11 @@ public class TestHeaders {
 
 
             for (int j = 0; j < n; j++) {
-                hhr = new HttpHeadersReader();
+                reader = new RequestReader();
                 bytes = data[j % 100];
                 totalBytes += bytes.length;
-                hhr.read(bytes);
-                assert hhr.complete;
+                reader.read(bytes);
+                assert reader.complete;
             }
 
             time = System.currentTimeMillis() - time;
