@@ -4,10 +4,10 @@ import com.wizzardo.epoll.Connection;
 import com.wizzardo.epoll.readable.ReadableData;
 import com.wizzardo.httpserver.request.Header;
 import com.wizzardo.httpserver.request.HttpHeadersReader;
+import com.wizzardo.httpserver.request.Request;
 
 import java.nio.ByteBuffer;
 import java.util.LinkedHashMap;
-import java.util.Map;
 
 /**
  * @author: wizzardo
@@ -17,7 +17,7 @@ public class HttpConnection extends Connection {
     private volatile byte[] data = new byte[1024];
     private volatile int r = 0;
     private volatile int position = 0;
-    private volatile Map<String, String> headers;
+    private volatile Request request;
     private boolean headerReady = false;
     private HttpHeadersReader headersReader;
 
@@ -33,7 +33,7 @@ public class HttpConnection extends Connection {
         int limit = bb.limit();
         bb.get(data, 0, limit);
         if (headersReader == null)
-            headersReader = new HttpHeadersReader(new LinkedHashMap<String, String>(20));
+            headersReader = new HttpHeadersReader(new LinkedHashMap<String, HeaderValue>(20));
 
         int i = headersReader.read(data, 0, limit);
 
@@ -41,12 +41,12 @@ public class HttpConnection extends Connection {
             return false;
         position = i;
         r = limit;
-        headers = headersReader.getHeaders();
+        request = new Request(this, headersReader.getHeaders(), headersReader.getMethod(), headersReader.getPath());
         headerReady = true;
         return true;
     }
 
-    public boolean isHttpReady() {
+    public boolean isRequestReady() {
         return headerReady;
     }
 
@@ -59,12 +59,16 @@ public class HttpConnection extends Connection {
 
     @Override
     public void onWriteData(ReadableData readable, boolean hasMore) {
-        if (!Header.VALUE_CONNECTION_KEEP_ALIVE.value.equalsIgnoreCase(headers.get(Header.KEY_CONNECTION.value))) {
+        if (!Header.VALUE_CONNECTION_KEEP_ALIVE.value.equalsIgnoreCase(request.header(Header.KEY_CONNECTION.value))) {
             close();
         }
     }
 
-    public HttpHeadersReader getHeadersReader(){
+    public HttpHeadersReader getHeadersReader() {
         return headersReader;
+    }
+
+    public Request getRequest() {
+        return request;
     }
 }

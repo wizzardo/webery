@@ -3,6 +3,7 @@ package com.wizzardo.httpserver;
 import com.wizzardo.epoll.EpollServer;
 import com.wizzardo.epoll.IOThread;
 import com.wizzardo.httpserver.request.Header;
+import com.wizzardo.httpserver.request.Request;
 import com.wizzardo.httpserver.response.Response;
 import simplehttpserver.concurrent.NonBlockingQueue;
 
@@ -49,7 +50,22 @@ public class HttpServer extends EpollServer<HttpConnection> {
 
         @Override
         public void onRead(final HttpConnection connection) {
-            Runnable runnable = new Runnable() {
+            final Runnable write = new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        Response response = handleRequest(connection.getRequest());
+
+                        connection.reset("end");
+                        connection.write(response.toReadableBytes());
+                    } catch (Throwable t) {
+                        t.printStackTrace();
+                        //TODO render error page
+                    }
+                }
+            };
+
+            Runnable read = new Runnable() {
                 @Override
                 public void run() {
                     ByteBuffer b;
@@ -59,7 +75,7 @@ public class HttpServer extends EpollServer<HttpConnection> {
                             if (connection.check(b))
                                 break;
                         }
-                        if (!connection.isHttpReady())
+                        if (!connection.isRequestReady())
                             return;
 
                     } catch (IOException e) {
@@ -69,24 +85,18 @@ public class HttpServer extends EpollServer<HttpConnection> {
                         return;
                     }
 
-                    connection.reset("read headers");
-
-                    try {
-                        Response response = handleRequest(connection);
-
-                        connection.write(response.toReadableBytes());
-                    } catch (Throwable t) {
-                        t.printStackTrace();
-                        //TODO render error page
-                    }
-
-                    onWrite(connection);
+//                    RequestStats rs = requestStats.get(connection.getHeadersReader().getPath());
+//                    if (workersCount > 0 && (rs == null || rs.duration > 3))
+                    queue.add(write);
+//                    else
+//                    write.run();
                 }
             };
-            if (workersCount > 0)
-                queue.add(runnable);
-            else
-                runnable.run();
+
+//            if (workersCount > 0)
+//                queue.add(read);
+////            else
+            read.run();
         }
 
         @Override
@@ -98,23 +108,41 @@ public class HttpServer extends EpollServer<HttpConnection> {
         public void onDisconnect(HttpConnection httpConnection) {
 //        System.out.println("close " + httpConnection);
         }
+    }
 
-//    final byte[] bytes = FileTools.bytes(new File("/usr/share/nginx/html/resources/data/img.jpg"));
 
-        public Response handleRequest(HttpConnection connection) {
-            return new Response()
-                    .appendHeader(Header.KEY_CONNECTION, Header.VALUE_CONNECTION_KEEP_ALIVE)
-                    .appendHeader(Header.KEY_CONTENT_TYPE, Header.VALUE_CONTENT_TYPE_HTML_UTF8)
-                    .setBody("It's alive!".getBytes());
+//        final byte[] bytes = FileTools.bytes(new File("/usr/share/nginx/html/resources/data/img.jpg"));
+
+    private Response staticResponse = new Response()
+            .appendHeader(Header.KEY_CONNECTION, Header.VALUE_CONNECTION_KEEP_ALIVE)
+            .appendHeader(Header.KEY_CONTENT_TYPE, Header.VALUE_CONTENT_TYPE_HTML_UTF8)
+            .setBody("It's alive!".getBytes())
+            .makeStatic();
+//        private Response staticResponse = new Response()
+//                .appendHeader(Header.KEY_CONNECTION, Header.VALUE_CONNECTION_KEEP_ALIVE)
+//                .appendHeader(Header.KEY_CONTENT_TYPE, "image/jpg")
+//                .setBody(bytes)
+//                .makeStatic();
+
+    public Response handleRequest(Request request) {
+//            try {
+//                Thread.sleep(1);
+//            } catch (InterruptedException ignored) {
+//            }
+//            return new Response()
+//                    .appendHeader(Header.KEY_CONNECTION, Header.VALUE_CONNECTION_KEEP_ALIVE)
+//                    .appendHeader(Header.KEY_CONTENT_TYPE, Header.VALUE_CONTENT_TYPE_HTML_UTF8)
+//                    .setBody("It's alive!".getBytes());
 //        return new Response()
 //                .appendHeader(Header.KEY_CONNECTION, Header.VALUE_CONNECTION_KEEP_ALIVE)
 //                .appendHeader(Header.KEY_CONTENT_TYPE, "image/jpg")
 //                .setBody(bytes);
-        }
+        return staticResponse;
     }
 
     public static void main(String[] args) {
         HttpServer server = new HttpServer(null, 8084, args.length > 0 ? Integer.parseInt(args[0]) : 16);
+        server.setIoThreadsCount(args.length > 1 ? Integer.parseInt(args[1]) : 8);
         server.start();
     }
 }

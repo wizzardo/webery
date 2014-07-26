@@ -1,6 +1,8 @@
 package com.wizzardo.httpserver.response;
 
+import com.wizzardo.epoll.ByteBufferWrapper;
 import com.wizzardo.epoll.readable.ReadableBuilder;
+import com.wizzardo.epoll.readable.ReadableByteBuffer;
 import com.wizzardo.epoll.readable.ReadableData;
 import com.wizzardo.httpserver.request.Header;
 
@@ -19,6 +21,10 @@ public class Response {
 
     private Status status = Status._200;
     private byte[] body;
+
+    public Response setBody(String s) {
+        return setBody(s.getBytes());
+    }
 
     public Response setBody(byte[] body) {
         this.body = body;
@@ -94,5 +100,27 @@ public class Response {
         builder.append(LINE_SEPARATOR);
         builder.append(body);
         return builder;
+    }
+
+    public Response makeStatic() {
+        return new StaticResponse(toReadableBytes());
+    }
+
+    private static class StaticResponse extends Response {
+        ReadableByteBuffer readable;
+
+        public StaticResponse(ReadableByteBuffer readable) {
+            this.readable = readable;
+        }
+
+        public StaticResponse(ReadableData readable) {
+            ByteBufferWrapper wrapper = new ByteBufferWrapper(readable);
+            this.readable = new ReadableByteBuffer(wrapper);
+        }
+
+        @Override
+        public ReadableData toReadableBytes() {
+            return readable.copy();
+        }
     }
 }
