@@ -1,5 +1,6 @@
 package com.wizzardo.httpserver.request;
 
+import com.wizzardo.httpserver.HeaderValue;
 import sun.misc.Unsafe;
 
 import java.lang.reflect.Field;
@@ -11,7 +12,7 @@ import java.util.Map;
  * Date: 12/2/13
  */
 public class HttpHeadersReader {
-    protected Map<String, String> headers;
+    protected Map<String, HeaderValue> headers;
     protected String method;
     protected String path;
     protected String protocol;
@@ -39,9 +40,9 @@ public class HttpHeadersReader {
         return protocol;
     }
 
-    public HttpHeadersReader(Map<String, String> headers) {
+    public HttpHeadersReader(Map<String, HeaderValue> headers) {
         if (headers == null)
-            headers = new LinkedHashMap<String, String>(175);
+            headers = new LinkedHashMap<String, HeaderValue>(175);
         this.headers = headers;
     }
 
@@ -81,7 +82,7 @@ public class HttpHeadersReader {
                         if (chars[i - 1] == 13) {  // \r
                             waitForNewLine = false;
                             if (tempKey != null) {
-                                headers.put(tempKey, getValue(chars, offset, i - offset - 1));
+                                put(tempKey, getValue(chars, offset, i - offset - 1));
 //                                    headers.put(tempKey, getValue(s, offset, i - offset - 1));
 //                                offset++;
                                 tempKey = null;
@@ -94,7 +95,7 @@ public class HttpHeadersReader {
                     } else if (i == offset && r > 0 && buffer[r - 1] == 13) {
                         waitForNewLine = false;
                         if (tempKey != null) {
-                            headers.put(tempKey, getValue(chars, offset, i - offset - 1));
+                            put(tempKey, getValue(chars, offset, i - offset - 1));
 //                                headers.put(tempKey, getValue(s, offset, i - offset - 1));
 //                            offset++;
                             tempKey = null;
@@ -107,7 +108,7 @@ public class HttpHeadersReader {
                 } else if (ch == 13 && ++i < l && chars[i] == 10) {
                     waitForNewLine = false;
                     if (tempKey != null) {
-                        headers.put(tempKey, getValue(chars, offset, i - offset - 1));
+                        put(tempKey, getValue(chars, offset, i - offset - 1));
 //                            headers.put(tempKey, getValue( offset, i - offset - 1));
 //                        offset++;
                         tempKey = null;
@@ -169,6 +170,11 @@ public class HttpHeadersReader {
         return parseHeaders(bytes, offset, length);
     }
 
+    private void put(String key, String value) {
+        HeaderValue hv = headers.putIfAbsent(key, new HeaderValue(value));
+        if (hv != null)
+            hv.append(value);
+    }
 
     private void putIntoBuffer(byte[] bytes, int offset, int length) {
         if (buffer == null) {
@@ -213,7 +219,7 @@ public class HttpHeadersReader {
         return AsciiReader.read(chars, offset, length);
     }
 
-    public Map<String, String> getHeaders() {
+    public Map<String, HeaderValue> getHeaders() {
         return headers;
     }
 
@@ -289,7 +295,7 @@ public class HttpHeadersReader {
         }
 
         public static String read(byte[] bytes, int offset, int length) {
-            if (length == 0)
+            if (length <= 0)
                 return new String();
 
             int h = 0;

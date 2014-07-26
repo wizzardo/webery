@@ -97,15 +97,15 @@ public class TestHeaders {
         Assert.assertEquals("/http/", hhr.path);
         Assert.assertEquals(true, hhr.complete);
 
-        Assert.assertEquals("moxa.no-ip.biz", hhr.headers.get("Host"));
-        Assert.assertEquals("keep-alive", hhr.headers.get("Connection"));
-        Assert.assertEquals("no-cache", hhr.headers.get("Cache-Control"));
-        Assert.assertEquals("text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8", hhr.headers.get("Accept"));
-        Assert.assertEquals("no-cache", hhr.headers.get("Pragma"));
-        Assert.assertEquals("Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/30.0.1599.114 Safari/537.36", hhr.headers.get("User-Agent"));
-        Assert.assertEquals("gzip,deflate,sdch", hhr.headers.get("Accept-Encoding"));
-        Assert.assertEquals("en-US,en;q=0.8,ru;q=0.6", hhr.headers.get("Accept-Language"));
-        Assert.assertEquals("JSESSIONID=1dt8eiw5zc9t4j2o9asxcgmzq; __utma=107222046.2138525965.1372169768.1372169768.1372685422.2; __utmz=107222046.1372169768.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none)", hhr.headers.get("Cookie"));
+        Assert.assertEquals("moxa.no-ip.biz", hhr.headers.get("Host").getValue());
+        Assert.assertEquals("keep-alive", hhr.headers.get("Connection").getValue());
+        Assert.assertEquals("no-cache", hhr.headers.get("Cache-Control").getValue());
+        Assert.assertEquals("text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8", hhr.headers.get("Accept").getValue());
+        Assert.assertEquals("no-cache", hhr.headers.get("Pragma").getValue());
+        Assert.assertEquals("Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/30.0.1599.114 Safari/537.36", hhr.headers.get("User-Agent").getValue());
+        Assert.assertEquals("gzip,deflate,sdch", hhr.headers.get("Accept-Encoding").getValue());
+        Assert.assertEquals("en-US,en;q=0.8,ru;q=0.6", hhr.headers.get("Accept-Language").getValue());
+        Assert.assertEquals("JSESSIONID=1dt8eiw5zc9t4j2o9asxcgmzq; __utma=107222046.2138525965.1372169768.1372169768.1372685422.2; __utmz=107222046.1372169768.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none)", hhr.headers.get("Cookie").getValue());
 
     }
 
