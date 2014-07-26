@@ -4,6 +4,7 @@ import com.wizzardo.httpserver.HttpServer;
 import com.wizzardo.httpserver.response.Response;
 import com.wizzardo.tools.http.HttpClient;
 import com.wizzardo.tools.io.IOTools;
+import com.wizzardo.tools.misc.WrappedException;
 import org.junit.After;
 import org.junit.Before;
 
@@ -25,7 +26,12 @@ public class ServerTest {
         server = new HttpServer(null, port, workers) {
             @Override
             public Response handleRequest(Request request) {
-                return handler.handleRequest(request);
+                try {
+                    return handler.handleRequest(request);
+                } catch (Throwable e) {
+                    request.connection().close();
+                    throw new WrappedException(e);
+                }
             }
         };
         server.setIoThreadsCount(1);

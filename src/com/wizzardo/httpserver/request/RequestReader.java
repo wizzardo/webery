@@ -1,9 +1,12 @@
 package com.wizzardo.httpserver.request;
 
-import com.wizzardo.httpserver.HeaderValue;
+import com.wizzardo.httpserver.HttpConnection;
+import com.wizzardo.httpserver.MultiValue;
 import sun.misc.Unsafe;
 
+import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Field;
+import java.net.URLDecoder;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -12,9 +15,11 @@ import java.util.Map;
  * Date: 12/2/13
  */
 public class RequestReader {
-    protected Map<String, HeaderValue> headers;
+    protected Map<String, MultiValue> headers;
+    protected Map<String, MultiValue> params;
     protected String method;
     protected String path;
+    protected String queryString = "";
     protected String protocol;
 
     private byte[] buffer;
@@ -40,14 +45,84 @@ public class RequestReader {
         return protocol;
     }
 
-    public RequestReader(Map<String, HeaderValue> headers) {
+    public RequestReader(Map<String, MultiValue> headers) {
         if (headers == null)
-            headers = new LinkedHashMap<String, HeaderValue>(175);
+            headers = new LinkedHashMap<String, MultiValue>(175);
         this.headers = headers;
+        params = new LinkedHashMap<String, MultiValue>();
+    }
+
+    public Request createRequest(HttpConnection connection) {
+        return new Request(connection, headers, params, method, path, queryString);
     }
 
     public int read(byte[] bytes) {
         return read(bytes, 0, bytes.length);
+    }
+
+    private void parsePath(byte[] chars, int offset, int length) {
+        int from = offset;
+        int to = offset + length;
+        for (int i = from; i < to; i++) {
+            if (chars[i] == '?') {
+                path = getValue(chars, from, i - from);
+                from = i + 1;
+                break;
+            }
+        }
+        if (path == null) {
+            path = getValue(chars, from, length);
+            return;
+        }
+
+        queryString = getValue(chars, from, to - from);
+
+        String key = null;
+        boolean isKey = true;
+        for (int i = from; i < to; i++) {
+            if (isKey) {
+                if (chars[i] == '=') {
+                    key = decodeParameter(getValue(chars, from, i - from));
+                    from = i + 1;
+                    isKey = false;
+                }
+                if (chars[i] == '&' && from != i - 1) {
+                    key = decodeParameter(getValue(chars, from, i - from));
+                    from = i + 1;
+                }
+            } else {
+                if (chars[i] == '&') {
+                    String value = decodeParameter(getValue(chars, from, i - from));
+                    from = i + 1;
+                    isKey = true;
+
+                    putParameter(key, value);
+                    key = null;
+                }
+            }
+        }
+        if (key != null) {
+            String value = decodeParameter(getValue(chars, from, to - from));
+            putParameter(key, value);
+        } else if (from < to) {
+            key = decodeParameter(getValue(chars, from, to - from));
+            putParameter(key, "");
+        }
+    }
+
+    private void putParameter(String key, String value) {
+        MultiValue multiValue = params.putIfAbsent(key, new MultiValue(value));
+        if (multiValue != null)
+            multiValue.append(value);
+    }
+
+    private String decodeParameter(String s) {
+        try {
+            return URLDecoder.decode(s, "utf-8");
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
     private int parseHeaders(byte[] chars, int offset, int length) {
@@ -59,7 +134,7 @@ public class RequestReader {
                     if (method == null)
                         method = getValue(chars, offset, i - offset);
                     else if (path == null) {
-                        path = getValue(chars, offset, i - offset);
+                        parsePath(chars, offset, i - offset);
                     }
 
                     i++;
@@ -171,7 +246,7 @@ public class RequestReader {
     }
 
     private void put(String key, String value) {
-        HeaderValue hv = headers.putIfAbsent(key, new HeaderValue(value));
+        MultiValue hv = headers.putIfAbsent(key, new MultiValue(value));
         if (hv != null)
             hv.append(value);
     }
@@ -219,7 +294,7 @@ public class RequestReader {
         return AsciiReader.read(chars, offset, length);
     }
 
-    public Map<String, HeaderValue> getHeaders() {
+    public Map<String, MultiValue> getHeaders() {
         return headers;
     }
 

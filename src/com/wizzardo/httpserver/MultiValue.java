@@ -7,11 +7,11 @@ import java.util.List;
  * @author: wizzardo
  * Date: 7/26/14
  */
-public class HeaderValue {
+public class MultiValue {
     private String value;
     private List<String> values;
 
-    public HeaderValue(String value) {
+    public MultiValue(String value) {
         this.value = value;
     }
 

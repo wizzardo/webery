@@ -43,4 +43,79 @@ public class TestRequest extends ServerTest {
 
         Assert.assertEquals("ok", curl("", "-H", "array: 1", "-H", "array: 2", "-H", "key: value"));
     }
+
+    @Test
+    public void testPath() throws IOException {
+        handler = new Handler() {
+            @Override
+            protected Response handleRequest(Request request) {
+                Assert.assertEquals("/", request.path());
+                return new Response().setBody("ok");
+            }
+        };
+
+        Assert.assertEquals("ok", makeRequest("").get().asString());
+
+        handler = new Handler() {
+            @Override
+            protected Response handleRequest(Request request) {
+                Assert.assertEquals("/path", request.path());
+                return new Response().setBody("ok");
+            }
+        };
+
+        Assert.assertEquals("ok", makeRequest("/path").get().asString());
+
+        handler = new Handler() {
+            @Override
+            protected Response handleRequest(Request request) {
+                Assert.assertEquals("/path", request.path());
+                return new Response().setBody("ok");
+            }
+        };
+
+        Assert.assertEquals("ok", makeRequest("/path").addParameter("key", "value").get().asString());
+    }
+
+
+    @Test
+    public void testParams() throws IOException {
+        handler = new Handler() {
+            @Override
+            protected Response handleRequest(Request request) {
+                Assert.assertEquals("key=value&array=1&array=2&empty=&=empty&=", request.getQueryString());
+                Assert.assertEquals("value", request.param("key"));
+
+                Assert.assertEquals("1", request.param("array"));
+                List<String> params = request.params("array");
+                Assert.assertEquals(2, params.size());
+                Assert.assertEquals("1", params.get(0));
+                Assert.assertEquals("2", params.get(1));
+
+                Assert.assertEquals("", request.param("empty"));
+                Assert.assertEquals("empty", request.param(""));
+                Assert.assertEquals("", request.params("").get(1));
+                return new Response().setBody("ok");
+            }
+        };
+
+        Assert.assertEquals("ok", makeRequest("/path")
+                .addParameter("key", "value")
+                .addParameter("array", "1")
+                .addParameter("array", "2")
+                .addParameter("empty", "")
+                .addParameter("", "empty")
+                .addParameter("", "")
+                .get().asString());
+
+        handler = new Handler() {
+            @Override
+            protected Response handleRequest(Request request) {
+                Assert.assertEquals("", request.param("key"));
+                return new Response().setBody("ok");
+            }
+        };
+
+        Assert.assertEquals("ok", makeRequest("/path?key").get().asString());
+    }
 }

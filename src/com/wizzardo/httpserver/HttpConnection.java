@@ -19,7 +19,7 @@ public class HttpConnection extends Connection {
     private volatile int position = 0;
     private volatile Request request;
     private boolean headerReady = false;
-    private RequestReader headersReader;
+    private RequestReader requestReader;
 
     public HttpConnection(int fd, int ip, int port) {
         super(fd, ip, port);
@@ -32,16 +32,16 @@ public class HttpConnection extends Connection {
     public boolean check(ByteBuffer bb) {
         int limit = bb.limit();
         bb.get(data, 0, limit);
-        if (headersReader == null)
-            headersReader = new RequestReader(new LinkedHashMap<String, HeaderValue>(20));
+        if (requestReader == null)
+            requestReader = new RequestReader(new LinkedHashMap<String, MultiValue>(20));
 
-        int i = headersReader.read(data, 0, limit);
+        int i = requestReader.read(data, 0, limit);
 
         if (i < 0)
             return false;
         position = i;
         r = limit;
-        request = new Request(this, headersReader.getHeaders(), headersReader.getMethod(), headersReader.getPath());
+        request = requestReader.createRequest(this);
         headerReady = true;
         return true;
     }
@@ -54,7 +54,7 @@ public class HttpConnection extends Connection {
         position = 0;
         headerReady = false;
         r = 0;
-        headersReader = null;
+        requestReader = null;
     }
 
     @Override
@@ -64,8 +64,8 @@ public class HttpConnection extends Connection {
         }
     }
 
-    public RequestReader getHeadersReader() {
-        return headersReader;
+    public RequestReader getRequestReader() {
+        return requestReader;
     }
 
     public Request getRequest() {
