@@ -1,6 +1,7 @@
 package com.wizzardo.httpserver.request;
 
 import com.wizzardo.httpserver.response.Response;
+import com.wizzardo.tools.http.ConnectionMethod;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -117,5 +118,33 @@ public class TestRequest extends ServerTest {
         };
 
         Assert.assertEquals("ok", makeRequest("/path?key").get().asString());
+    }
+
+    @Test
+    public void testMethod() throws IOException {
+        handler = new Handler() {
+            @Override
+            protected Response handleRequest(Request request) {
+                return new Response().setBody(request.method().name());
+            }
+        };
+
+        Assert.assertEquals("GET", makeRequest("/").get().asString());
+        Assert.assertEquals("POST", makeRequest("/").post().asString());
+        Assert.assertEquals("PUT", makeRequest("/").method(ConnectionMethod.PUT).connect().asString());
+        Assert.assertEquals("DELETE", makeRequest("/").method(ConnectionMethod.DELETE).connect().asString());
+    }
+
+    @Test
+    public void testPostParams() throws IOException {
+        handler = new Handler() {
+            @Override
+            protected Response handleRequest(Request request) {
+                Assert.assertEquals("value", request.param("key"));
+                return new Response().setBody("ok");
+            }
+        };
+
+        Assert.assertEquals("ok", makeRequest("/").addParameter("key", "value").post().asString());
     }
 }

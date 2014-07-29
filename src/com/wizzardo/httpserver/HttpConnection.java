@@ -3,8 +3,8 @@ package com.wizzardo.httpserver;
 import com.wizzardo.epoll.Connection;
 import com.wizzardo.epoll.readable.ReadableData;
 import com.wizzardo.httpserver.request.Header;
-import com.wizzardo.httpserver.request.RequestReader;
 import com.wizzardo.httpserver.request.Request;
+import com.wizzardo.httpserver.request.RequestReader;
 
 import java.nio.ByteBuffer;
 import java.util.LinkedHashMap;
@@ -18,8 +18,14 @@ public class HttpConnection extends Connection {
     private volatile int r = 0;
     private volatile int position = 0;
     private volatile Request request;
-    private boolean headerReady = false;
+    private boolean ready = false;
     private RequestReader requestReader;
+    private State state = State.READING_HEADERS;
+
+    private static enum State {
+        READING_HEADERS,
+        READING_BODY,
+    }
 
     public HttpConnection(int fd, int ip, int port) {
         super(fd, ip, port);
@@ -30,29 +36,74 @@ public class HttpConnection extends Connection {
     }
 
     public boolean check(ByteBuffer bb) {
-        int limit = bb.limit();
-        bb.get(data, 0, limit);
+        switch (state) {
+            case READING_HEADERS:
+                return handleHeaders(bb);
+
+            case READING_BODY:
+                return handleData(bb);
+        }
+        return false;
+    }
+
+    private boolean handleHeaders(ByteBuffer bb) {
         if (requestReader == null)
             requestReader = new RequestReader(new LinkedHashMap<String, MultiValue>(20));
 
-        int i = requestReader.read(data, 0, limit);
+        int limit, i;
+        do {
+            limit = readFromByteBuffer(bb);
+            i = requestReader.read(data, 0, limit);
+            if (i > 0)
+                break;
+        } while (bb.remaining() > 0);
 
         if (i < 0)
             return false;
+
         position = i;
         r = limit;
         request = requestReader.createRequest(this);
-        headerReady = true;
+        ready = true;
+        return checkData(bb);
+    }
+
+    private int readFromByteBuffer(ByteBuffer bb) {
+        int limit;
+        limit = bb.limit();
+        limit = Math.min(limit, data.length);
+        bb.get(data, 0, limit);
+        return limit;
+    }
+
+    private boolean checkData(ByteBuffer bb) {
+        if (request.contentLength() > 0) {
+            ready = request.getBody().read(data, position, r - position);
+            state = State.READING_BODY;
+            r = 0;
+            position = 0;
+            return handleData(bb);
+        }
         return true;
     }
 
+    private boolean handleData(ByteBuffer bb) {
+        int limit;
+        while (bb.remaining() > 0) {
+            limit = readFromByteBuffer(bb);
+            ready = request.getBody().read(data, 0, limit);
+        }
+        return ready;
+    }
+
     public boolean isRequestReady() {
-        return headerReady;
+        return ready;
     }
 
     public void reset(String reason) {
         position = 0;
-        headerReady = false;
+        ready = false;
+        state = State.READING_HEADERS;
         r = 0;
         requestReader = null;
     }

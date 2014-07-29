@@ -46,14 +46,24 @@ public class RequestReader {
     }
 
     public RequestReader(Map<String, MultiValue> headers) {
+        this(null, null);
+    }
+
+    public RequestReader(Map<String, MultiValue> headers, Map<String, MultiValue> params) {
         if (headers == null)
             headers = new LinkedHashMap<String, MultiValue>(175);
+        if (params == null)
+            params = new LinkedHashMap<String, MultiValue>();
+
         this.headers = headers;
-        params = new LinkedHashMap<String, MultiValue>();
+        this.params = params;
     }
 
     public Request createRequest(HttpConnection connection) {
-        return new Request(connection, headers, params, method, path, queryString);
+        Request request = new Request(connection, headers, params, method, path, queryString);
+        if (request.contentLength() > 0)
+            request.body = new SimpleRequestBody(request.contentLength());
+        return request;
     }
 
     public int read(byte[] bytes) {
@@ -76,7 +86,12 @@ public class RequestReader {
         }
 
         queryString = getValue(chars, from, to - from);
+        parseParameters(chars, from, to - from);
+    }
 
+    void parseParameters(byte[] chars, int offset, int length) {
+        int from = offset;
+        int to = offset + length;
         String key = null;
         boolean isKey = true;
         for (int i = from; i < to; i++) {

@@ -19,7 +19,8 @@ public enum Header {
 
     VALUE_CONNECTION_CLOSE("Close"),
     VALUE_CONNECTION_KEEP_ALIVE("Keep-Alive"),
-    VALUE_CONTENT_TYPE_HTML_UTF8("text/html;charset=UTF-8");
+    VALUE_CONTENT_TYPE_HTML_UTF8("text/html;charset=UTF-8"),
+    VALUE_FORM_URLENCODED("application/x-www-form-urlencoded");
 
     public final String value;
     public final byte[] bytes;
