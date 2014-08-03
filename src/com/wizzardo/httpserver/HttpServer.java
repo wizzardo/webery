@@ -68,6 +68,11 @@ public class HttpServer extends EpollServer<HttpConnection> {
             Runnable read = new Runnable() {
                 @Override
                 public void run() {
+                    if (connection.getState() == HttpConnection.State.READING_INPUT_STREAM) {
+                        connection.getInputStream().wakeUp();
+                        return;
+                    }
+
                     ByteBuffer b;
                     try {
 

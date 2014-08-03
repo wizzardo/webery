@@ -15,6 +15,8 @@ import java.util.Map;
  * Date: 12/2/13
  */
 public class RequestReader {
+    private static final int POST_BODY_SIMPLE_LIMIT = 2 * 1024 * 1024;
+
     protected Map<String, MultiValue> headers;
     protected Map<String, MultiValue> params;
     protected String method;
@@ -61,7 +63,9 @@ public class RequestReader {
 
     public Request createRequest(HttpConnection connection) {
         Request request = new Request(connection, headers, params, method, path, queryString);
-        if (request.contentLength() > 0)
+        if (request.contentLength() > 0
+                && request.contentLength() < POST_BODY_SIMPLE_LIMIT
+                && !request.isMultipart())
             request.body = new SimpleRequestBody(request.contentLength());
         return request;
     }

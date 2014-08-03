@@ -18,13 +18,16 @@ public class HttpConnection extends Connection {
     private volatile int r = 0;
     private volatile int position = 0;
     private volatile Request request;
+    private volatile EpollInputStream inputStream;
+    private volatile State state = State.READING_HEADERS;
     private boolean ready = false;
     private RequestReader requestReader;
-    private State state = State.READING_HEADERS;
 
-    private static enum State {
+    static enum State {
         READING_HEADERS,
         READING_BODY,
+        READING_BODY_MULTIPART,
+        READING_INPUT_STREAM
     }
 
     public HttpConnection(int fd, int ip, int port) {
@@ -33,6 +36,10 @@ public class HttpConnection extends Connection {
 
     int getBufferSize() {
         return data.length - position;
+    }
+
+    public State getState() {
+        return state;
     }
 
     public boolean check(ByteBuffer bb) {
@@ -78,6 +85,10 @@ public class HttpConnection extends Connection {
 
     private boolean checkData(ByteBuffer bb) {
         if (request.contentLength() > 0) {
+            if (request.getBody() == null || request.isMultipart()) {
+                getInputStream();
+                return true;
+            }
             ready = request.getBody().read(data, position, r - position);
             state = State.READING_BODY;
             r = 0;
@@ -122,4 +133,14 @@ public class HttpConnection extends Connection {
     public Request getRequest() {
         return request;
     }
+
+    public EpollInputStream getInputStream() {
+        if (inputStream == null) {
+            inputStream = new EpollInputStream(this, data, position, r, request.contentLength());
+            state = State.READING_INPUT_STREAM;
+        }
+
+        return inputStream;
+    }
+
 }

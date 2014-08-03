@@ -20,6 +20,7 @@ public class Request {
     private String queryString;
     private int contentLength = -1;
     private boolean bodyParsed = false;
+    private Boolean multipart;
 
     SimpleRequestBody body;
 
@@ -121,4 +122,14 @@ public class Request {
         return params;
     }
 
+    public byte[] data() {
+        return body == null ? null : body.bytes();
+    }
+
+    public boolean isMultipart() {
+        if (multipart == null)
+            multipart = header(Header.KEY_CONTENT_TYPE).startsWith("multipart/form-data;");
+
+        return multipart;
+    }
 }

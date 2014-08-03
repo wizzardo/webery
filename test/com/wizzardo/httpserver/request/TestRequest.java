@@ -2,11 +2,15 @@ package com.wizzardo.httpserver.request;
 
 import com.wizzardo.httpserver.response.Response;
 import com.wizzardo.tools.http.ConnectionMethod;
+import com.wizzardo.tools.io.IOTools;
+import com.wizzardo.tools.security.MD5;
 import org.junit.Assert;
 import org.junit.Test;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Random;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * @author: wizzardo
@@ -146,5 +150,71 @@ public class TestRequest extends ServerTest {
         };
 
         Assert.assertEquals("ok", makeRequest("/").addParameter("key", "value").post().asString());
+
+
+        handler = new Handler() {
+            @Override
+            protected Response handleRequest(Request request) {
+                Assert.assertEquals("some data", new String(request.data()));
+                return new Response().setBody("ok");
+            }
+        };
+
+        Assert.assertEquals("ok", makeRequest("/")
+                .data("some data".getBytes(), "just some data")
+                .post().asString());
+
+
+        byte[] data = new byte[3 * 1024 * 1024];
+        new Random().nextBytes(data);
+        final String md5 = MD5.getMD5AsString(data);
+
+        handler = new Handler() {
+            @Override
+            protected Response handleRequest(Request request) {
+                Assert.assertEquals(null, request.data());
+                Assert.assertEquals(false, request.isMultipart());
+                try {
+                    return new Response().setBody(MD5.getMD5AsString(request.connection().getInputStream()));
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    return new Response().setBody(e.getMessage());
+                }
+            }
+        };
+
+        Assert.assertEquals(md5, makeRequest("/")
+                .data(data, "just some data")
+                .post().asString());
+
+
+        final AtomicInteger counter = new AtomicInteger();
+        handler = new Handler() {
+            @Override
+            protected Response handleRequest(Request request) {
+                Assert.assertEquals(null, request.data());
+                Assert.assertEquals(true, request.isMultipart());
+                Assert.assertEquals(0, counter.getAndIncrement());
+                try {
+                    String data = new String(IOTools.bytes(request.connection().getInputStream()));
+//                    System.out.println(data);
+                    Assert.assertEquals("------WebKitFormBoundaryZzaC4MkAfrAMfJCJ\r\n" +
+                            "Content-Disposition: form-data; name=\"data\"; filename=\"just some data\"\r\n" +
+                            "Content-Type: application/octet-stream\r\n" +
+                            "\r\n" +
+                            "some data\r\n" +
+                            "------WebKitFormBoundaryZzaC4MkAfrAMfJCJ--", data);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    return new Response().setBody(e.getMessage());
+                }
+
+                return new Response().setBody("ok");
+            }
+        };
+
+        Assert.assertEquals("ok", makeRequest("/")
+                .addByteArray("data", "some data".getBytes(), "just some data")
+                .post().asString());
     }
 }
