@@ -1,12 +1,15 @@
 package com.wizzardo.httpserver.request;
 
+import com.wizzardo.httpserver.response.RangeResponse;
 import com.wizzardo.httpserver.response.Response;
 import com.wizzardo.tools.http.ConnectionMethod;
+import com.wizzardo.tools.io.FileTools;
 import com.wizzardo.tools.io.IOTools;
 import com.wizzardo.tools.security.MD5;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import java.util.Random;
@@ -216,5 +219,59 @@ public class TestRequest extends ServerTest {
         Assert.assertEquals("ok", makeRequest("/")
                 .addByteArray("data", "some data".getBytes(), "just some data")
                 .post().asString());
+    }
+
+    @Test
+    public void testRange() throws IOException {
+        byte[] data = new byte[1000];
+        new Random().nextBytes(data);
+        final File file = File.createTempFile("test_range", null);
+        file.deleteOnExit();
+        FileTools.bytes(file, data);
+
+        handler = new Handler() {
+            @Override
+            protected Response handleRequest(Request request) {
+                return new RangeResponse(request, file);
+            }
+        };
+
+        byte[] test;
+        test = new byte[100];
+        System.arraycopy(data, 0, test, 0, test.length);
+        Assert.assertArrayEquals(test, makeRequest("/")
+                .header("Range", "bytes=0-99")
+                .get().asBytes());
+
+        System.arraycopy(data, 100, test, 0, test.length);
+        Assert.assertArrayEquals(test, makeRequest("/")
+                .header("Range", "bytes=100-199")
+                .get().asBytes());
+
+        test = new byte[900];
+        System.arraycopy(data, 100, test, 0, test.length);
+        Assert.assertArrayEquals(test, makeRequest("/")
+                .header("Range", "bytes=100-")
+                .get().asBytes());
+
+        test = new byte[200];
+        System.arraycopy(data, 800, test, 0, test.length);
+        Assert.assertArrayEquals(test, makeRequest("/")
+                .header("Range", "bytes=-200")
+                .get().asBytes());
+
+        test = new byte[200];
+        System.arraycopy(data, 800, test, 0, test.length);
+        Assert.assertArrayEquals(test, makeRequest("/")
+                .header("Range", "bytes=800-2000")
+                .get().asBytes());
+
+        Assert.assertEquals(416, makeRequest("/")
+                .header("Range", "bytes=400-200")
+                .get().getResponseCode());
+
+        Assert.assertEquals(416, makeRequest("/")
+                .header("Range", "bytes=1000-1001")
+                .get().getResponseCode());
     }
 }

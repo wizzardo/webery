@@ -16,8 +16,12 @@ public enum Header {
     KEY_USER_AGENT("User-Agent"),
     KEY_CONTENT_TYPE("Content-Type"),
     KEY_CONTENT_LENGTH("Content-Length"),
+    KEY_RANGE("Range"),
+    KEY_CONTENT_RANGE("Content-Range"),
+    KEY_ACCEPT_RANGES("Accept-Ranges"),
 
     VALUE_CONNECTION_CLOSE("Close"),
+    VALUE_BYTES("bytes"),
     VALUE_CONNECTION_KEEP_ALIVE("Keep-Alive"),
     VALUE_CONTENT_TYPE_HTML_UTF8("text/html;charset=UTF-8"),
     VALUE_FORM_URLENCODED("application/x-www-form-urlencoded");

@@ -45,6 +45,10 @@ public class Response {
         return setHeader(key.bytes, value.getBytes());
     }
 
+    public Response setHeader(Header key, int value) {
+        return setHeader(key, String.valueOf(value));
+    }
+
     public Response setHeader(Header key, Header value) {
         return setHeader(key.bytes, value.bytes);
     }
@@ -89,6 +93,10 @@ public class Response {
     }
 
     public ReadableData toReadableBytes() {
+        return buildResponse();
+    }
+
+    protected ReadableBuilder buildResponse() {
         ReadableBuilder builder = new ReadableBuilder(status.header);
         for (int i = 0; i < headersCount; i += 2) {
             builder.append(headers[i])
@@ -98,7 +106,8 @@ public class Response {
         }
 
         builder.append(LINE_SEPARATOR);
-        builder.append(body);
+        if (body != null)
+            builder.append(body);
         return builder;
     }
 
