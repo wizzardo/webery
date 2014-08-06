@@ -66,7 +66,7 @@ public class RequestReader {
         if (request.contentLength() > 0
                 && request.contentLength() < POST_BODY_SIMPLE_LIMIT
                 && !request.isMultipart())
-            request.body = new SimpleRequestBody(request.contentLength());
+            request.body = new SimpleRequestBody((int) request.contentLength());
         return request;
     }
 

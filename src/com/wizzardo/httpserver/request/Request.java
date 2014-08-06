@@ -18,7 +18,7 @@ public class Request {
     private Method method;
     private String path;
     private String queryString;
-    private int contentLength = -1;
+    private long contentLength = -1;
     private boolean bodyParsed = false;
     private Boolean multipart;
 
@@ -45,9 +45,9 @@ public class Request {
         return body;
     }
 
-    public int contentLength() {
+    public long contentLength() {
         if (contentLength == -1)
-            contentLength = headerInt(Header.KEY_CONTENT_LENGTH, 0);
+            contentLength = headerLong(Header.KEY_CONTENT_LENGTH, 0);
         return contentLength;
     }
 
@@ -63,24 +63,24 @@ public class Request {
         return header == null ? null : header(header.value);
     }
 
-    public int headerInt(Header header) {
-        return headerInt(header.value);
+    public long headerLong(Header header) {
+        return headerLong(header.value);
     }
 
-    public int headerInt(Header header, int def) {
-        return headerInt(header.value, def);
+    public long headerLong(Header header, long def) {
+        return headerLong(header.value, def);
     }
 
-    public int headerInt(String header) throws NumberFormatException {
-        return Integer.parseInt(header(header));
+    public long headerLong(String header) throws NumberFormatException {
+        return Long.parseLong(header(header));
     }
 
-    public int headerInt(String header, int def) {
+    public long headerLong(String header, long def) {
         String value = header(header);
         if (value == null)
             return def;
         try {
-            return Integer.parseInt(value);
+            return Long.parseLong(value);
         } catch (NumberFormatException e) {
             return def;
         }
@@ -116,7 +116,7 @@ public class Request {
 
     public Map<String, MultiValue> params() {
         if (body != null && !bodyParsed) {
-            new RequestReader(headers, params).parseParameters(body.bytes(), 0, contentLength);
+            new RequestReader(headers, params).parseParameters(body.bytes(), 0, (int) contentLength);
             bodyParsed = true;
         }
         return params;

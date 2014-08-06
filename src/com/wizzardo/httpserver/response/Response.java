@@ -45,7 +45,7 @@ public class Response {
         return setHeader(key.bytes, value.getBytes());
     }
 
-    public Response setHeader(Header key, int value) {
+    public Response setHeader(Header key, long value) {
         return setHeader(key, String.valueOf(value));
     }
 
