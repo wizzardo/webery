@@ -24,7 +24,7 @@ public class RangeResponse extends Response {
 
         String range = request.header(Header.KEY_RANGE);
         if (range != null) {
-            this.range = new Range(range, (int) file.length());
+            this.range = new Range(range, file.length());
             //TODO check range for validity
             valid = this.range.isValid();
             if (!valid) {
@@ -36,8 +36,8 @@ public class RangeResponse extends Response {
             setHeader(Header.KEY_CONTENT_RANGE, this.range.toString());
             setHeader(Header.KEY_CONTENT_LENGTH, this.range.length());
         } else {
-            this.range = new Range(0, (int) file.length() - 1, (int) file.length());
-            setHeader(Header.KEY_CONTENT_LENGTH, (int) file.length());
+            this.range = new Range(0, file.length() - 1, file.length());
+            setHeader(Header.KEY_CONTENT_LENGTH, file.length());
         }
     }
 
@@ -54,17 +54,17 @@ public class RangeResponse extends Response {
     }
 
     private static class Range {
-        int from;
-        int to;
-        int total;
+        long from;
+        long to;
+        long total;
 
-        private Range(int from, int to, int total) {
+        private Range(long from, long to, long total) {
             this.from = from;
             this.to = to;
             this.total = total;
         }
 
-        public Range(String range, int length) {
+        public Range(String range, long length) {
             if (!range.startsWith("bytes="))
                 throw new IllegalArgumentException("range string must starts with 'bytes='");
 
@@ -105,7 +105,7 @@ public class RangeResponse extends Response {
             return "bytes " + from + "-" + to + "/" + total;
         }
 
-        public int length() {
+        public long length() {
             return to - from + 1;
         }
     }
