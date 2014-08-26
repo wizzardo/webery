@@ -1,4 +1,4 @@
-package com.wizzardo.httpserver.response;
+package com.wizzardo.http.response;
 
 /**
  * @author: wizzardo

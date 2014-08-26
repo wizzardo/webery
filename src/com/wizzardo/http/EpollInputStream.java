@@ -1,4 +1,4 @@
-package com.wizzardo.httpserver;
+package com.wizzardo.http;
 
 import com.wizzardo.epoll.Connection;
 

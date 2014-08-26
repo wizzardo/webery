@@ -1,7 +1,8 @@
-package com.wizzardo.httpserver.request;
+package com.wizzardo.http.request;
 
-import com.wizzardo.httpserver.HttpServer;
-import com.wizzardo.httpserver.response.Response;
+import com.wizzardo.http.HttpServer;
+import com.wizzardo.http.request.Request;
+import com.wizzardo.http.response.Response;
 import com.wizzardo.tools.http.HttpClient;
 import com.wizzardo.tools.io.IOTools;
 import com.wizzardo.tools.misc.WrappedException;

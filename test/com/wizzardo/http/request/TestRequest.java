@@ -1,7 +1,8 @@
-package com.wizzardo.httpserver.request;
+package com.wizzardo.http.request;
 
-import com.wizzardo.httpserver.response.RangeResponse;
-import com.wizzardo.httpserver.response.Response;
+import com.wizzardo.http.request.Request;
+import com.wizzardo.http.response.RangeResponse;
+import com.wizzardo.http.response.Response;
 import com.wizzardo.tools.http.ConnectionMethod;
 import com.wizzardo.tools.io.FileTools;
 import com.wizzardo.tools.io.IOTools;

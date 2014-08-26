@@ -1,4 +1,4 @@
-package com.wizzardo.httpserver;
+package com.wizzardo.http;
 
 import java.util.ArrayList;
 import java.util.List;

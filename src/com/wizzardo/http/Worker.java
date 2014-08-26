@@ -1,4 +1,4 @@
-package com.wizzardo.httpserver;
+package com.wizzardo.http;
 
 import simplehttpserver.RequestHolder;
 import simplehttpserver.concurrent.NonBlockingQueue;

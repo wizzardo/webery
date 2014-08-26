@@ -1,5 +1,6 @@
-package com.wizzardo.httpserver.request;
+package com.wizzardo.http.request;
 
+import com.wizzardo.http.request.RequestReader;
 import com.wizzardo.tools.io.FileTools;
 import com.wizzardo.tools.security.MD5;
 import org.junit.Assert;

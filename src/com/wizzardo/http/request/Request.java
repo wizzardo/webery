@@ -1,7 +1,9 @@
-package com.wizzardo.httpserver.request;
+package com.wizzardo.http.request;
 
-import com.wizzardo.httpserver.HttpConnection;
-import com.wizzardo.httpserver.MultiValue;
+import com.wizzardo.http.HttpConnection;
+import com.wizzardo.http.MultiValue;
+import com.wizzardo.http.HttpConnection;
+import com.wizzardo.http.MultiValue;
 
 import java.util.List;
 import java.util.Map;

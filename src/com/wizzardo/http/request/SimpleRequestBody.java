@@ -1,4 +1,4 @@
-package com.wizzardo.httpserver.request;
+package com.wizzardo.http.request;
 
 /**
  * @author: wizzardo

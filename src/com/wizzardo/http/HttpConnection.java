@@ -1,10 +1,11 @@
-package com.wizzardo.httpserver;
+package com.wizzardo.http;
 
 import com.wizzardo.epoll.Connection;
 import com.wizzardo.epoll.readable.ReadableData;
-import com.wizzardo.httpserver.request.Header;
-import com.wizzardo.httpserver.request.Request;
-import com.wizzardo.httpserver.request.RequestReader;
+import com.wizzardo.http.request.Header;
+import com.wizzardo.http.request.Header;
+import com.wizzardo.http.request.Request;
+import com.wizzardo.http.request.RequestReader;
 
 import java.nio.ByteBuffer;
 import java.util.LinkedHashMap;

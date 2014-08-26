@@ -1,10 +1,11 @@
-package com.wizzardo.httpserver;
+package com.wizzardo.http;
 
 import com.wizzardo.epoll.EpollServer;
 import com.wizzardo.epoll.IOThread;
-import com.wizzardo.httpserver.request.Header;
-import com.wizzardo.httpserver.request.Request;
-import com.wizzardo.httpserver.response.Response;
+import com.wizzardo.http.request.Header;
+import com.wizzardo.http.request.Header;
+import com.wizzardo.http.request.Request;
+import com.wizzardo.http.response.Response;
 import simplehttpserver.concurrent.NonBlockingQueue;
 
 import java.io.IOException;
