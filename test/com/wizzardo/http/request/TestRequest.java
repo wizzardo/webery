@@ -1,6 +1,5 @@
 package com.wizzardo.http.request;
 
-import com.wizzardo.http.request.Request;
 import com.wizzardo.http.response.RangeResponse;
 import com.wizzardo.http.response.Response;
 import com.wizzardo.tools.http.ConnectionMethod;
@@ -139,8 +138,8 @@ public class TestRequest extends ServerTest {
 
         Assert.assertEquals("GET", makeRequest("/").get().asString());
         Assert.assertEquals("POST", makeRequest("/").post().asString());
-        Assert.assertEquals("PUT", makeRequest("/").method(ConnectionMethod.PUT).connect().asString());
-        Assert.assertEquals("DELETE", makeRequest("/").method(ConnectionMethod.DELETE).connect().asString());
+        Assert.assertEquals("PUT", makeRequest("/").method(ConnectionMethod.PUT).execute().asString());
+        Assert.assertEquals("DELETE", makeRequest("/").method(ConnectionMethod.DELETE).execute().asString());
     }
 
     @Test

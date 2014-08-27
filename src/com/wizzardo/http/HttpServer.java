@@ -3,13 +3,13 @@ package com.wizzardo.http;
 import com.wizzardo.epoll.EpollServer;
 import com.wizzardo.epoll.IOThread;
 import com.wizzardo.http.request.Header;
-import com.wizzardo.http.request.Header;
 import com.wizzardo.http.request.Request;
 import com.wizzardo.http.response.Response;
-import simplehttpserver.concurrent.NonBlockingQueue;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 
 /**
  * @author: moxa
@@ -17,7 +17,7 @@ import java.nio.ByteBuffer;
  */
 public class HttpServer extends EpollServer<HttpConnection> {
 
-    private NonBlockingQueue<Runnable> queue = new NonBlockingQueue<Runnable>();
+    private BlockingQueue<Runnable> queue = new LinkedBlockingQueue<Runnable>();
     private int workersCount;
 
     public HttpServer(int port) {

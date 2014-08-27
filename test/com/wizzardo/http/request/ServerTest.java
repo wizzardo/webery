@@ -1,7 +1,6 @@
 package com.wizzardo.http.request;
 
 import com.wizzardo.http.HttpServer;
-import com.wizzardo.http.request.Request;
 import com.wizzardo.http.response.Response;
 import com.wizzardo.tools.http.HttpClient;
 import com.wizzardo.tools.io.IOTools;
@@ -46,7 +45,7 @@ public class ServerTest {
     }
 
     protected com.wizzardo.tools.http.Request makeRequest(String path) {
-        return HttpClient.connect("http://localhost:" + port + path)
+        return HttpClient.createRequest("http://localhost:" + port + path)
                 .header("Connection", "Close");
     }
 

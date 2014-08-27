@@ -1,25 +1,23 @@
 package com.wizzardo.http;
 
-import simplehttpserver.RequestHolder;
-import simplehttpserver.concurrent.NonBlockingQueue;
 
 import java.nio.ByteBuffer;
+import java.util.concurrent.BlockingQueue;
 
 /**
  * @author: moxa
  * Date: 4/13/13
  */
 public class Worker extends Thread {
-    protected NonBlockingQueue<Runnable> queue;
-    protected RequestHolder requestHolder;
+    protected BlockingQueue<Runnable> queue;
     protected final static int maxRequestSize = 1024 * 2;
     protected ByteBuffer buf = ByteBuffer.allocateDirect(maxRequestSize * 50);
 
-    public Worker(NonBlockingQueue<Runnable> queue) {
+    public Worker(BlockingQueue<Runnable> queue) {
         this(queue, "Worker");
     }
 
-    public Worker(NonBlockingQueue<Runnable> queue, String name) {
+    public Worker(BlockingQueue<Runnable> queue, String name) {
         this.queue = queue;
         setDaemon(true);
         setName(name);
@@ -30,15 +28,10 @@ public class Worker extends Thread {
     @Override
     public void run() {
         while (true) {
-            queue.get().run();
+            try {
+                queue.take().run();
+            } catch (InterruptedException ignored) {
+            }
         }
-    }
-
-    public RequestHolder getRequestHolder() {
-        return requestHolder;
-    }
-
-    public void setRequestHolder(RequestHolder requestHolder) {
-        this.requestHolder = requestHolder;
     }
 }

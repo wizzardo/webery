@@ -15,14 +15,14 @@ class EpollInputStream extends InputStream {
     private int offset;
     private int limit;
     private byte[] buffer;
-    private int contentLength = -1;
-    private int read = 0;
+    private long contentLength = -1;
+    private long read = 0;
 
     public EpollInputStream(Connection connection, byte[] buffer, int currentOffset, int currentLimit) {
         this(connection, buffer, currentOffset, currentLimit, -1);
     }
 
-    public EpollInputStream(Connection connection, byte[] buffer, int currentOffset, int currentLimit, int contentLength) {
+    public EpollInputStream(Connection connection, byte[] buffer, int currentOffset, int currentLimit, long contentLength) {
         this.connection = connection;
         this.buffer = buffer;
         offset = currentOffset;
