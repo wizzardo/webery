@@ -8,16 +8,16 @@ import java.util.concurrent.BlockingQueue;
  * @author: moxa
  * Date: 4/13/13
  */
-public class Worker extends Thread {
-    protected BlockingQueue<Runnable> queue;
+public abstract class Worker extends Thread {
+    protected BlockingQueue<HttpConnection> queue;
     protected final static int maxRequestSize = 1024 * 2;
     protected ByteBuffer buf = ByteBuffer.allocateDirect(maxRequestSize * 50);
 
-    public Worker(BlockingQueue<Runnable> queue) {
+    public Worker(BlockingQueue<HttpConnection> queue) {
         this(queue, "Worker");
     }
 
-    public Worker(BlockingQueue<Runnable> queue, String name) {
+    public Worker(BlockingQueue<HttpConnection> queue, String name) {
         this.queue = queue;
         setDaemon(true);
         setName(name);
@@ -29,9 +29,11 @@ public class Worker extends Thread {
     public void run() {
         while (true) {
             try {
-                queue.take().run();
+                process(queue.take());
             } catch (InterruptedException ignored) {
             }
         }
     }
+
+    protected abstract void process(HttpConnection connection);
 }

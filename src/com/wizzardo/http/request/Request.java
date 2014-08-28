@@ -2,8 +2,6 @@ package com.wizzardo.http.request;
 
 import com.wizzardo.http.HttpConnection;
 import com.wizzardo.http.MultiValue;
-import com.wizzardo.http.HttpConnection;
-import com.wizzardo.http.MultiValue;
 
 import java.util.List;
 import java.util.Map;
@@ -45,6 +43,10 @@ public class Request {
 
     public SimpleRequestBody getBody() {
         return body;
+    }
+
+    public HttpConnection getConnection() {
+        return connection;
     }
 
     public long contentLength() {

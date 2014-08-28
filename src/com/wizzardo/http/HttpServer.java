@@ -17,7 +17,7 @@ import java.util.concurrent.LinkedBlockingQueue;
  */
 public class HttpServer extends EpollServer<HttpConnection> {
 
-    private BlockingQueue<Runnable> queue = new LinkedBlockingQueue<Runnable>();
+    private BlockingQueue<HttpConnection> queue = new LinkedBlockingQueue<>();
     private int workersCount;
 
     public HttpServer(int port) {
@@ -25,7 +25,7 @@ public class HttpServer extends EpollServer<HttpConnection> {
     }
 
     public HttpServer(String host, int port) {
-        this(host, port, 16);
+        this(host, port, 0);
     }
 
     public HttpServer(String host, int port, int workersCount) {
@@ -33,7 +33,12 @@ public class HttpServer extends EpollServer<HttpConnection> {
         this.workersCount = workersCount;
         System.out.println("worker count: " + workersCount);
         for (int i = 0; i < workersCount; i++) {
-            new Worker(queue, "worker_" + i);
+            new Worker(queue, "worker_" + i) {
+                @Override
+                protected void process(HttpConnection connection) {
+                    handle(connection);
+                }
+            };
         }
     }
 
@@ -51,22 +56,6 @@ public class HttpServer extends EpollServer<HttpConnection> {
 
         @Override
         public void onRead(final HttpConnection connection) {
-            final Runnable write = new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        Response response = handleRequest(connection.getRequest());
-
-                        connection.reset();
-                        connection.write(response.toReadableBytes());
-                    } catch (Throwable t) {
-                        t.printStackTrace();
-                        //TODO render error page
-                    }
-                }
-            };
-
-
             if (connection.getState() == HttpConnection.State.READING_INPUT_STREAM) {
                 connection.getInputStream().wakeUp();
                 return;
@@ -74,7 +63,6 @@ public class HttpServer extends EpollServer<HttpConnection> {
 
             ByteBuffer b;
             try {
-
                 while ((b = read(connection, connection.getBufferSize())).limit() > 0) {
                     if (connection.check(b))
                         break;
@@ -89,9 +77,9 @@ public class HttpServer extends EpollServer<HttpConnection> {
             }
 
             if (workersCount > 0)
-                queue.add(write);
+                queue.add(connection);
             else
-                write.run();
+                handle(connection);
         }
 
         @Override
@@ -122,6 +110,18 @@ public class HttpServer extends EpollServer<HttpConnection> {
 
     public Response handleRequest(Request request) {
         return staticResponse;
+    }
+
+    protected void handle(HttpConnection connection) {
+        try {
+            Response response = handleRequest(connection.getRequest());
+
+            connection.reset();
+            connection.write(response.toReadableBytes());
+        } catch (Exception t) {
+            t.printStackTrace();
+            //TODO render error page
+        }
     }
 
     public static void main(String[] args) {
