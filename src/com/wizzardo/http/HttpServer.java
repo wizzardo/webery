@@ -57,7 +57,7 @@ public class HttpServer extends EpollServer<HttpConnection> {
                     try {
                         Response response = handleRequest(connection.getRequest());
 
-                        connection.reset("end");
+                        connection.reset();
                         connection.write(response.toReadableBytes());
                     } catch (Throwable t) {
                         t.printStackTrace();
@@ -66,43 +66,32 @@ public class HttpServer extends EpollServer<HttpConnection> {
                 }
             };
 
-            Runnable read = new Runnable() {
-                @Override
-                public void run() {
-                    if (connection.getState() == HttpConnection.State.READING_INPUT_STREAM) {
-                        connection.getInputStream().wakeUp();
-                        return;
-                    }
 
-                    ByteBuffer b;
-                    try {
+            if (connection.getState() == HttpConnection.State.READING_INPUT_STREAM) {
+                connection.getInputStream().wakeUp();
+                return;
+            }
 
-                        while ((b = read(connection, connection.getBufferSize())).limit() > 0) {
-                            if (connection.check(b))
-                                break;
-                        }
-                        if (!connection.isRequestReady())
-                            return;
+            ByteBuffer b;
+            try {
 
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                        connection.reset("exception while reading");
-                        connection.close();
-                        return;
-                    }
-
-//                    RequestStats rs = requestStats.get(connection.getHeadersReader().getPath());
-//                    if (workersCount > 0 && (rs == null || rs.duration > 3))
-                    queue.add(write);
-//                    else
-//                    write.run();
+                while ((b = read(connection, connection.getBufferSize())).limit() > 0) {
+                    if (connection.check(b))
+                        break;
                 }
-            };
+                if (!connection.isRequestReady())
+                    return;
 
-//            if (workersCount > 0)
-//                queue.add(read);
-////            else
-            read.run();
+            } catch (IOException e) {
+                e.printStackTrace();
+                connection.close();
+                return;
+            }
+
+            if (workersCount > 0)
+                queue.add(write);
+            else
+                write.run();
         }
 
         @Override
@@ -124,6 +113,7 @@ public class HttpServer extends EpollServer<HttpConnection> {
             .appendHeader(Header.KEY_CONTENT_TYPE, Header.VALUE_CONTENT_TYPE_HTML_UTF8)
             .setBody("It's alive!".getBytes())
             .makeStatic();
+
 //        private Response staticResponse = new Response()
 //                .appendHeader(Header.KEY_CONNECTION, Header.VALUE_CONNECTION_KEEP_ALIVE)
 //                .appendHeader(Header.KEY_CONTENT_TYPE, "image/jpg")
@@ -131,18 +121,6 @@ public class HttpServer extends EpollServer<HttpConnection> {
 //                .makeStatic();
 
     public Response handleRequest(Request request) {
-//            try {
-//                Thread.sleep(1);
-//            } catch (InterruptedException ignored) {
-//            }
-//            return new Response()
-//                    .appendHeader(Header.KEY_CONNECTION, Header.VALUE_CONNECTION_KEEP_ALIVE)
-//                    .appendHeader(Header.KEY_CONTENT_TYPE, Header.VALUE_CONTENT_TYPE_HTML_UTF8)
-//                    .setBody("It's alive!".getBytes());
-//        return new Response()
-//                .appendHeader(Header.KEY_CONNECTION, Header.VALUE_CONNECTION_KEEP_ALIVE)
-//                .appendHeader(Header.KEY_CONTENT_TYPE, "image/jpg")
-//                .setBody(bytes);
         return staticResponse;
     }
 

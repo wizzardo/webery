@@ -3,7 +3,6 @@ package com.wizzardo.http;
 import com.wizzardo.epoll.Connection;
 import com.wizzardo.epoll.readable.ReadableData;
 import com.wizzardo.http.request.Header;
-import com.wizzardo.http.request.Header;
 import com.wizzardo.http.request.Request;
 import com.wizzardo.http.request.RequestReader;
 
@@ -112,7 +111,7 @@ public class HttpConnection extends Connection {
         return ready;
     }
 
-    public void reset(String reason) {
+    public void reset() {
         position = 0;
         ready = false;
         state = State.READING_HEADERS;
