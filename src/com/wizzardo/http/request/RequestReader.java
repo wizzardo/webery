@@ -2,10 +2,9 @@ package com.wizzardo.http.request;
 
 import com.wizzardo.http.HttpConnection;
 import com.wizzardo.http.MultiValue;
-import sun.misc.Unsafe;
+import com.wizzardo.tools.reflection.StringReflection;
 
 import java.io.UnsupportedEncodingException;
-import java.lang.reflect.Field;
 import java.net.URLDecoder;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -16,6 +15,19 @@ import java.util.Map;
  */
 public class RequestReader {
     private static final int POST_BODY_SIMPLE_LIMIT = 2 * 1024 * 1024;
+    private static final ByteTree headersTree = new ByteTree();
+
+    static {
+        for (Header header : Header.values()) {
+            headersTree.append(header.value);
+        }
+        for (Request.Method header : Request.Method.values()) {
+            headersTree.append(header.name());
+        }
+        headersTree.append("keep-alive");
+        headersTree.append("gzip,deflate,sdch");
+        headersTree.append("en-US,en;q=0.8,ru;q=0.6");
+    }
 
     protected Map<String, MultiValue> headers;
     protected Map<String, MultiValue> params;
@@ -149,7 +161,8 @@ public class RequestReader {
         int l = offset + length;
         if (protocol == null) {
             for (int i = offset; i < l; i++) {
-                if (chars[i] == ' ') {
+                byte b = chars[i];
+                if (b == ' ') {
                     if (method == null)
                         method = getValue(chars, offset, i - offset);
                     else if (path == null) {
@@ -159,7 +172,7 @@ public class RequestReader {
                     i++;
 
                     return parseHeaders(chars, i, length - (i - offset));
-                } else if (chars[i] == '\n') {
+                } else if (b == '\n') {
                     protocol = getValue(chars, offset, i - offset);
                     i++;
 
@@ -173,7 +186,7 @@ public class RequestReader {
                 byte ch = chars[i];
                 if (ch == '\n') {
                     if (i > offset) {
-                        if (chars[i - 1] == 13) {  // \r
+                        if (chars[i - 1] == '\r') {
                             waitForNewLine = false;
                             if (tempKey != null) {
                                 put(tempKey, getValue(chars, offset, i - offset - 1));
@@ -199,7 +212,7 @@ public class RequestReader {
                         i++;
                         return parseHeaders(chars, i, length - (i - offset));
                     }
-                } else if (ch == 13 && ++i < l && chars[i] == 10) {
+                } else if (ch == '\r' && ++i < l && chars[i] == '\n') {
                     waitForNewLine = false;
                     if (tempKey != null) {
                         put(tempKey, getValue(chars, offset, i - offset - 1));
@@ -285,12 +298,27 @@ public class RequestReader {
     }
 
     private String getValue(byte[] chars, int offset, int length) {
+        ByteTree.Node byteTree = headersTree.getRoot();
+
         if (r > 0) {
             int bo = 0;
             while (bo < buffer.length && buffer[bo] <= ' ') {
                 bo++;
             }
             r -= bo;
+
+            byteTree = byteTree.getNode(buffer, bo, r);
+            if (byteTree != null) {
+                byteTree = byteTree.getNode(chars, offset, length);
+                if (byteTree != null) {
+                    String value = byteTree.getValue();
+                    if (value != null) {
+                        r = 0;
+                        return value;
+                    }
+                }
+            }
+
             byte[] b = new byte[length + r];
             if (length < 0)
                 r += length;
@@ -310,76 +338,17 @@ public class RequestReader {
         while (chars[offset + length - 1] <= ' ') {
             length--;
         }
+
+        if (byteTree != null) {
+            String value = byteTree.get(chars, offset, length);
+            if (value != null)
+                return value;
+        }
         return AsciiReader.read(chars, offset, length);
     }
 
     public Map<String, MultiValue> getHeaders() {
         return headers;
-    }
-
-    private static class StringReflection {
-        static Unsafe unsafe;
-        static long array;
-        static long offset;
-        static long count;
-        static long hash;
-
-        static {
-            try {
-                Field f = Unsafe.class.getDeclaredField("theUnsafe");
-                f.setAccessible(true);
-                unsafe = (Unsafe) f.get(null);
-
-                Field array = String.class.getDeclaredField("value");
-//                array.setAccessible(true);
-                StringReflection.array = unsafe.objectFieldOffset(array);
-            } catch (NoSuchFieldException e) {
-                e.printStackTrace();
-            } catch (IllegalAccessException e) {
-                e.printStackTrace();
-            }
-            try {
-                Field hash = String.class.getDeclaredField("hash");
-//                hash.setAccessible(true);
-                StringReflection.hash = unsafe.objectFieldOffset(hash);
-            } catch (NoSuchFieldException e) {
-                e.printStackTrace();
-            }
-            try {
-                Field offset = String.class.getDeclaredField("offset");
-//                offset.setAccessible(true);
-                StringReflection.offset = unsafe.objectFieldOffset(offset);
-            } catch (NoSuchFieldException ignored) {
-            }
-            try {
-                Field count = String.class.getDeclaredField("count");
-//                count.setAccessible(true);
-                StringReflection.count = unsafe.objectFieldOffset(count);
-            } catch (NoSuchFieldException ignored) {
-            }
-        }
-
-        static String createString(char[] chars) {
-            String s = new String();
-
-            unsafe.putObject(s, StringReflection.array, chars);
-            if (count != 0)
-                unsafe.putInt(s, StringReflection.count, chars.length);
-            return s;
-        }
-
-        static String createString(char[] chars, int hash) {
-            String s = new String();
-            unsafe.putObject(s, StringReflection.array, chars);
-
-            if (hash != 0)
-                unsafe.putInt(s, StringReflection.hash, hash);
-
-            if (count != 0)
-                unsafe.putInt(s, StringReflection.count, chars.length);
-            return s;
-        }
-
     }
 
     public static class AsciiReader {
