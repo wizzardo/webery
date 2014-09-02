@@ -219,6 +219,31 @@ public class TestRequest extends ServerTest {
         Assert.assertEquals("ok", makeRequest("/")
                 .addByteArray("data", "some data".getBytes(), "just some data")
                 .post().asString());
+
+
+        handler = new Handler() {
+            @Override
+            public Response handleRequest(Request request) {
+                Assert.assertEquals(null, request.data());
+                Assert.assertEquals(true, request.isMultipart());
+
+                Request.MultiPartEntry entry = request.getMultiPartEntry("data");
+                String data = FileTools.text(entry.getFile());
+                Assert.assertEquals("some data", data);
+                Assert.assertEquals("just some data", entry.getFilename());
+
+                Assert.assertEquals("bar", request.param("foo"));
+                Assert.assertEquals("barbar", request.param("foofoo"));
+
+                return new Response().setBody("ok");
+            }
+        };
+
+        Assert.assertEquals("ok", makeRequest("/")
+                .param("foo","bar")
+                .addByteArray("data", "some data".getBytes(), "just some data")
+                .param("foofoo","barbar")
+                .post().asString());
     }
 
     @Test
