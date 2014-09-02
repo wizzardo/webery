@@ -19,6 +19,7 @@ public class HttpServer extends EpollServer<HttpConnection> {
 
     private BlockingQueue<HttpConnection> queue = new LinkedBlockingQueue<>();
     private int workersCount;
+    private int sessionTimeoutSec = 30 * 60;
 
     public HttpServer(int port) {
         this(null, port);
@@ -31,6 +32,8 @@ public class HttpServer extends EpollServer<HttpConnection> {
     public HttpServer(String host, int port, int workersCount) {
         super(host, port);
         this.workersCount = workersCount;
+        Session.createSessionsHolder(sessionTimeoutSec);
+
         System.out.println("worker count: " + workersCount);
         for (int i = 0; i < workersCount; i++) {
             new Worker(queue, "worker_" + i) {
@@ -125,8 +128,8 @@ public class HttpServer extends EpollServer<HttpConnection> {
     }
 
     public static void main(String[] args) {
-        HttpServer server = new HttpServer(null, 8084, args.length > 0 ? Integer.parseInt(args[0]) : 16);
-        server.setIoThreadsCount(args.length > 1 ? Integer.parseInt(args[1]) : 8);
+        HttpServer server = new HttpServer(null, 8084, args.length > 0 ? Integer.parseInt(args[0]) : 0);
+        server.setIoThreadsCount(args.length > 1 ? Integer.parseInt(args[1]) : 4);
         server.start();
     }
 }
