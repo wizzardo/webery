@@ -19,7 +19,7 @@ public class ServerTest {
     protected HttpServer server;
     protected int workers = 4;
     protected int port = 9999;
-    protected Handler handler;
+    protected volatile Handler handler;
 
     @Before
     public void setUp() throws NoSuchMethodException, ClassNotFoundException, NoSuchFieldException {
@@ -28,7 +28,7 @@ public class ServerTest {
             public Response handleRequest(Request request) {
                 try {
                     return handler.handleRequest(request);
-                } catch (Throwable e) {
+                } catch (Exception e) {
                     request.connection().close();
                     throw new WrappedException(e);
                 }
@@ -66,7 +66,7 @@ public class ServerTest {
         return null;
     }
 
-    protected abstract class Handler {
-        protected abstract Response handleRequest(Request request);
+    protected interface Handler {
+        Response handleRequest(Request request);
     }
 }
