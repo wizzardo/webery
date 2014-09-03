@@ -158,6 +158,10 @@ public class Request {
         prepareMultiPart(null);
     }
 
+    public InputStream getInputStream() {
+        return connection.getInputStream();
+    }
+
     public void prepareMultiPart(final ProgressListener ll) {
         if (isMultipart()) {
             String temp = header(Header.KEY_CONTENT_TYPE);
@@ -167,7 +171,7 @@ public class Request {
             BoyerMoore newLine = new BoyerMoore("\r\n\r\n".getBytes());
             temp = "--" + temp.substring(temp.indexOf("boundary=") + "boundary=".length());
             BlockInputStream br;
-            InputStream in = connection().getInputStream();
+            InputStream in = getInputStream();
             br = new BlockInputStream(in, temp.getBytes(), length, ll);
 
             ByteArrayOutputStream out = new ByteArrayOutputStream();

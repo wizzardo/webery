@@ -4,9 +4,10 @@ import com.wizzardo.epoll.ByteBufferWrapper;
 import com.wizzardo.epoll.readable.ReadableBuilder;
 import com.wizzardo.epoll.readable.ReadableByteBuffer;
 import com.wizzardo.epoll.readable.ReadableData;
-import com.wizzardo.http.request.Header;
+import com.wizzardo.http.HttpConnection;
 import com.wizzardo.http.request.Header;
 
+import java.io.OutputStream;
 import java.util.Arrays;
 
 /**
@@ -19,7 +20,7 @@ public class Response {
 
     private byte[][] headers = new byte[20][];
     private int headersCount = 0;
-
+    private boolean processed = false;
     private Status status = Status._200;
     private byte[] body;
 
@@ -110,6 +111,20 @@ public class Response {
         if (body != null)
             builder.append(body);
         return builder;
+    }
+
+    public boolean isProcessed() {
+        return processed;
+    }
+
+    public OutputStream getOutputStream(HttpConnection connection) {
+        if (!processed) {
+            connection.getOutputStream();
+            connection.write(toReadableBytes());
+            processed = true;
+        }
+
+        return connection.getOutputStream();
     }
 
     public Response makeStatic() {

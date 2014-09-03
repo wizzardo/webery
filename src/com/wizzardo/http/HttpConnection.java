@@ -19,6 +19,7 @@ public class HttpConnection extends Connection {
     private volatile int position = 0;
     private volatile Request request;
     private volatile EpollInputStream inputStream;
+    private volatile EpollOutputStream outputStream;
     private volatile State state = State.READING_HEADERS;
     private boolean ready = false;
     private RequestReader requestReader;
@@ -27,6 +28,7 @@ public class HttpConnection extends Connection {
         READING_HEADERS,
         READING_BODY,
         READING_BODY_MULTIPART,
+        WRITING_OUTPUT_STREAM,
         READING_INPUT_STREAM
     }
 
@@ -51,6 +53,10 @@ public class HttpConnection extends Connection {
                 return handleData(bb);
         }
         return false;
+    }
+
+    public boolean hasDataToWrite() {
+        return sending != null && !sending.isEmpty();
     }
 
     private boolean handleHeaders(ByteBuffer bb) {
@@ -115,12 +121,19 @@ public class HttpConnection extends Connection {
         position = 0;
         ready = false;
         state = State.READING_HEADERS;
+        inputStream = null;
+        outputStream = null;
         r = 0;
         requestReader = null;
     }
 
     @Override
     public void onWriteData(ReadableData readable, boolean hasMore) {
+        if (state == State.WRITING_OUTPUT_STREAM) {
+            outputStream.wakeUp();
+            return;
+        }
+
         if (!Header.VALUE_CONNECTION_KEEP_ALIVE.value.equalsIgnoreCase(request.header(Header.KEY_CONNECTION.value))) {
             close();
         }
@@ -143,4 +156,13 @@ public class HttpConnection extends Connection {
         return inputStream;
     }
 
+
+    public EpollOutputStream getOutputStream() {
+        if (outputStream == null) {
+            outputStream = new EpollOutputStream(this);
+            state = State.WRITING_OUTPUT_STREAM;
+        }
+
+        return outputStream;
+    }
 }

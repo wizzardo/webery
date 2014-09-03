@@ -115,6 +115,24 @@ public class TestRequest extends ServerTest {
     }
 
     @Test
+    public void testOutputStream() throws IOException {
+        handler = request -> {
+            Response response = new Response().setHeader(Header.KEY_CONTENT_LENGTH, 2);
+            try {
+                response.getOutputStream(request.getConnection()).write("ok".getBytes());
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            request.getConnection().close();
+            return response;
+        };
+
+        Assert.assertEquals("ok", makeRequest("/").get().asString());
+        Assert.assertEquals("ok", makeRequest("/").get().asString());
+        Assert.assertEquals("ok", makeRequest("/").get().asString());
+    }
+
+    @Test
     public void testPostParams() throws IOException {
         handler = request -> {
             Assert.assertEquals("value", request.param("key"));
@@ -142,7 +160,7 @@ public class TestRequest extends ServerTest {
             Assert.assertEquals(null, request.data());
             Assert.assertEquals(false, request.isMultipart());
             try {
-                return new Response().setBody(MD5.getMD5AsString(request.connection().getInputStream()));
+                return new Response().setBody(MD5.getMD5AsString(request.getInputStream()));
             } catch (IOException e) {
                 e.printStackTrace();
                 return new Response().setBody(e.getMessage());
@@ -160,7 +178,7 @@ public class TestRequest extends ServerTest {
             Assert.assertEquals(true, request.isMultipart());
             Assert.assertEquals(0, counter.getAndIncrement());
             try {
-                String value = new String(IOTools.bytes(request.connection().getInputStream()));
+                String value = new String(IOTools.bytes(request.getInputStream()));
                 Assert.assertEquals("------WebKitFormBoundaryZzaC4MkAfrAMfJCJ\r\n" +
                         "Content-Disposition: form-data; name=\"data\"; filename=\"just some data\"\r\n" +
                         "Content-Type: application/octet-stream\r\n" +
