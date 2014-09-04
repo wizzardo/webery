@@ -128,7 +128,7 @@ public class HttpServer extends EpollServer<HttpConnection> {
             Response response = handleRequest(connection.getRequest());
 
             if (connection.getState() == HttpConnection.State.WRITING_OUTPUT_STREAM)
-                connection.getOutputStream().close();
+                connection.getOutputStream().flush();
 
             if (response.isProcessed())
                 return;

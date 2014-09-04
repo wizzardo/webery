@@ -11,6 +11,7 @@ import org.junit.Test;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -130,6 +131,41 @@ public class TestRequest extends ServerTest {
         Assert.assertEquals("ok", makeRequest("/").get().asString());
         Assert.assertEquals("ok", makeRequest("/").get().asString());
         Assert.assertEquals("ok", makeRequest("/").get().asString());
+
+        byte[] big = new byte[10 * 1024 * 1024];
+        new Random().nextBytes(big);
+        String md5 = MD5.getMD5AsString(big);
+
+        handler = request -> {
+            Response response = new Response().setHeader(Header.KEY_CONTENT_LENGTH, big.length);
+            try {
+                response.getOutputStream(request.getConnection()).write(big);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            request.getConnection().close();
+            return response;
+        };
+
+        Assert.assertEquals(md5, MD5.getMD5AsString(makeRequest("/").get().asStream()));
+
+
+        handler = request -> {
+            Response response = new Response().setHeader(Header.KEY_CONTENT_LENGTH, big.length);
+            try {
+                OutputStream out = response.getOutputStream(request.getConnection());
+                for (int i = 0; i < big.length; i++) {
+                    out.write(big[i] & 0xff);
+                }
+                out.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+                request.getConnection().close();
+            }
+            return response;
+        };
+
+        Assert.assertEquals(md5, MD5.getMD5AsString(makeRequest("/").get().asStream()));
     }
 
     @Test

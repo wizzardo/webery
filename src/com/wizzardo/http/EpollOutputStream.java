@@ -22,6 +22,7 @@ public class EpollOutputStream extends OutputStream {
 
     @Override
     public void write(byte[] b, int off, int len) throws IOException {
+        flush();
         latch = new CountDownLatch(1);
         connection.write(b, off, len);
         while (latch.getCount() > 0)
@@ -39,8 +40,11 @@ public class EpollOutputStream extends OutputStream {
 
     @Override
     public void flush() throws IOException {
-        if (offset > 0)
-            write(buffer, 0, offset);
+        if (offset > 0) {
+            int length = offset;
+            offset = 0;
+            write(buffer, 0, length);
+        }
     }
 
     @Override
@@ -48,7 +52,6 @@ public class EpollOutputStream extends OutputStream {
         if (offset >= buffer.length)
             flush();
 
-        offset = 0;
         buffer[offset++] = (byte) b;
     }
 
