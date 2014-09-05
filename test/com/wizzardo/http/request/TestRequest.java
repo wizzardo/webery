@@ -9,9 +9,7 @@ import com.wizzardo.tools.security.MD5;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.OutputStream;
+import java.io.*;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -188,7 +186,7 @@ public class TestRequest extends ServerTest {
                 .post().asString());
 
 
-        byte[] data = new byte[3 * 1024 * 1024];
+        byte[] data = new byte[10 * 1024 * 1024];
         new Random().nextBytes(data);
         final String md5 = MD5.getMD5AsString(data);
 
@@ -197,6 +195,27 @@ public class TestRequest extends ServerTest {
             Assert.assertEquals(false, request.isMultipart());
             try {
                 return new Response().setBody(MD5.getMD5AsString(request.getInputStream()));
+            } catch (IOException e) {
+                e.printStackTrace();
+                return new Response().setBody(e.getMessage());
+            }
+        };
+
+        Assert.assertEquals(md5, makeRequest("/")
+                .data(data, "just some data")
+                .post().asString());
+
+        handler = request -> {
+            Assert.assertEquals(null, request.data());
+            Assert.assertEquals(false, request.isMultipart());
+            try {
+                int l = (int) request.headerLong(Header.KEY_CONTENT_LENGTH);
+                ByteArrayOutputStream out = new ByteArrayOutputStream(l);
+                InputStream in = request.getInputStream();
+                while (l-- > 0)
+                    out.write(in.read());
+
+                return new Response().setBody(MD5.getMD5AsString(out.toByteArray()));
             } catch (IOException e) {
                 e.printStackTrace();
                 return new Response().setBody(e.getMessage());
