@@ -3,7 +3,6 @@ package com.wizzardo.http;
 import com.wizzardo.epoll.EpollServer;
 import com.wizzardo.epoll.IOThread;
 import com.wizzardo.http.request.Header;
-import com.wizzardo.http.request.Request;
 import com.wizzardo.http.response.Response;
 
 import java.io.IOException;
@@ -17,9 +16,16 @@ import java.util.concurrent.LinkedBlockingQueue;
  */
 public class HttpServer extends EpollServer<HttpConnection> {
 
+    private Response staticResponse = new Response()
+            .appendHeader(Header.KEY_CONNECTION, Header.VALUE_CONNECTION_KEEP_ALIVE)
+            .appendHeader(Header.KEY_CONTENT_TYPE, Header.VALUE_CONTENT_TYPE_HTML_UTF8)
+            .setBody("It's alive!".getBytes())
+            .makeStatic();
+
     private BlockingQueue<HttpConnection> queue = new LinkedBlockingQueue<>();
     private int workersCount;
     private int sessionTimeoutSec = 30 * 60;
+    private volatile Handler handler = request -> staticResponse;
 
     public HttpServer(int port) {
         this(null, port);
@@ -32,7 +38,6 @@ public class HttpServer extends EpollServer<HttpConnection> {
     public HttpServer(String host, int port, int workersCount) {
         super(host, port);
         this.workersCount = workersCount;
-        Session.createSessionsHolder(sessionTimeoutSec);
 
         System.out.println("worker count: " + workersCount);
         for (int i = 0; i < workersCount; i++) {
@@ -43,6 +48,12 @@ public class HttpServer extends EpollServer<HttpConnection> {
                 }
             };
         }
+    }
+
+    @Override
+    public void run() {
+        Session.createSessionsHolder(sessionTimeoutSec);
+        super.run();
     }
 
     @Override
@@ -92,40 +103,11 @@ public class HttpServer extends EpollServer<HttpConnection> {
             else if (connection.getState() == HttpConnection.State.WRITING_OUTPUT_STREAM)
                 connection.getOutputStream().wakeUp();
         }
-
-        @Override
-        public void onConnect(HttpConnection httpConnection) {
-//        System.out.println("new connection " + httpConnection);
-        }
-
-        @Override
-        public void onDisconnect(HttpConnection httpConnection) {
-//        System.out.println("close " + httpConnection);
-        }
-    }
-
-
-//        final byte[] bytes = FileTools.bytes(new File("/usr/share/nginx/html/resources/data/img.jpg"));
-
-    private Response staticResponse = new Response()
-            .appendHeader(Header.KEY_CONNECTION, Header.VALUE_CONNECTION_KEEP_ALIVE)
-            .appendHeader(Header.KEY_CONTENT_TYPE, Header.VALUE_CONTENT_TYPE_HTML_UTF8)
-            .setBody("It's alive!".getBytes())
-            .makeStatic();
-
-//        private Response staticResponse = new Response()
-//                .appendHeader(Header.KEY_CONNECTION, Header.VALUE_CONNECTION_KEEP_ALIVE)
-//                .appendHeader(Header.KEY_CONTENT_TYPE, "image/jpg")
-//                .setBody(bytes)
-//                .makeStatic();
-
-    public Response handleRequest(Request request) {
-        return staticResponse;
     }
 
     protected void handle(HttpConnection connection) {
         try {
-            Response response = handleRequest(connection.getRequest());
+            Response response = handler.handle(connection.getRequest());
 
             if (connection.getState() == HttpConnection.State.WRITING_OUTPUT_STREAM)
                 connection.getOutputStream().flush();
@@ -138,7 +120,16 @@ public class HttpServer extends EpollServer<HttpConnection> {
         } catch (Exception t) {
             t.printStackTrace();
             //TODO render error page
+            connection.close();
         }
+    }
+
+    public void setHandler(Handler handler) {
+        this.handler = handler;
+    }
+
+    public void setSessionTimeout(int sec) {
+        this.sessionTimeoutSec = sec;
     }
 
     public static void main(String[] args) {

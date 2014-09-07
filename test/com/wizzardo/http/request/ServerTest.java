@@ -1,10 +1,9 @@
 package com.wizzardo.http.request;
 
+import com.wizzardo.http.Handler;
 import com.wizzardo.http.HttpServer;
-import com.wizzardo.http.response.Response;
 import com.wizzardo.tools.http.HttpClient;
 import com.wizzardo.tools.io.IOTools;
-import com.wizzardo.tools.misc.WrappedException;
 import org.junit.After;
 import org.junit.Before;
 
@@ -23,17 +22,8 @@ public class ServerTest {
 
     @Before
     public void setUp() throws NoSuchMethodException, ClassNotFoundException, NoSuchFieldException {
-        server = new HttpServer(null, port, workers) {
-            @Override
-            public Response handleRequest(Request request) {
-                try {
-                    return handler.handleRequest(request);
-                } catch (Exception e) {
-                    request.connection().close();
-                    throw new WrappedException(e);
-                }
-            }
-        };
+        server = new HttpServer(null, port, workers);
+        server.setHandler(request -> handler.handle(request));
         server.setIoThreadsCount(1);
         server.start();
     }
@@ -64,9 +54,5 @@ public class ServerTest {
             e.printStackTrace();
         }
         return null;
-    }
-
-    protected interface Handler {
-        Response handleRequest(Request request);
     }
 }
