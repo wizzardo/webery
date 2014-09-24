@@ -5,9 +5,11 @@ import com.wizzardo.http.response.RangeResponse;
 import com.wizzardo.http.response.Response;
 import com.wizzardo.http.response.Status;
 import com.wizzardo.tools.misc.DateIso8601;
+import com.wizzardo.tools.misc.WrappedException;
 
 import java.io.File;
 import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.util.Arrays;
 import java.util.Date;
@@ -31,7 +33,7 @@ public class FileTreeHandler implements Handler {
     public Response handle(Request request) {
 //        System.out.println("FileTreeHandler: " + request.path());
 
-        File file = new File(workDir, request.path());
+        File file = new File(workDir, decodePath(request.path()));
         if (file.getAbsolutePath().length() < workDir.getAbsolutePath().length())
             return new Response().setStatus(Status._403).setBody(request.path() + " is forbidden");
 
@@ -76,32 +78,45 @@ public class FileTreeHandler implements Handler {
             path += '/';
 
         for (File file : files) {
-            try {
-                sb.append("<tr>");
+            sb.append("<tr>");
 
-                sb.append("<td>");
-                sb.append("<a href=\"").append(path).append(URLEncoder.encode(file.getName(), "utf-8"));
-                if (file.isDirectory())
-                    sb.append('/');
-                sb.append("\">");
-                sb.append(file.getName());
-                sb.append("</a>");
-                sb.append("</td>");
+            sb.append("<td>");
+            sb.append("<a href=\"").append(path).append(encodeName(file.getName()));
+            if (file.isDirectory())
+                sb.append('/');
+            sb.append("\">");
+            sb.append(file.getName());
+            sb.append("</a>");
+            sb.append("</td>");
 
-                sb.append("<td align=right>");
-                sb.append(file.length()).append(" bytes");
-                sb.append("</td>");
+            sb.append("<td align=right>");
+            sb.append(file.length()).append(" bytes");
+            sb.append("</td>");
 
-                sb.append("<td>");
-                sb.append(DateIso8601.format(new Date(file.lastModified())));
-                sb.append("</td>");
+            sb.append("<td>");
+            sb.append(DateIso8601.format(new Date(file.lastModified())));
+            sb.append("</td>");
 
-                sb.append("<tr>\n");
-            } catch (UnsupportedEncodingException ignore) {
-            }
+            sb.append("<tr>\n");
         }
 
         sb.append("</TABLE>\n</BODY></HTML>");
         return new Response().setBody(sb.toString());
+    }
+
+    private String encodeName(String name) {
+        try {
+            return URLEncoder.encode(name, "utf-8").replace("+", "%20");
+        } catch (UnsupportedEncodingException e) {
+            throw new WrappedException(e);
+        }
+    }
+
+    private String decodePath(String path) {
+        try {
+            return URLDecoder.decode(path, "utf-8");
+        } catch (UnsupportedEncodingException e) {
+            throw new WrappedException(e);
+        }
     }
 }
