@@ -120,6 +120,17 @@ public class Request {
         return value == null ? null : value.getValue();
     }
 
+    public String paramWithDefault(String key, String def) {
+        String value = param(key);
+        return value == null ? def : value;
+    }
+
+    public void param(String key, String value) {
+        MultiValue mv = params().putIfAbsent(key, new MultiValue(value));
+        if (mv != null)
+            mv.append(value);
+    }
+
     public List<String> params(String key) {
         MultiValue value = params().get(key);
         return value == null ? null : value.getValues();

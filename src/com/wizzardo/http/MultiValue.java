@@ -11,6 +11,9 @@ public class MultiValue {
     private String value;
     private List<String> values;
 
+    public MultiValue() {
+    }
+
     public MultiValue(String value) {
         this.value = value;
     }
@@ -28,6 +31,9 @@ public class MultiValue {
     }
 
     public void append(String value) {
-        getValues().add(value);
+        if (this.value == null)
+            this.value = value;
+        else
+            getValues().add(value);
     }
 }
