@@ -34,6 +34,10 @@ public class Response {
         return this;
     }
 
+    public byte[] getBody() {
+        return body;
+    }
+
     public Response setStatus(Status status) {
         this.status = status;
         return this;

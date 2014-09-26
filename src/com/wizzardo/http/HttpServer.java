@@ -25,6 +25,7 @@ public class HttpServer extends EpollServer<HttpConnection> {
     private BlockingQueue<HttpConnection> queue = new LinkedBlockingQueue<>();
     private int workersCount;
     private int sessionTimeoutSec = 30 * 60;
+    private FiltersMapping filtersMapping = new FiltersMapping();
     private volatile Handler handler = request -> staticResponse;
 
     public HttpServer(int port) {
@@ -107,21 +108,37 @@ public class HttpServer extends EpollServer<HttpConnection> {
 
     protected void handle(HttpConnection connection) {
         try {
-            Response response = handler.handle(connection.getRequest());
-
-            if (connection.getState() == HttpConnection.State.WRITING_OUTPUT_STREAM)
-                connection.getOutputStream().flush();
-
-            if (response.isProcessed())
+            Response response = new Response();
+            if (!filtersMapping.before(connection.getRequest(), response)) {
+                finishHandling(connection, response);
                 return;
+            }
 
-            connection.reset();
-            connection.write(response.toReadableBytes());
+            response = handler.handle(connection.getRequest());
+
+            filtersMapping.after(connection.getRequest(), response);
+
+            finishHandling(connection, response);
         } catch (Exception t) {
             t.printStackTrace();
             //TODO render error page
             connection.close();
         }
+    }
+
+    private void finishHandling(HttpConnection connection, Response response) throws IOException {
+        if (connection.getState() == HttpConnection.State.WRITING_OUTPUT_STREAM)
+            connection.getOutputStream().flush();
+
+        if (response.isProcessed())
+            return;
+
+        connection.reset();
+        connection.write(response.toReadableBytes());
+    }
+
+    public FiltersMapping getFiltersMapping() {
+        return filtersMapping;
     }
 
     public void setHandler(Handler handler) {
@@ -135,6 +152,7 @@ public class HttpServer extends EpollServer<HttpConnection> {
     public static void main(String[] args) {
         HttpServer server = new HttpServer(null, 8084, args.length > 0 ? Integer.parseInt(args[0]) : 0);
         server.setIoThreadsCount(args.length > 1 ? Integer.parseInt(args[1]) : 4);
+        server.setHandler(new FileTreeHandler("/home/wizzardo/"));
         server.start();
     }
 }
