@@ -13,14 +13,25 @@ import java.util.regex.Pattern;
 /**
  * @author Moxa
  */
-public class FiltersMapping extends Filter {
+public class FiltersMapping {
 
-    protected Map<String, List<Filter>> mapping = new HashMap<String, List<Filter>>();
-    protected Map<Pattern, List<Filter>> regexpMapping = new LinkedHashMap<Pattern, List<Filter>>();
+    protected Map<String, List<Filter>> mappingBefore = new HashMap<String, List<Filter>>();
+    protected Map<Pattern, List<Filter>> regexpMappingBefore = new LinkedHashMap<Pattern, List<Filter>>();
 
-    public FiltersMapping add(String url, final Filter handler) {
+    protected Map<String, List<Filter>> mappingAfter = new HashMap<String, List<Filter>>();
+    protected Map<Pattern, List<Filter>> regexpMappingAfter = new LinkedHashMap<Pattern, List<Filter>>();
+
+    public FiltersMapping addBefore(String url, Filter handler) {
+        return add(url, handler, mappingBefore, regexpMappingBefore);
+    }
+
+    public FiltersMapping addAfter(String url, Filter handler) {
+        return add(url, handler, mappingAfter, regexpMappingAfter);
+    }
+
+    protected FiltersMapping add(String url, Filter handler, Map<String, List<Filter>> mapping, Map<Pattern, List<Filter>> regexpMapping) {
         if (url.contains("*"))
-            add(Pattern.compile(url.replace("*", ".*")), handler);
+            add(Pattern.compile(url.replace("*", ".*")), handler, regexpMapping);
         else {
             List<Filter> l = mapping.get(url);
             if (l == null) {
@@ -32,7 +43,7 @@ public class FiltersMapping extends Filter {
         return this;
     }
 
-    public FiltersMapping add(Pattern url, Filter handler) {
+    protected FiltersMapping add(Pattern url, Filter handler, Map<Pattern, List<Filter>> regexpMapping) {
         List<Filter> l = regexpMapping.get(url);
         if (l == null) {
             l = new ArrayList<>();
@@ -42,55 +53,35 @@ public class FiltersMapping extends Filter {
         return this;
     }
 
+    public boolean filter(Request request, Response response, Map<String, List<Filter>> mapping, Map<Pattern, List<Filter>> regexpMapping) {
+        List<Filter> filters = mapping.get(request.path());
+        if (filters != null)
+            if (!filter(mapping.get(request.path()), request, response))
+                return false;
 
-    @Override
+        for (Map.Entry<Pattern, List<Filter>> entry : regexpMapping.entrySet()) {
+            if (entry.getKey().matcher(request.path()).matches()) {
+                if (!filter(regexpMapping.get(entry.getKey()), request, response))
+                    return false;
+            }
+        }
+
+        return true;
+    }
+
     public boolean before(Request request, Response response) {
-        List<Filter> filters = mapping.get(request.path());
-        if (filters != null)
-            if (!before(mapping.get(request.path()), request, response))
-                return false;
-
-        for (Map.Entry<Pattern, List<Filter>> entry : regexpMapping.entrySet()) {
-            if (entry.getKey().matcher(request.path()).matches()) {
-                if (!before(regexpMapping.get(entry.getKey()), request, response))
-                    return false;
-            }
-        }
-
-        return true;
+        return filter(request, response, mappingBefore, regexpMappingBefore);
     }
 
-    @Override
     public boolean after(Request request, Response response) {
-        List<Filter> filters = mapping.get(request.path());
-        if (filters != null)
-            if (!after(mapping.get(request.path()), request, response))
-                return false;
-
-        for (Map.Entry<Pattern, List<Filter>> entry : regexpMapping.entrySet()) {
-            if (entry.getKey().matcher(request.path()).matches()) {
-                if (!after(regexpMapping.get(entry.getKey()), request, response))
-                    return false;
-            }
-        }
-
-        return true;
+        return filter(request, response, mappingAfter, regexpMappingAfter);
     }
 
-    private boolean before(List<Filter> filters, Request request, Response response) {
+    protected boolean filter(List<Filter> filters, Request request, Response response) {
         for (Filter f : filters) {
-            if (!f.before(request, response))
+            if (!f.filter(request, response))
                 return false;
 
-        }
-        return true;
-    }
-
-
-    private boolean after(List<Filter> filters, Request request, Response response) {
-        for (Filter f : filters) {
-            if (!f.after(request, response))
-                return false;
         }
         return true;
     }

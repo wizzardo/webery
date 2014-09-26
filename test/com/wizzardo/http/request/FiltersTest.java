@@ -1,6 +1,5 @@
 package com.wizzardo.http.request;
 
-import com.wizzardo.http.Filter;
 import com.wizzardo.http.UrlHandler;
 import com.wizzardo.http.response.Response;
 import com.wizzardo.http.response.Status;
@@ -18,54 +17,23 @@ import java.util.zip.GZIPOutputStream;
  * Date: 26.09.14
  */
 public class FiltersTest extends ServerTest {
-    @Override
-    public void setUp() throws NoSuchMethodException, ClassNotFoundException, NoSuchFieldException {
-        super.setUp();
+
+    @Test
+    public void before() throws IOException {
         handler = new UrlHandler()
                 .append("/allowed", request -> new Response().setBody("ok"))
-                .append("/notAllowed", request -> new Response().setBody("ok"))
-                .append("/say/$what", request -> new Response().setBody("I say: " + request.param("what")))
-        ;
-        server.getFiltersMapping().add("/notAllowed", new Filter() {
+                .append("/notAllowed", request -> new Response().setBody("ok"));
 
-            @Override
-            public boolean before(Request request, Response response) {
-                boolean allowed = "true".equals(request.param("butAllowed"));
-                if (!allowed) {
-                    response.setStatus(Status._403);
-                }
-                return allowed;
+        server.getFiltersMapping().addBefore("/notAllowed", (request, response) -> {
+            boolean allowed = "true".equals(request.param("butAllowed"));
+            if (!allowed) {
+                response.setStatus(Status._403);
             }
+            return allowed;
         });
 
-        server.getFiltersMapping().add("/say/*", new Filter() {
-            @Override
-            public boolean after(Request request, Response response) {
-                if (!"true".equals(request.param("gzip")))
-                    return true;
-
-                try {
-                    ByteArrayOutputStream out = new ByteArrayOutputStream();
-                    GZIPOutputStream gout = new GZIPOutputStream(out);
-                    gout.write(response.getBody());
-                    gout.close();
-                    response.setBody(out.toByteArray());
-                    response.setHeader("Content-Encoding", "gzipped"); // should be 'gzip', but for test it's 'gzipped' because HttpClient unzips data
-                } catch (IOException e) {
-                    e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
-                }
-                return true;
-            }
-        });
-    }
-
-    @Test
-    public void allowed() throws IOException {
         Assert.assertEquals("ok", makeRequest("/allowed").get().asString());
-    }
 
-    @Test
-    public void notAllowed() throws IOException {
         Assert.assertEquals(403, makeRequest("/notAllowed").get().getResponseCode());
         Assert.assertEquals("", makeRequest("/notAllowed").get().asString());
 
@@ -76,6 +44,26 @@ public class FiltersTest extends ServerTest {
 
     @Test
     public void after() throws IOException {
+        handler = new UrlHandler()
+                .append("/say/$what", request -> new Response().setBody("I say: " + request.param("what")));
+
+        server.getFiltersMapping().addAfter("/say/*", (request, response) -> {
+            if (!"true".equals(request.param("gzip")))
+                return true;
+
+            try {
+                ByteArrayOutputStream out = new ByteArrayOutputStream();
+                GZIPOutputStream gout = new GZIPOutputStream(out);
+                gout.write(response.getBody());
+                gout.close();
+                response.setBody(out.toByteArray());
+                response.setHeader("Content-Encoding", "gzipped"); // should be 'gzip', but for test it's 'gzipped' because HttpClient unzips data
+            } catch (IOException e) {
+                e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+            }
+            return true;
+        });
+
         Assert.assertEquals("I say: helloooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo", makeRequest("/say/helloooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo").get().asString());
 
         byte[] bytes = makeRequest("/say/helloooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo?gzip=true").get().asBytes();
