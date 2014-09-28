@@ -2,12 +2,14 @@ package com.wizzardo.http.request;
 
 import com.wizzardo.http.HttpConnection;
 import com.wizzardo.http.MultiValue;
+import com.wizzardo.http.Session;
 import com.wizzardo.tools.io.BlockInputStream;
 import com.wizzardo.tools.io.ProgressListener;
 import com.wizzardo.tools.misc.BoyerMoore;
 
 import java.io.*;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -21,6 +23,7 @@ public class Request {
     private Map<String, MultiValue> headers;
     private Map<String, MultiValue> params;
     private Map<String, MultiPartEntry> multiPartEntryMap;
+    private Map<String, String> cookies;
     private Method method;
     private String path;
     private String queryString;
@@ -28,6 +31,7 @@ public class Request {
     private boolean bodyParsed = false;
     private Boolean multipart;
     private boolean multiPartDataPrepared = false;
+    private String sessionId;
 
     SimpleRequestBody body;
 
@@ -269,5 +273,37 @@ public class Request {
         public File getFile() {
             return file;
         }
+    }
+
+    public Session session() {
+        if (sessionId != null)
+            return Session.get(sessionId);
+
+        sessionId = cookies().get("JSESSIONID");
+
+        if (sessionId != null)
+            return Session.get(sessionId);
+
+        Session session = Session.create();
+        sessionId = session.getId();
+
+//        response.setCookie("JSESSIONID", sessionId, "/");
+        return session;
+    }
+
+    public Map<String, String> cookies() {
+        if (cookies != null)
+            return cookies;
+
+        cookies = new LinkedHashMap<>();
+        String cookieRaw = header("Cookie");
+        if (cookieRaw != null) {
+            for (String kvRaw : cookieRaw.split("; ")) {
+                String[] kv = kvRaw.split("=", 2);
+                cookies.put(kv[0], kv[1]);
+            }
+        }
+
+        return cookies;
     }
 }

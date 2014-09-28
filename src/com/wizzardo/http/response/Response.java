@@ -8,7 +8,11 @@ import com.wizzardo.http.HttpConnection;
 import com.wizzardo.http.request.Header;
 
 import java.io.OutputStream;
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
+import java.util.Date;
+import java.util.Locale;
+import java.util.TimeZone;
 
 /**
  * @author: wizzardo
@@ -17,6 +21,15 @@ import java.util.Arrays;
 public class Response {
     private static final byte[] LINE_SEPARATOR = "\r\n".getBytes();
     private static final byte[] HEADER_SEPARATOR = ": ".getBytes();
+
+    private static ThreadLocal<SimpleDateFormat> dateFormatThreadLocal = new ThreadLocal<SimpleDateFormat>() {
+        @Override
+        protected SimpleDateFormat initialValue() {
+            SimpleDateFormat format = new SimpleDateFormat("EEE, dd-MMM-yyyy kk:mm:ss z", Locale.US);
+            format.setTimeZone(TimeZone.getTimeZone("GMT"));
+            return format;
+        }
+    };
 
     private byte[][] headers = new byte[20][];
     private int headersCount = 0;
@@ -129,6 +142,14 @@ public class Response {
         }
 
         return connection.getOutputStream();
+    }
+
+    public void setCookie(String key, String value, String path) {
+        Date expdate = new Date();
+        expdate.setTime(expdate.getTime() + (3600 * 1000));
+        String cookieExpire = "expires=" + dateFormatThreadLocal.get().format(expdate);
+//Set-Cookie: RMID=732423sdfs73242; expires=Fri, 31 Dec 2010 23:59:59 GMT; path=/; domain=.example.net
+        appendHeader("Set-Cookie", key + "=" + value + "; expires=" + cookieExpire + "; path=" + path);
     }
 
     public Response makeStatic() {
