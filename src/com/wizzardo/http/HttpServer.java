@@ -3,6 +3,7 @@ package com.wizzardo.http;
 import com.wizzardo.epoll.EpollServer;
 import com.wizzardo.epoll.IOThread;
 import com.wizzardo.http.request.Header;
+import com.wizzardo.http.request.Request;
 import com.wizzardo.http.response.Response;
 
 import java.io.IOException;
@@ -26,7 +27,7 @@ public class HttpServer extends EpollServer<HttpConnection> {
     private int workersCount;
     private int sessionTimeoutSec = 30 * 60;
     private FiltersMapping filtersMapping = new FiltersMapping();
-    private volatile Handler handler = request -> staticResponse;
+    private volatile Handler handler = (request, response) -> staticResponse;
 
     public HttpServer(int port) {
         this(null, port);
@@ -108,13 +109,14 @@ public class HttpServer extends EpollServer<HttpConnection> {
 
     protected void handle(HttpConnection connection) {
         try {
+            Request request = connection.getRequest();
             Response response = new Response();
-            if (!filtersMapping.before(connection.getRequest(), response)) {
+            if (!filtersMapping.before(request, response)) {
                 finishHandling(connection, response);
                 return;
             }
 
-            response = handler.handle(connection.getRequest());
+            response = handler.handle(request, response);
 
             filtersMapping.after(connection.getRequest(), response);
 

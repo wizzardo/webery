@@ -9,5 +9,5 @@ import com.wizzardo.http.response.Response;
  */
 public interface Handler {
 
-    public Response handle(Request request);
+    public Response handle(Request request, Response response);
 }

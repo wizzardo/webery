@@ -1,7 +1,6 @@
 package com.wizzardo.http.request;
 
 import com.wizzardo.http.UrlHandler;
-import com.wizzardo.http.response.Response;
 import com.wizzardo.http.response.Status;
 import org.junit.Assert;
 import org.junit.Test;
@@ -21,8 +20,8 @@ public class FiltersTest extends ServerTest {
     @Test
     public void before() throws IOException {
         handler = new UrlHandler()
-                .append("/allowed", request -> new Response().setBody("ok"))
-                .append("/notAllowed", request -> new Response().setBody("ok"));
+                .append("/allowed", (request, response) -> response.setBody("ok"))
+                .append("/notAllowed", (request, response) -> response.setBody("ok"));
 
         server.getFiltersMapping().addBefore("/notAllowed", (request, response) -> {
             boolean allowed = "true".equals(request.param("butAllowed"));
@@ -45,7 +44,7 @@ public class FiltersTest extends ServerTest {
     @Test
     public void after() throws IOException {
         handler = new UrlHandler()
-                .append("/say/$what", request -> new Response().setBody("I say: " + request.param("what")));
+                .append("/say/$what", (request, response) -> response.setBody("I say: " + request.param("what")));
 
         server.getFiltersMapping().addAfter("/say/*", (request, response) -> {
             if (!"true".equals(request.param("gzip")))

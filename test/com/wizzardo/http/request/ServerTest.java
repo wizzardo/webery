@@ -23,7 +23,7 @@ public class ServerTest {
     @Before
     public void setUp() throws NoSuchMethodException, ClassNotFoundException, NoSuchFieldException {
         server = new HttpServer(null, port, workers);
-        server.setHandler(request -> handler.handle(request));
+        server.setHandler((request, response) -> handler.handle(request, response));
         server.setIoThreadsCount(1);
         server.start();
     }

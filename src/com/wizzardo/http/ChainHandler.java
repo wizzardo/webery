@@ -15,9 +15,7 @@ public class ChainHandler implements Handler {
     protected List<Link> handlers = new ArrayList<>();
 
     @Override
-    public Response handle(Request request) {
-        Response response = new Response();
-
+    public Response handle(Request request, Response response) {
         Iterator<Link> iterator = handlers.iterator();
         while (!response.isProcessed() && iterator.hasNext()) {
             Link link = iterator.next();

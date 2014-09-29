@@ -20,18 +20,18 @@ public class UrlHandler implements Handler {
     protected LinkedHashMap<Pattern, Handler> regexpMapping = new LinkedHashMap<>();
 
     @Override
-    public Response handle(Request request) {
+    public Response handle(Request request, Response response) {
         Handler handler = mapping.get(request.path());
         if (handler != null)
-            return handler.handle(request);
+            return handler.handle(request, response);
 
         for (Map.Entry<Pattern, Handler> entry : regexpMapping.entrySet()) {
             if (entry.getKey().matcher(request.path()).matches())
-                return entry.getValue().handle(request);
+                return entry.getValue().handle(request, response);
         }
 
 
-        return new Response().setStatus(Status._404).setBody(request.path() + " not found");
+        return response.setStatus(Status._404).setBody(request.path() + " not found");
     }
 
     public UrlHandler append(String url, Handler handler) {
@@ -48,14 +48,14 @@ public class UrlHandler implements Handler {
             Pattern pattern = Pattern.compile(url);
             String[] variables = vars.toArray(new String[vars.size()]);
 
-            regexpMapping.put(pattern, request -> {
+            regexpMapping.put(pattern, (request, response) -> {
                 Matcher matcher = pattern.matcher(request.path());
                 if (matcher.find()) {
                     for (int i = 1; i <= variables.length; i++) {
                         request.param(variables[i - 1], matcher.group(i));
                     }
                 }
-                return handler.handle(request);
+                return handler.handle(request, response);
             });
         } else {
             mapping.put(url, handler);

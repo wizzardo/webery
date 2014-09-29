@@ -1,7 +1,6 @@
 package com.wizzardo.http.request;
 
 import com.wizzardo.http.UrlHandler;
-import com.wizzardo.http.response.Response;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -16,12 +15,12 @@ public class TestUrlHandler extends ServerTest {
     @Test
     public void testMapping() throws IOException {
         handler = new UrlHandler()
-                .append("/action1", request -> new Response().setBody("action1"))
-                .append("/action2", request -> new Response().setBody("action2"))
-                .append("/$action/1", request -> new Response().setBody("action5"))
-                .append("/2/$action?", request -> new Response().setBody(request.paramWithDefault("action", "default")))
-                .append("/3/$action?/${id}?", request ->
-                        new Response().setBody(request.paramWithDefault("action", "action2") + "+" + request.paramWithDefault("id", "action3")))
+                .append("/action1", (request, response) -> response.setBody("action1"))
+                .append("/action2", (request, response) -> response.setBody("action2"))
+                .append("/$action/1", (request, response) -> response.setBody("action5"))
+                .append("/2/$action?", (request, response) -> response.setBody(request.paramWithDefault("action", "default")))
+                .append("/3/$action?/${id}?", (request, response) ->
+                        response.setBody(request.paramWithDefault("action", "action2") + "+" + request.paramWithDefault("id", "action3")))
         ;
 
         Assert.assertEquals("action1", makeRequest("/action1").get().asString());

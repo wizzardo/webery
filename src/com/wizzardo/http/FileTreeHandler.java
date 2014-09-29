@@ -30,18 +30,18 @@ public class FileTreeHandler implements Handler {
     }
 
     @Override
-    public Response handle(Request request) {
+    public Response handle(Request request, Response response) {
 //        System.out.println("FileTreeHandler: " + request.path());
 
         File file = new File(workDir, decodePath(request.path()));
         if (file.getAbsolutePath().length() < workDir.getAbsolutePath().length())
-            return new Response().setStatus(Status._403).setBody(request.path() + " is forbidden");
+            return response.setStatus(Status._403).setBody(request.path() + " is forbidden");
 
         if (!file.exists())
-            return new Response().setStatus(Status._404).setBody(request.path() + " not found");
+            return response.setStatus(Status._404).setBody(request.path() + " not found");
 
         if (!file.canRead())
-            return new Response().setStatus(Status._403).setBody(request.path() + " is forbidden");
+            return response.setStatus(Status._403).setBody(request.path() + " is forbidden");
 
         if (file.isDirectory())
             return renderDirectory(file);

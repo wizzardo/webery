@@ -1,7 +1,6 @@
 package com.wizzardo.http.request;
 
 import com.wizzardo.http.response.RangeResponse;
-import com.wizzardo.http.response.Response;
 import com.wizzardo.tools.http.ConnectionMethod;
 import com.wizzardo.tools.io.FileTools;
 import com.wizzardo.tools.io.IOTools;
@@ -22,14 +21,14 @@ public class TestRequest extends ServerTest {
 
     @Test
     public void testOk() throws IOException {
-        handler = request -> new Response().setBody("ok");
+        handler = (request, response) -> response.setBody("ok");
 
         Assert.assertEquals("ok", makeRequest("").get().asString());
     }
 
     @Test
     public void testHeaders() throws IOException {
-        handler = request -> {
+        handler = (request, response) -> {
             Assert.assertEquals("value", request.header("key"));
 
             Assert.assertEquals("1", request.header("array"));
@@ -37,7 +36,7 @@ public class TestRequest extends ServerTest {
             Assert.assertEquals(2, headers.size());
             Assert.assertEquals("1", headers.get(0));
             Assert.assertEquals("2", headers.get(1));
-            return new Response().setBody("ok");
+            return response.setBody("ok");
         };
 
         Assert.assertEquals("ok", curl("", "-H", "array: 1", "-H", "array: 2", "-H", "key: value"));
@@ -45,23 +44,23 @@ public class TestRequest extends ServerTest {
 
     @Test
     public void testPath() throws IOException {
-        handler = request -> {
+        handler = (request, response) -> {
             Assert.assertEquals("/", request.path());
-            return new Response().setBody("ok");
+            return response.setBody("ok");
         };
 
         Assert.assertEquals("ok", makeRequest("").get().asString());
 
-        handler = request -> {
+        handler = (request, response) -> {
             Assert.assertEquals("/path", request.path());
-            return new Response().setBody("ok");
+            return response.setBody("ok");
         };
 
         Assert.assertEquals("ok", makeRequest("/path").get().asString());
 
-        handler = request -> {
+        handler = (request, response) -> {
             Assert.assertEquals("/path", request.path());
-            return new Response().setBody("ok");
+            return response.setBody("ok");
         };
 
         Assert.assertEquals("ok", makeRequest("/path").addParameter("key", "value").get().asString());
@@ -70,7 +69,7 @@ public class TestRequest extends ServerTest {
 
     @Test
     public void testParams() throws IOException {
-        handler = request -> {
+        handler = (request, response) -> {
             Assert.assertEquals("key=value&array=1&array=2&empty=&=empty&=", request.getQueryString());
             Assert.assertEquals("value", request.param("key"));
 
@@ -83,7 +82,7 @@ public class TestRequest extends ServerTest {
             Assert.assertEquals("", request.param("empty"));
             Assert.assertEquals("empty", request.param(""));
             Assert.assertEquals("", request.params("").get(1));
-            return new Response().setBody("ok");
+            return response.setBody("ok");
         };
 
         Assert.assertEquals("ok", makeRequest("/path")
@@ -95,9 +94,9 @@ public class TestRequest extends ServerTest {
                 .addParameter("", "")
                 .get().asString());
 
-        handler = request -> {
+        handler = (request, response) -> {
             Assert.assertEquals("", request.param("key"));
-            return new Response().setBody("ok");
+            return response.setBody("ok");
         };
 
         Assert.assertEquals("ok", makeRequest("/path?key").get().asString());
@@ -105,7 +104,7 @@ public class TestRequest extends ServerTest {
 
     @Test
     public void testMethod() throws IOException {
-        handler = request -> new Response().setBody(request.method().name());
+        handler = (request, response) -> response.setBody(request.method().name());
 
         Assert.assertEquals("GET", makeRequest("/").get().asString());
         Assert.assertEquals("POST", makeRequest("/").post().asString());
@@ -115,8 +114,8 @@ public class TestRequest extends ServerTest {
 
     @Test
     public void testOutputStream() throws IOException {
-        handler = request -> {
-            Response response = new Response().setHeader(Header.KEY_CONTENT_LENGTH, 2);
+        handler = (request, response) -> {
+            response.setHeader(Header.KEY_CONTENT_LENGTH, 2);
             try {
                 response.getOutputStream(request.getConnection()).write("ok".getBytes());
             } catch (IOException e) {
@@ -134,8 +133,8 @@ public class TestRequest extends ServerTest {
         new Random().nextBytes(big);
         String md5 = MD5.getMD5AsString(big);
 
-        handler = request -> {
-            Response response = new Response().setHeader(Header.KEY_CONTENT_LENGTH, big.length);
+        handler = (request, response) -> {
+            response.setHeader(Header.KEY_CONTENT_LENGTH, big.length);
             try {
                 response.getOutputStream(request.getConnection()).write(big);
             } catch (IOException e) {
@@ -148,8 +147,8 @@ public class TestRequest extends ServerTest {
         Assert.assertEquals(md5, MD5.getMD5AsString(makeRequest("/").get().asStream()));
 
 
-        handler = request -> {
-            Response response = new Response().setHeader(Header.KEY_CONTENT_LENGTH, big.length);
+        handler = (request, response) -> {
+            response.setHeader(Header.KEY_CONTENT_LENGTH, big.length);
             try {
                 OutputStream out = response.getOutputStream(request.getConnection());
                 for (int i = 0; i < big.length; i++) {
@@ -168,17 +167,17 @@ public class TestRequest extends ServerTest {
 
     @Test
     public void testPostParams() throws IOException {
-        handler = request -> {
+        handler = (request, response) -> {
             Assert.assertEquals("value", request.param("key"));
-            return new Response().setBody("ok");
+            return response.setBody("ok");
         };
 
         Assert.assertEquals("ok", makeRequest("/").addParameter("key", "value").post().asString());
 
 
-        handler = request -> {
+        handler = (request, response) -> {
             Assert.assertEquals("some data", new String(request.data()));
-            return new Response().setBody("ok");
+            return response.setBody("ok");
         };
 
         Assert.assertEquals("ok", makeRequest("/")
@@ -190,14 +189,14 @@ public class TestRequest extends ServerTest {
         new Random().nextBytes(data);
         final String md5 = MD5.getMD5AsString(data);
 
-        handler = request -> {
+        handler = (request, response) -> {
             Assert.assertEquals(null, request.data());
             Assert.assertEquals(false, request.isMultipart());
             try {
-                return new Response().setBody(MD5.getMD5AsString(request.getInputStream()));
+                return response.setBody(MD5.getMD5AsString(request.getInputStream()));
             } catch (IOException e) {
                 e.printStackTrace();
-                return new Response().setBody(e.getMessage());
+                return response.setBody(e.getMessage());
             }
         };
 
@@ -205,7 +204,7 @@ public class TestRequest extends ServerTest {
                 .data(data, "just some data")
                 .post().asString());
 
-        handler = request -> {
+        handler = (request, response) -> {
             Assert.assertEquals(null, request.data());
             Assert.assertEquals(false, request.isMultipart());
             try {
@@ -215,10 +214,10 @@ public class TestRequest extends ServerTest {
                 while (l-- > 0)
                     out.write(in.read());
 
-                return new Response().setBody(MD5.getMD5AsString(out.toByteArray()));
+                return response.setBody(MD5.getMD5AsString(out.toByteArray()));
             } catch (IOException e) {
                 e.printStackTrace();
-                return new Response().setBody(e.getMessage());
+                return response.setBody(e.getMessage());
             }
         };
 
@@ -228,7 +227,7 @@ public class TestRequest extends ServerTest {
 
 
         final AtomicInteger counter = new AtomicInteger();
-        handler = request -> {
+        handler = (request, response) -> {
             Assert.assertEquals(null, request.data());
             Assert.assertEquals(true, request.isMultipart());
             Assert.assertEquals(0, counter.getAndIncrement());
@@ -242,10 +241,10 @@ public class TestRequest extends ServerTest {
                         "------WebKitFormBoundaryZzaC4MkAfrAMfJCJ--", value);
             } catch (IOException e) {
                 e.printStackTrace();
-                return new Response().setBody(e.getMessage());
+                return response.setBody(e.getMessage());
             }
 
-            return new Response().setBody("ok");
+            return response.setBody("ok");
         };
 
         Assert.assertEquals("ok", makeRequest("/")
@@ -253,7 +252,7 @@ public class TestRequest extends ServerTest {
                 .post().asString());
 
 
-        handler = request -> {
+        handler = (request, response) -> {
             Assert.assertEquals(null, request.data());
             Assert.assertEquals(true, request.isMultipart());
 
@@ -265,7 +264,7 @@ public class TestRequest extends ServerTest {
             Assert.assertEquals("bar", request.param("foo"));
             Assert.assertEquals("barbar", request.param("foofoo"));
 
-            return new Response().setBody("ok");
+            return response.setBody("ok");
         };
 
         Assert.assertEquals("ok", makeRequest("/")
@@ -283,7 +282,7 @@ public class TestRequest extends ServerTest {
         file.deleteOnExit();
         FileTools.bytes(file, data);
 
-        handler = request -> new RangeResponse(request, file);
+        handler = (request, response) -> new RangeResponse(request, file);
 
         byte[] test;
         test = new byte[100];
