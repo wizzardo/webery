@@ -111,12 +111,15 @@ public class HttpServer extends EpollServer<HttpConnection> {
         try {
             Request request = connection.getRequest();
             Response response = new Response();
+            request.response(response);
+
             if (!filtersMapping.before(request, response)) {
                 finishHandling(connection, response);
                 return;
             }
 
             response = handler.handle(request, response);
+            request.response(response);
 
             filtersMapping.after(connection.getRequest(), response);
 

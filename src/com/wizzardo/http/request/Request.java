@@ -3,6 +3,7 @@ package com.wizzardo.http.request;
 import com.wizzardo.http.HttpConnection;
 import com.wizzardo.http.MultiValue;
 import com.wizzardo.http.Session;
+import com.wizzardo.http.response.Response;
 import com.wizzardo.tools.io.BlockInputStream;
 import com.wizzardo.tools.io.ProgressListener;
 import com.wizzardo.tools.misc.BoyerMoore;
@@ -32,6 +33,7 @@ public class Request {
     private Boolean multipart;
     private boolean multiPartDataPrepared = false;
     private String sessionId;
+    private Response response;
 
     SimpleRequestBody body;
 
@@ -146,6 +148,14 @@ public class Request {
             bodyParsed = true;
         }
         return params;
+    }
+
+    public Response response() {
+        return response;
+    }
+
+    public void response(Response response) {
+        this.response = response;
     }
 
     public byte[] data() {
@@ -277,17 +287,17 @@ public class Request {
 
     public Session session() {
         if (sessionId != null)
-            return Session.get(sessionId);
+            return Session.find(sessionId);
 
         sessionId = cookies().get("JSESSIONID");
 
         if (sessionId != null)
-            return Session.get(sessionId);
+            return Session.find(sessionId);
 
         Session session = Session.create();
         sessionId = session.getId();
 
-//        response.setCookie("JSESSIONID", sessionId, "/");
+        response.setCookie("JSESSIONID", sessionId, "/");
         return session;
     }
 
@@ -297,7 +307,7 @@ public class Request {
 
         cookies = new LinkedHashMap<>();
         String cookieRaw = header("Cookie");
-        if (cookieRaw != null) {
+        if (cookieRaw != null && !cookieRaw.isEmpty()) {
             for (String kvRaw : cookieRaw.split("; ")) {
                 String[] kv = kvRaw.split("=", 2);
                 cookies.put(kv[0], kv[1]);
