@@ -7,7 +7,7 @@ import org.junit.Test;
  * @author: wizzardo
  * Date: 8/30/14
  */
-public class TestByteTree {
+public class ByteTreeTest {
 
     @Test
     public void test() {

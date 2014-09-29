@@ -17,7 +17,7 @@ import java.util.Random;
  * @author: moxa
  * Date: 12/2/13
  */
-public class TestHeaders {
+public class HeadersTest {
 
 
     String src = "GET /http/ HTTP/1.1\r\n" +

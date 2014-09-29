@@ -17,7 +17,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * @author: wizzardo
  * Date: 7/26/14
  */
-public class TestRequest extends ServerTest {
+public class RequestTest extends ServerTest {
 
     @Test
     public void testOk() throws IOException {

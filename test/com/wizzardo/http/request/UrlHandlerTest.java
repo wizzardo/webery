@@ -10,7 +10,7 @@ import java.io.IOException;
  * @author: wizzardo
  * Date: 25.09.14
  */
-public class TestUrlHandler extends ServerTest {
+public class UrlHandlerTest extends ServerTest {
 
     @Test
     public void testMapping() throws IOException {
