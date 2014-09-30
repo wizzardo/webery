@@ -19,13 +19,20 @@ public enum Header {
     KEY_RANGE("Range"),
     KEY_CONTENT_RANGE("Content-Range"),
     KEY_ACCEPT_RANGES("Accept-Ranges"),
+    KEY_ORIGIN("Origin"),
+    KEY_UPGRADE("Upgrade"),
+    KEY_SEC_WEBSOCKET_KEY("Sec-WebSocket-Key"),
+    KEY_SEC_WEBSOCKET_PROTOCOL("Sec-WebSocket-Protocol"),
+    KEY_SEC_WEBSOCKET_VERSION("Sec-WebSocket-Version"),
 
+    VALUE_WEBSOCKET("websocket"),
     VALUE_CONNECTION_CLOSE("Close"),
     VALUE_BYTES("bytes"),
     VALUE_CONNECTION_KEEP_ALIVE("Keep-Alive"),
     VALUE_NO_CACHE("no-cache"),
     VALUE_CONTENT_TYPE_HTML_UTF8("text/html;charset=UTF-8"),
-    VALUE_FORM_URLENCODED("application/x-www-form-urlencoded");
+    VALUE_FORM_URLENCODED("application/x-www-form-urlencoded"),
+    VALUE_UPGRADE("Upgrade");
 
     public final String value;
     public final byte[] bytes;

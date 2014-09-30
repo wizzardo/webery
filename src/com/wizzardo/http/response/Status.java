@@ -8,6 +8,11 @@ public enum Status {
 
 
     /**
+     * Switching Protocols
+     */
+    _101(101, "Switching Protocols"),
+
+    /**
      * OK
      */
     _200(200, "OK"),
