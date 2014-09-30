@@ -147,9 +147,8 @@ public class Response {
     public void setCookie(String key, String value, String path) {
         Date expdate = new Date();
         expdate.setTime(expdate.getTime() + (3600 * 1000));
-        String cookieExpire = "expires=" + dateFormatThreadLocal.get().format(expdate);
 //Set-Cookie: RMID=732423sdfs73242; expires=Fri, 31 Dec 2010 23:59:59 GMT; path=/; domain=.example.net
-        appendHeader("Set-Cookie", key + "=" + value + "; expires=" + cookieExpire + "; path=" + path);
+        appendHeader(Header.KEY_SET_COOKIE, key + "=" + value + "; expires=" + dateFormatThreadLocal.get().format(expdate) + "; path=" + path);
     }
 
     public Response makeStatic() {
