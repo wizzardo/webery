@@ -48,6 +48,11 @@ public enum Status {
     _403(403, "Forbidden"),
 
     /**
+     * Method Not Allowed
+     */
+    _405(405, "Method Not Allowed"),
+
+    /**
      * Not Found
      */
     _404(404, "Not Found"),

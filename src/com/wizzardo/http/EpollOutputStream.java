@@ -35,7 +35,7 @@ public class EpollOutputStream extends OutputStream {
     @Override
     public void close() throws IOException {
         flush();
-        connection.reset();
+        connection.onFinishingHandling();
     }
 
     @Override

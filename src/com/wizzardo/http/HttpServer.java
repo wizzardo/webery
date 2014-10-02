@@ -77,6 +77,9 @@ public class HttpServer extends EpollServer<HttpConnection> {
                 return;
             }
 
+            if (connection.processRawHandler())
+                return;
+
             ByteBuffer b;
             try {
                 while ((b = read(connection, connection.getBufferSize())).limit() > 0) {
@@ -138,8 +141,8 @@ public class HttpServer extends EpollServer<HttpConnection> {
         if (response.isProcessed())
             return;
 
-        connection.reset();
         connection.write(response.toReadableBytes());
+        connection.onFinishingHandling();
     }
 
     public FiltersMapping getFiltersMapping() {

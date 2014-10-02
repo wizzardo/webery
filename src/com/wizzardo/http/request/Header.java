@@ -8,6 +8,7 @@ public enum Header {
     KEY_ACCEPT("Accept"),
     KEY_ACCEPT_ENCODING("Accept-Encoding"),
     KEY_ACCEPT_LANGUAGE("Accept-Language"),
+    KEY_ALLOW("Allow"),
     KEY_CACHE_CONTROL("Cache-Control"),
     KEY_CONNECTION("Connection"),
     KEY_COOKIE("Cookie"),
@@ -24,6 +25,7 @@ public enum Header {
     KEY_UPGRADE("Upgrade"),
     KEY_SEC_WEBSOCKET_KEY("Sec-WebSocket-Key"),
     KEY_SEC_WEBSOCKET_PROTOCOL("Sec-WebSocket-Protocol"),
+    KEY_SEC_WEBSOCKET_ACCEPT("Sec-WebSocket-Accept"),
     KEY_SEC_WEBSOCKET_VERSION("Sec-WebSocket-Version"),
 
     VALUE_WEBSOCKET("websocket"),

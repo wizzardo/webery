@@ -21,6 +21,7 @@ public class HttpConnection extends Connection {
     private volatile EpollInputStream inputStream;
     private volatile EpollOutputStream outputStream;
     private volatile State state = State.READING_HEADERS;
+    private volatile RawHandler handler;
     private boolean ready = false;
     private RequestReader requestReader;
 
@@ -29,7 +30,8 @@ public class HttpConnection extends Connection {
         READING_BODY,
         READING_BODY_MULTIPART,
         WRITING_OUTPUT_STREAM,
-        READING_INPUT_STREAM
+        READING_INPUT_STREAM,
+        UPGRADED
     }
 
     public HttpConnection(int fd, int ip, int port) {
@@ -55,13 +57,27 @@ public class HttpConnection extends Connection {
         return false;
     }
 
+    public void upgrade(RawHandler handler) {
+        this.handler = handler;
+        state = State.UPGRADED;
+    }
+
+    boolean processRawHandler() {
+        if (handler == null || state != State.UPGRADED)
+            return false;
+
+        handler.onData(this);
+
+        return true;
+    }
+
     public boolean hasDataToWrite() {
         return sending != null && !sending.isEmpty();
     }
 
     private boolean handleHeaders(ByteBuffer bb) {
         if (requestReader == null)
-            requestReader = new RequestReader(new LinkedHashMap<String, MultiValue>(20));
+            requestReader = new RequestReader(new LinkedHashMap<>(20));
 
         int limit, i;
         do {
@@ -117,7 +133,12 @@ public class HttpConnection extends Connection {
         return ready;
     }
 
-    public void reset() {
+    public void onFinishingHandling() {
+        if (state == State.UPGRADED && handler != null) {
+            handler.onReady(this);
+            return;
+        }
+
         position = 0;
         ready = false;
         state = State.READING_HEADERS;
@@ -134,7 +155,7 @@ public class HttpConnection extends Connection {
             return;
         }
 
-        if (!Header.VALUE_CONNECTION_KEEP_ALIVE.value.equalsIgnoreCase(request.header(Header.KEY_CONNECTION.value))) {
+        if (state != State.UPGRADED && !Header.VALUE_CONNECTION_KEEP_ALIVE.value.equalsIgnoreCase(request.header(Header.KEY_CONNECTION.value))) {
             close();
         }
     }
