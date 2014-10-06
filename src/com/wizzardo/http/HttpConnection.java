@@ -21,7 +21,7 @@ public class HttpConnection extends Connection {
     private volatile EpollInputStream inputStream;
     private volatile EpollOutputStream outputStream;
     private volatile State state = State.READING_HEADERS;
-    private volatile RawHandler handler;
+    private volatile ConnectionListener listener;
     private boolean ready = false;
     private RequestReader requestReader;
 
@@ -57,16 +57,16 @@ public class HttpConnection extends Connection {
         return false;
     }
 
-    public void upgrade(RawHandler handler) {
-        this.handler = handler;
+    public void upgrade(ConnectionListener listener) {
+        this.listener = listener;
         state = State.UPGRADED;
     }
 
-    boolean processRawHandler() {
-        if (handler == null || state != State.UPGRADED)
+    boolean processListener() {
+        if (listener == null || state != State.UPGRADED)
             return false;
 
-        handler.onData(this);
+        listener.onData(this);
 
         return true;
     }
@@ -134,8 +134,8 @@ public class HttpConnection extends Connection {
     }
 
     public void onFinishingHandling() {
-        if (state == State.UPGRADED && handler != null) {
-            handler.onReady(this);
+        if (state == State.UPGRADED && listener != null) {
+            listener.onReady(this);
             return;
         }
 

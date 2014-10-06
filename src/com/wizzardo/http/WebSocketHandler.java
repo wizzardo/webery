@@ -14,8 +14,6 @@ import com.wizzardo.tools.security.SHA1;
  */
 public class WebSocketHandler implements Handler {
 
-    private RawWebSocketHandler rawWebSocketHandler = new RawWebSocketHandler();
-
     @Override
     public Response handle(Request request, Response response) {
         if (request.method() != Request.Method.GET)
@@ -38,7 +36,7 @@ public class WebSocketHandler implements Handler {
         key += "258EAFA5-E914-47DA-95CA-C5AB0DC85B11"; // websocket magic
         key = Base64.encodeToString(SHA1.getSHA1(key.getBytes()));
 
-        request.connection().upgrade(rawWebSocketHandler);
+        request.connection().upgrade(new WebSocketListener(request.getConnection(), this));
 
         return response.setStatus(Status._101)
                 .setHeader(Header.KEY_UPGRADE, Header.VALUE_WEBSOCKET)
@@ -46,13 +44,25 @@ public class WebSocketHandler implements Handler {
                 .setHeader(Header.KEY_SEC_WEBSOCKET_ACCEPT, key);
     }
 
-    private static class RawWebSocketHandler implements RawHandler {
+    private static class WebSocketListener implements ConnectionListener {
+        private Connection connection;
+        private WebSocketHandler webSocketHandler;
+
+        private WebSocketListener(Connection connection, WebSocketHandler webSocketHandler) {
+            this.connection = connection;
+            this.webSocketHandler = webSocketHandler;
+        }
+
         @Override
         public void onData(Connection connection) {
         }
 
         @Override
         public void onReady(Connection connection) {
+            webSocketHandler.onConnect(connection);
         }
+    }
+
+    public void onConnect(Connection connection) {
     }
 }

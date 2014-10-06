@@ -5,7 +5,6 @@ import com.wizzardo.epoll.readable.ReadableBuilder;
 import com.wizzardo.epoll.readable.ReadableByteBuffer;
 import com.wizzardo.epoll.readable.ReadableData;
 import com.wizzardo.http.HttpConnection;
-import com.wizzardo.http.RawHandler;
 import com.wizzardo.http.request.Header;
 
 import java.io.OutputStream;

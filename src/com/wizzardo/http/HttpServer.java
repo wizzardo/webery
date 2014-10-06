@@ -77,7 +77,7 @@ public class HttpServer extends EpollServer<HttpConnection> {
                 return;
             }
 
-            if (connection.processRawHandler())
+            if (connection.processListener())
                 return;
 
             ByteBuffer b;
@@ -160,7 +160,10 @@ public class HttpServer extends EpollServer<HttpConnection> {
     public static void main(String[] args) {
         HttpServer server = new HttpServer(null, 8084, args.length > 0 ? Integer.parseInt(args[0]) : 0);
         server.setIoThreadsCount(args.length > 1 ? Integer.parseInt(args[1]) : 4);
-        server.setHandler(new FileTreeHandler("/home/wizzardo/"));
+        server.setHandler(new UrlHandler()
+//                        .append("/static", new FileTreeHandler("/home/wizzardo/")) //todo ignore prefix
+                        .append("/echo", new WebSocketHandler())
+        );
         server.start();
     }
 }
