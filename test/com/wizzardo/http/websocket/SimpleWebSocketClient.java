@@ -8,6 +8,8 @@ import java.io.OutputStream;
 import java.net.Socket;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 
 /**
@@ -20,7 +22,6 @@ public class SimpleWebSocketClient extends Thread {
     private byte[] buffer = new byte[1024];
     private byte[] messageBuffer;
     private int bufferOffset = 0;
-    private int length = 0;
     private int read = 0;
 
     public SimpleWebSocketClient(String url) throws URISyntaxException, IOException {
@@ -76,42 +77,40 @@ public class SimpleWebSocketClient extends Thread {
     }
 
     public void waitForMessage() throws IOException {
-        if (length == 0) {
-            boolean readLength = false;
-            while (!readLength) {
-                bufferOffset += in.read(buffer, bufferOffset, buffer.length - bufferOffset);
-                if (bufferOffset > 1) {
-                    byte l = buffer[1];
-                    if (l <= 125)
-                        readLength = true;
-                    else if (l == 126 && bufferOffset >= 4)
-                        readLength = true;
-                    else if (l == 127 && bufferOffset >= 10)
-                        readLength = true;
-                }
+        Message message = new Message();
+        while (!message.isComplete()) {
+            message.add(readFrame());
+        }
+        onMessage(message);
+    }
+
+    private WebSocketFrame readFrame() throws IOException {
+        boolean readLength = false;
+        while (!readLength) {
+            bufferOffset += in.read(buffer, bufferOffset, buffer.length - bufferOffset);
+            if (bufferOffset > 1) {
+                byte l = buffer[1];
+                if (l <= 125)
+                    readLength = true;
+                else if (l == 126 && bufferOffset >= 4)
+                    readLength = true;
+                else if (l == 127 && bufferOffset >= 10)
+                    readLength = true;
             }
-            WebSocketFrame frame = new WebSocketFrame(buffer, 0, bufferOffset);
-            bufferOffset = 0;
-            if (frame.complete && frame.finalFrame)
-                onMessage(frame.data, frame.offset, frame.length);
-            else {
-                while (!frame.complete) {
-                    frame.read(in);
-                }
-                onMessage(frame.data, frame.offset, frame.length);
+        }
+        WebSocketFrame frame = new WebSocketFrame(buffer, 0, bufferOffset);
+        bufferOffset = 0;
+        if (frame.complete)
+            return frame;
+        else {
+            while (!frame.complete) {
+                frame.read(in);
             }
+            return frame;
         }
     }
 
-    public void onMessage(String message) {
-    }
-
-    public void onMessage(byte[] bytes, int offset, long length) {
-        onMessage(new String(bytes, offset, (int) length));
-    }
-
-    public void onMessage(WebSocketFrame frame) {
-        onMessage(frame.data, frame.offset, frame.length);
+    public void onMessage(Message message) {
     }
 
     static class WebSocketFrame {
@@ -134,7 +133,7 @@ public class SimpleWebSocketClient extends Thread {
         private byte rsv1, rsv2, rsv3;
         private byte opcode;
         private boolean masked;
-        private long length;
+        private int length;
         private int maskingKey;
         private boolean complete;
         private byte[] data;
@@ -161,14 +160,15 @@ public class SimpleWebSocketClient extends Thread {
                 this.length = ((bytes[offset + 2] & 0xff) << 8) + (bytes[offset + 3] & 0xff);
                 r += 2;
             } else if (this.length == 127) {
-                this.length = ((long) (bytes[offset + 2] & 0xff) << 56)
-                        + ((long) (bytes[offset + 3] & 0xff) << 48)
-                        + ((long) (bytes[offset + 4] & 0xff) << 40)
-                        + ((long) (bytes[offset + 5] & 0xff) << 32)
-                        + ((long) (bytes[offset + 6] & 0xff) << 24)
-                        + ((long) (bytes[offset + 7] & 0xff) << 16)
-                        + ((long) (bytes[offset + 8] & 0xff) << 8)
-                        + (bytes[offset + 9] & 0xff);
+                this.length =
+//                        ((long) (bytes[offset + 2] & 0xff) << 56)
+//                        + ((long) (bytes[offset + 3] & 0xff) << 48)
+//                        + ((long) (bytes[offset + 4] & 0xff) << 40)
+//                        + ((long) (bytes[offset + 5] & 0xff) << 32)  // not support long frames
+                        +((bytes[offset + 6] & 0xff) << 24)
+                                + ((bytes[offset + 7] & 0xff) << 16)
+                                + ((bytes[offset + 8] & 0xff) << 8)
+                                + (bytes[offset + 9] & 0xff);
                 r += 8;
             }
             if (masked) {
@@ -180,21 +180,23 @@ public class SimpleWebSocketClient extends Thread {
             }
 
             complete = length - r >= this.length;
-            data = bytes;
-            this.offset = r;
+
+            data = new byte[this.length];
+            System.arraycopy(bytes, r, data, 0, length - r);
+            this.offset = 0;
             read = length - r;
         }
 
         @Override
         public String toString() {
-            return new String(data, offset, (int) length);
+            return new String(data, offset, length);
         }
 
         public byte[] getData() {
             return data;
         }
 
-        public void setData(byte[] data, int offset, long length) {
+        public void setData(byte[] data, int offset, int length) {
             this.data = data;
             this.offset = offset;
             this.length = length;
@@ -204,7 +206,7 @@ public class SimpleWebSocketClient extends Thread {
             return offset;
         }
 
-        public long getLength() {
+        public int getLength() {
             return length;
         }
 
@@ -214,31 +216,31 @@ public class SimpleWebSocketClient extends Thread {
             value |= OPCODE_TEXT_FRAME;
             out.write(value);
 
-            value = (int) length;
+            value = length;
             if (value <= 125) {
                 value |= MASKED;
                 out.write(value);
             } else if (value < 65536) {
                 value |= MASKED;
                 out.write(value);
-                out.write((int) (length >> 8));
-                out.write((int) (length));
+                out.write(length >> 8);
+                out.write(length);
             } else {
                 value |= MASKED;
                 out.write(value);
-                out.write((int) (length >> 56));
-                out.write((int) (length >> 48));
-                out.write((int) (length >> 40));
-                out.write((int) (length >> 32));
-                out.write((int) (length >> 24));
-                out.write((int) (length >> 16));
-                out.write((int) (length));
+//                out.write((int) (length >> 56));
+//                out.write((int) (length >> 48));
+//                out.write((int) (length >> 40));
+//                out.write((int) (length >> 32));
+                out.write(length >> 24);
+                out.write(length >> 16);
+                out.write(length);
             }
 
             byte[] mask = intToBytes(RANDOM.nextInt());
             out.write(mask);
-            mask(data, mask, offset, (int) length);
-            out.write(data, offset, (int) length);
+            mask(data, mask, offset, length);
+            out.write(data, offset, length);
         }
 
         private void mask(byte[] data, byte[] mask, int offset, int length) {
@@ -261,6 +263,42 @@ public class SimpleWebSocketClient extends Thread {
                 read += in.read(data, offset + read, (int) (length - read));
             }
             complete = true;
+        }
+    }
+
+    static class Message {
+        private List<WebSocketFrame> frames = new ArrayList<>();
+
+        boolean isComplete() {
+            if (frames.isEmpty())
+                return false;
+
+            WebSocketFrame frame = frames.get(frames.size() - 1);
+            return frame.finalFrame && frame.complete;
+        }
+
+        void add(WebSocketFrame frame) {
+            frames.add(frame);
+        }
+
+        public String asString() {
+            return new String(asBytes());
+        }
+
+        private byte[] asBytes() {
+            int length = 0;
+            for (WebSocketFrame frame : frames)
+                length += frame.length;
+
+            int offset = 0;
+            byte[] data = new byte[length];
+
+            for (WebSocketFrame frame : frames) {
+                System.arraycopy(frame.getData(), frame.getOffset(), data, offset, frame.getLength());
+                offset += frame.getLength();
+            }
+
+            return data;
         }
     }
 
@@ -297,8 +335,8 @@ public class SimpleWebSocketClient extends Thread {
 //        SimpleWebSocketClient client = new SimpleWebSocketClient("ws://localhost:8080/BrochureDownloader/test") {
         SimpleWebSocketClient client = new SimpleWebSocketClient("ws://localhost:8080/BrochureDownloader/echo") {
             @Override
-            public void onMessage(String message) {
-                System.out.println("onMessage: " + message);
+            public void onMessage(Message message) {
+                System.out.println("onMessage: " + message.asString());
             }
         };
         client.start();
