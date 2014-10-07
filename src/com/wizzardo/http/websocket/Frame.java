@@ -6,10 +6,10 @@ import java.io.OutputStream;
 import java.util.Random;
 
 /**
-* @author: wizzardo
-* Date: 06.10.14
-*/
-class Frame {
+ * @author: wizzardo
+ * Date: 06.10.14
+ */
+public class Frame {
     static final int FINAL_FRAME = 1 << 7;
     static final int MASKED = 1 << 7;
     static final int RSV1 = 1 << 6;
@@ -35,6 +35,7 @@ class Frame {
     private byte[] data;
     private int offset;
     private int read;
+    private int state = 0;
 
     public Frame() {
     }
@@ -167,5 +168,36 @@ class Frame {
 
     public boolean isFinalFrame() {
         return finalFrame;
+    }
+
+    public int read(byte[] bytes, int offset, int length) {
+        if (complete)
+            return 0;
+
+        int r = Math.min(this.length - read, length);
+        System.arraycopy(bytes, offset, data, read, r);
+        read += r;
+        if (this.length == read)
+            complete = true;
+        return r;
+    }
+
+    public static boolean hasHeaders(byte[] bytes, int offset, int length) {
+        if (length >= 2) {
+            int b = bytes[offset + 1] & 0xff;
+            if ((b & Frame.MASKED) != 0) {
+                length -= 4;
+                b -= 128;
+            }
+
+            if (b <= 125)
+                return true;
+            else if (b == 126 && length >= 4)
+                return true;
+            else if (b == 127 && length >= 10)
+                return true;
+
+        }
+        return false;
     }
 }

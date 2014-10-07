@@ -14,7 +14,7 @@ import java.util.LinkedHashMap;
  * Date: 3/14/14
  */
 public class HttpConnection extends Connection {
-    private volatile byte[] data = new byte[1024];
+    private volatile byte[] buffer = new byte[1024];
     private volatile int r = 0;
     private volatile int position = 0;
     private volatile Request request;
@@ -39,7 +39,7 @@ public class HttpConnection extends Connection {
     }
 
     int getBufferSize() {
-        return data.length - position;
+        return buffer.length - position;
     }
 
     public State getState() {
@@ -82,7 +82,7 @@ public class HttpConnection extends Connection {
         int limit, i;
         do {
             limit = readFromByteBuffer(bb);
-            i = requestReader.read(data, 0, limit);
+            i = requestReader.read(buffer, 0, limit);
             if (i > 0)
                 break;
         } while (bb.remaining() > 0);
@@ -100,8 +100,8 @@ public class HttpConnection extends Connection {
     private int readFromByteBuffer(ByteBuffer bb) {
         int limit;
         limit = bb.limit();
-        limit = Math.min(limit, data.length);
-        bb.get(data, 0, limit);
+        limit = Math.min(limit, buffer.length);
+        bb.get(buffer, 0, limit);
         return limit;
     }
 
@@ -111,7 +111,7 @@ public class HttpConnection extends Connection {
                 getInputStream();
                 return true;
             }
-            ready = request.getBody().read(data, position, r - position);
+            ready = request.getBody().read(buffer, position, r - position);
             state = State.READING_BODY;
             r = 0;
             position = 0;
@@ -124,7 +124,7 @@ public class HttpConnection extends Connection {
         int limit;
         while (bb.remaining() > 0) {
             limit = readFromByteBuffer(bb);
-            ready = request.getBody().read(data, 0, limit);
+            ready = request.getBody().read(buffer, 0, limit);
         }
         return ready;
     }
@@ -170,7 +170,7 @@ public class HttpConnection extends Connection {
 
     public EpollInputStream getInputStream() {
         if (inputStream == null) {
-            inputStream = new EpollInputStream(this, data, position, r, request.contentLength());
+            inputStream = new EpollInputStream(this, buffer, position, r, request.contentLength());
             state = State.READING_INPUT_STREAM;
         }
 
@@ -185,5 +185,9 @@ public class HttpConnection extends Connection {
         }
 
         return outputStream;
+    }
+
+    public byte[] getBuffer() {
+        return buffer;
     }
 }

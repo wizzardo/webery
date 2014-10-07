@@ -80,18 +80,8 @@ public class SimpleWebSocketClient extends Thread {
     }
 
     private Frame readFrame() throws IOException {
-        boolean readLength = false;
-        while (!readLength) {
+        while (!Frame.hasHeaders(buffer, 0, bufferOffset)) {
             bufferOffset += in.read(buffer, bufferOffset, buffer.length - bufferOffset);
-            if (bufferOffset > 1) {
-                byte l = buffer[1];
-                if (l <= 125)
-                    readLength = true;
-                else if (l == 126 && bufferOffset >= 4)
-                    readLength = true;
-                else if (l == 127 && bufferOffset >= 10)
-                    readLength = true;
-            }
         }
         Frame frame = new Frame(buffer, 0, bufferOffset);
         bufferOffset = 0;

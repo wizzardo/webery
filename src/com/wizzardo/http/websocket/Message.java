@@ -7,7 +7,7 @@ import java.util.List;
  * @author: wizzardo
  * Date: 06.10.14
  */
-class Message {
+public class Message {
     protected List<Frame> frames = new ArrayList<>();
 
     public boolean isComplete() {
