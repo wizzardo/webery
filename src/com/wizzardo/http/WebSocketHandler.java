@@ -1,12 +1,16 @@
 package com.wizzardo.http;
 
-import com.wizzardo.epoll.Connection;
+import com.wizzardo.epoll.readable.ReadableBuilder;
 import com.wizzardo.http.request.Header;
 import com.wizzardo.http.request.Request;
 import com.wizzardo.http.response.Response;
 import com.wizzardo.http.response.Status;
+import com.wizzardo.http.websocket.Frame;
+import com.wizzardo.http.websocket.Message;
 import com.wizzardo.tools.security.Base64;
 import com.wizzardo.tools.security.SHA1;
+
+import java.io.IOException;
 
 /**
  * @author: wizzardo
@@ -25,7 +29,7 @@ public class WebSocketHandler implements Handler {
         if (!Header.VALUE_UPGRADE.value.equals(request.header(Header.KEY_CONNECTION)))
             return response.setStatus(Status._400);
 
-        if (request.headerLong(Header.KEY_SEC_WEBSOCKET_VERSION, -1) == 13)
+        if (request.headerLong(Header.KEY_SEC_WEBSOCKET_VERSION, -1) != 13)
             return response.setStatus(Status._400);
 
         String key = request.header(Header.KEY_SEC_WEBSOCKET_KEY);
@@ -44,25 +48,81 @@ public class WebSocketHandler implements Handler {
                 .setHeader(Header.KEY_SEC_WEBSOCKET_ACCEPT, key);
     }
 
-    private static class WebSocketListener implements ConnectionListener {
-        private Connection connection;
+    public static class WebSocketListener implements ConnectionListener {
+        private HttpConnection connection;
         private WebSocketHandler webSocketHandler;
+        private Message tempMessage;
+        private Frame tempFrame;
+        private int read = 0;
 
-        private WebSocketListener(Connection connection, WebSocketHandler webSocketHandler) {
+        private WebSocketListener(HttpConnection connection, WebSocketHandler webSocketHandler) {
             this.connection = connection;
             this.webSocketHandler = webSocketHandler;
         }
 
         @Override
-        public void onData(Connection connection) {
+        public void onData(HttpConnection connection) {
+            try {
+                byte[] buffer = connection.getBuffer();
+                int r;
+
+                outer:
+                while ((r = connection.read(buffer, read, buffer.length - read)) != -1) {
+                    read += r;
+                    while (read > 0) {
+                        if (tempFrame == null) {
+                            if (!Frame.hasHeaders(buffer, 0, read))
+                                continue outer;
+
+                            tempFrame = new Frame();
+                        }
+
+                        int k = tempFrame.read(buffer, 0, read);
+                        read -= k;
+                        if (read != 0)
+                            System.arraycopy(buffer, k, buffer, 0, read);
+
+                        if (tempFrame.isComplete()) {
+                            if (tempMessage == null)
+                                tempMessage = new Message();
+
+                            tempFrame.unmask();
+                            tempMessage.add(tempFrame);
+                            tempFrame = null;
+                        }
+
+                        //todo handle ping
+                        if (tempMessage != null && tempMessage.isComplete()) {
+                            webSocketHandler.onMessage(this, tempMessage);
+                            tempMessage = null;
+                        }
+                    }
+                }
+
+            } catch (IOException e) {
+                e.printStackTrace();
+                connection.close();
+            }
         }
 
         @Override
-        public void onReady(Connection connection) {
-            webSocketHandler.onConnect(connection);
+        public void onReady(HttpConnection connection) {
+            webSocketHandler.onConnect(this);
+        }
+
+        public void sendMessage(Message message) {
+            for (Frame frame : message.getFrames()) {
+                connection.write(new ReadableBuilder()
+                                .append(frame.getHeader())
+                                .append(frame.getData(), frame.getOffset(), frame.getLength())
+                );
+            }
         }
     }
 
-    public void onConnect(Connection connection) {
+    public void onConnect(WebSocketListener listener) {
+    }
+
+    public void onMessage(WebSocketListener listener, Message message) {
     }
 }

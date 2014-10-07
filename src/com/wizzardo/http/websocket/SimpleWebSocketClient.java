@@ -83,8 +83,12 @@ public class SimpleWebSocketClient extends Thread {
         while (!Frame.hasHeaders(buffer, 0, bufferOffset)) {
             bufferOffset += in.read(buffer, bufferOffset, buffer.length - bufferOffset);
         }
-        Frame frame = new Frame(buffer, 0, bufferOffset);
-        bufferOffset = 0;
+        Frame frame = new Frame();
+        int r = frame.read(buffer, 0, bufferOffset);
+        bufferOffset -= r;
+        if (bufferOffset != 0)
+            System.arraycopy(buffer, r, buffer, 0, bufferOffset);
+
         if (frame.isComplete())
             return frame;
         else {
@@ -129,7 +133,9 @@ public class SimpleWebSocketClient extends Thread {
 
 
 //        SimpleWebSocketClient client = new SimpleWebSocketClient("ws://localhost:8080/BrochureDownloader/test") {
-        SimpleWebSocketClient client = new SimpleWebSocketClient("ws://localhost:8080/BrochureDownloader/echo") {
+//        SimpleWebSocketClient client = new SimpleWebSocketClient("ws://localhost:8080/BrochureDownloader/echo") {
+        SimpleWebSocketClient client = new SimpleWebSocketClient("ws://localhost:8084/echo") {
+//        SimpleWebSocketClient client = new SimpleWebSocketClient("ws://localhost:8084/time") {
             @Override
             public void onMessage(Message message) {
                 System.out.println("onMessage: " + message.asString());

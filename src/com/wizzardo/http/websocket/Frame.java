@@ -30,59 +30,12 @@ public class Frame {
     private byte opcode;
     private boolean masked;
     private int length;
-    private int maskingKey;
+    private byte[] maskingKey;
     private boolean complete;
     private byte[] data;
     private int offset;
     private int read;
-    private int state = 0;
-
-    public Frame() {
-    }
-
-    public Frame(byte[] bytes, int offset, int length) {
-        byte b = bytes[offset];
-        finalFrame = (b & FINAL_FRAME) != 0;
-        rsv1 = (byte) (b & RSV1);
-        rsv2 = (byte) (b & RSV2);
-        rsv3 = (byte) (b & RSV3);
-
-        opcode = (byte) (b & OPCODE);
-
-        b = bytes[offset + 1];
-        masked = (b & MASKED) != 0;
-        this.length = b & LENGTH_FIRST_BYTE;
-        int r = 2;
-        if (this.length == 126) {
-            this.length = ((bytes[offset + 2] & 0xff) << 8) + (bytes[offset + 3] & 0xff);
-            r += 2;
-        } else if (this.length == 127) {
-            this.length =
-//                        ((long) (bytes[offset + 2] & 0xff) << 56)
-//                        + ((long) (bytes[offset + 3] & 0xff) << 48)
-//                        + ((long) (bytes[offset + 4] & 0xff) << 40)
-//                        + ((long) (bytes[offset + 5] & 0xff) << 32)  // not support long frames
-                    +((bytes[offset + 6] & 0xff) << 24)
-                            + ((bytes[offset + 7] & 0xff) << 16)
-                            + ((bytes[offset + 8] & 0xff) << 8)
-                            + (bytes[offset + 9] & 0xff);
-            r += 8;
-        }
-        if (masked) {
-            maskingKey = ((bytes[offset + r] & 0xff) << 24)
-                    + ((bytes[offset + r + 1] & 0xff) << 16)
-                    + ((bytes[offset + r + 2] & 0xff) << 8)
-                    + (bytes[offset + r + 3] & 0xff);
-            r += 4;
-        }
-
-        complete = length - r >= this.length;
-
-        data = new byte[this.length];
-        System.arraycopy(bytes, r, data, 0, length - r);
-        this.offset = 0;
-        read = length - r;
-    }
+    private boolean readHeaders = false;
 
     @Override
     public String toString() {
@@ -97,6 +50,10 @@ public class Frame {
         this.data = data;
         this.offset = offset;
         this.length = length;
+    }
+
+    public void setData(byte[] bytes) {
+        setData(bytes, 0, bytes.length);
     }
 
     public int getOffset() {
@@ -118,11 +75,13 @@ public class Frame {
             value |= MASKED;
             out.write(value);
         } else if (value < 65536) {
+            value = 126;
             value |= MASKED;
             out.write(value);
             out.write(length >> 8);
             out.write(length);
         } else {
+            value = 127;
             value |= MASKED;
             out.write(value);
 //                out.write((int) (length >> 56));
@@ -131,6 +90,7 @@ public class Frame {
 //                out.write((int) (length >> 32));
             out.write(length >> 24);
             out.write(length >> 16);
+            out.write(length >> 8);
             out.write(length);
         }
 
@@ -146,12 +106,19 @@ public class Frame {
         }
     }
 
+    public void unmask() {
+        mask(data, maskingKey, offset, length);
+    }
+
     private byte[] intToBytes(int i) {
-        byte[] bytes = new byte[4];
-        bytes[0] = (byte) ((i >> 24) & 0xff);
-        bytes[1] = (byte) ((i >> 16) & 0xff);
-        bytes[2] = (byte) ((i >> 8) & 0xff);
-        bytes[3] = (byte) (i & 0xff);
+        return intToBytes(i, new byte[4], 0);
+    }
+
+    private byte[] intToBytes(int i, byte[] bytes, int offset) {
+        bytes[offset] = (byte) ((i >> 24) & 0xff);
+        bytes[offset + 1] = (byte) ((i >> 16) & 0xff);
+        bytes[offset + 2] = (byte) ((i >> 8) & 0xff);
+        bytes[offset + 3] = (byte) (i & 0xff);
         return bytes;
     }
 
@@ -174,12 +141,55 @@ public class Frame {
         if (complete)
             return 0;
 
-        int r = Math.min(this.length - read, length);
-        System.arraycopy(bytes, offset, data, read, r);
-        read += r;
-        if (this.length == read)
-            complete = true;
-        return r;
+        if (readHeaders) {
+            int r = Math.min(this.length - read, length);
+            System.arraycopy(bytes, offset, data, read, r);
+            read += r;
+            if (this.length == read)
+                complete = true;
+            return r;
+        } else {
+            byte b = bytes[offset];
+            finalFrame = (b & FINAL_FRAME) != 0;
+            rsv1 = (byte) (b & RSV1);
+            rsv2 = (byte) (b & RSV2);
+            rsv3 = (byte) (b & RSV3);
+
+            opcode = (byte) (b & OPCODE);
+
+            b = bytes[offset + 1];
+            masked = (b & MASKED) != 0;
+            this.length = b & LENGTH_FIRST_BYTE;
+            int r = 2;
+            if (this.length == 126) {
+                this.length = ((bytes[offset + 2] & 0xff) << 8) + (bytes[offset + 3] & 0xff);
+                r += 2;
+            } else if (this.length == 127) {
+                this.length =
+//                        ((long) (bytes[offset + 2] & 0xff) << 56)
+//                        + ((long) (bytes[offset + 3] & 0xff) << 48)
+//                        + ((long) (bytes[offset + 4] & 0xff) << 40)
+//                        + ((long) (bytes[offset + 5] & 0xff) << 32)  // not support long frames
+                        +((bytes[offset + 6] & 0xff) << 24)
+                                + ((bytes[offset + 7] & 0xff) << 16)
+                                + ((bytes[offset + 8] & 0xff) << 8)
+                                + (bytes[offset + 9] & 0xff);
+                r += 8;
+            }
+            if (masked) {
+                maskingKey = new byte[]{bytes[offset + r], bytes[offset + r + 1], bytes[offset + r + 2], bytes[offset + r + 3]};
+                r += 4;
+            }
+
+            complete = length - r >= this.length;
+
+            data = new byte[this.length];
+            read = Math.min(length - r, this.length);
+            System.arraycopy(bytes, r, data, 0, read);
+            this.offset = 0;
+            readHeaders = true;
+            return read + r;
+        }
     }
 
     public static boolean hasHeaders(byte[] bytes, int offset, int length) {
@@ -199,5 +209,49 @@ public class Frame {
 
         }
         return false;
+    }
+
+    public byte[] getHeader() {
+        byte[] header;
+        if (length <= 125)
+            header = new byte[2 + (masked ? 4 : 0)];
+        else if (length < 65536)
+            header = new byte[6 + (masked ? 4 : 0)];
+        else
+            header = new byte[10 + (masked ? 4 : 0)];
+
+
+        int value = 0;
+        value |= FINAL_FRAME;
+        value |= OPCODE_TEXT_FRAME;
+        header[0] = (byte) value;
+
+        value = length;
+        if (value <= 125) {
+            if (masked)
+                value |= MASKED;
+            header[1] = (byte) value;
+        } else if (value < 65536) {
+            value = 126;
+            if (masked)
+                value |= MASKED;
+            header[1] = (byte) value;
+            header[2] = (byte) (length >> 8);
+            header[3] = (byte) length;
+        } else {
+            value = 127;
+            if (masked)
+                value |= MASKED;
+            header[1] = (byte) value;
+            header[6] = (byte) (length >> 24);
+            header[7] = (byte) (length >> 16);
+            header[8] = (byte) (length >> 8);
+            header[9] = (byte) length;
+        }
+
+        if (masked)
+            intToBytes(RANDOM.nextInt(), header, header.length - 4);
+
+        return header;
     }
 }

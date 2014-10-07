@@ -41,4 +41,8 @@ public class Message {
 
         return data;
     }
+
+    public List<Frame> getFrames() {
+        return frames;
+    }
 }
