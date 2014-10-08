@@ -1,6 +1,7 @@
 package com.wizzardo.http.websocket;
 
 import com.wizzardo.epoll.readable.ReadableBuilder;
+import com.wizzardo.epoll.readable.ReadableData;
 import com.wizzardo.http.ConnectionListener;
 import com.wizzardo.http.Handler;
 import com.wizzardo.http.HttpConnection;
@@ -84,17 +85,18 @@ public class WebSocketHandler implements Handler {
                             System.arraycopy(buffer, k, buffer, 0, read);
 
                         if (tempFrame.isComplete()) {
-                            if(tempFrame.isPing())
+                            if (handlePing())
+                                continue;
 
                             if (tempMessage == null)
                                 tempMessage = new Message();
 
-                            tempFrame.unmask();
+                            if (tempFrame.isMasked())
+                                tempFrame.unmask();
                             tempMessage.add(tempFrame);
                             tempFrame = null;
                         }
 
-                        //todo handle ping
                         if (tempMessage != null && tempMessage.isComplete()) {
                             webSocketHandler.onMessage(this, tempMessage);
                             tempMessage = null;
@@ -108,6 +110,18 @@ public class WebSocketHandler implements Handler {
             }
         }
 
+        private boolean handlePing() {
+            if (tempFrame.isPing()) {
+                if (tempFrame.isMasked())
+                    tempFrame.unmask();
+                tempFrame.setOpcode(Frame.OPCODE_PONG);
+                sendFrame(tempFrame);
+                tempFrame = null;
+                return true;
+            }
+            return false;
+        }
+
         @Override
         public void onReady(HttpConnection connection) {
             webSocketHandler.onConnect(this);
@@ -115,11 +129,18 @@ public class WebSocketHandler implements Handler {
 
         public synchronized void sendMessage(Message message) {
             for (Frame frame : message.getFrames()) {
-                connection.write(new ReadableBuilder()
-                                .append(frame.getHeader())
-                                .append(frame.getData(), frame.getOffset(), frame.getLength())
-                );
+                connection.write(convertFrameToReadableData(frame));
             }
+        }
+
+        private synchronized void sendFrame(Frame frame) {
+            connection.write(convertFrameToReadableData(frame));
+        }
+
+        private ReadableData convertFrameToReadableData(Frame frame) {
+            return new ReadableBuilder()
+                    .append(frame.getHeader())
+                    .append(frame.getData(), frame.getOffset(), frame.getLength());
         }
     }
 
