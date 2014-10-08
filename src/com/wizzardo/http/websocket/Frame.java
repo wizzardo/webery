@@ -9,25 +9,25 @@ import java.util.Random;
  * @author: wizzardo
  * Date: 06.10.14
  */
-public class Frame {
+class Frame {
     static final int FINAL_FRAME = 1 << 7;
     static final int MASKED = 1 << 7;
     static final int RSV1 = 1 << 6;
     static final int RSV2 = 1 << 5;
     static final int RSV3 = 1 << 4;
     static final int OPCODE = 0x0f;
-    static final int OPCODE_CONTINUATION_FRAME = 0;
-    static final int OPCODE_TEXT_FRAME = 1;
-    static final int OPCODE_CONNECTION_CLOSE = 8;
-    static final int OPCODE_PING = 9;
-    static final int OPCODE_PONG = 10;
+    static final byte OPCODE_CONTINUATION_FRAME = 0;
+    static final byte OPCODE_TEXT_FRAME = 1;
+    static final byte OPCODE_CONNECTION_CLOSE = 8;
+    static final byte OPCODE_PING = 9;
+    static final byte OPCODE_PONG = 10;
     static final int LENGTH_FIRST_BYTE = 0x7f;
 
     private static final Random RANDOM = new Random();
 
-    private boolean finalFrame;
+    private boolean finalFrame = true;
     private byte rsv1, rsv2, rsv3;
-    private byte opcode;
+    private byte opcode = OPCODE_TEXT_FRAME;
     private boolean masked;
     private int length;
     private byte[] maskingKey;
@@ -65,9 +65,8 @@ public class Frame {
     }
 
     public void write(OutputStream out) throws IOException {
-        int value = 0;
+        int value = opcode;
         value |= FINAL_FRAME;
-        value |= OPCODE_TEXT_FRAME;
         out.write(value);
 
         value = length;
@@ -221,9 +220,8 @@ public class Frame {
             header = new byte[10 + (masked ? 4 : 0)];
 
 
-        int value = 0;
+        int value = opcode;
         value |= FINAL_FRAME;
-        value |= OPCODE_TEXT_FRAME;
         header[0] = (byte) value;
 
         value = length;
@@ -253,5 +251,21 @@ public class Frame {
             intToBytes(RANDOM.nextInt(), header, header.length - 4);
 
         return header;
+    }
+
+    public boolean isPing() {
+        return opcode == OPCODE_PING;
+    }
+
+    public void setOpcode(byte opcode) {
+        this.opcode = opcode;
+    }
+
+    public boolean isMasked() {
+        return masked;
+    }
+
+    public void setIsFinalFrame(boolean isFinalFrame) {
+        this.finalFrame = isFinalFrame;
     }
 }

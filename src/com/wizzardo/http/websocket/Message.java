@@ -8,7 +8,7 @@ import java.util.List;
  * Date: 06.10.14
  */
 public class Message {
-    protected List<Frame> frames = new ArrayList<>();
+    private List<Frame> frames = new ArrayList<>();
 
     public boolean isComplete() {
         if (frames.isEmpty())
@@ -18,8 +18,25 @@ public class Message {
         return frame.isFinalFrame() && frame.isComplete();
     }
 
-    public void add(Frame frame) {
+    void add(Frame frame) {
+        if (!frames.isEmpty())
+            frames.get(frames.size()).setIsFinalFrame(false);
         frames.add(frame);
+    }
+
+    public Message append(String s) {
+        return append(s.getBytes());
+    }
+
+    public Message append(byte[] bytes) {
+        return append(bytes, 0, bytes.length);
+    }
+
+    public Message append(byte[] bytes, int offset, int length) {
+        Frame frame = new Frame();
+        frame.setData(bytes, offset, length);
+        frames.add(frame);
+        return this;
     }
 
     public String asString() {
@@ -42,7 +59,7 @@ public class Message {
         return data;
     }
 
-    protected List<Frame> getFrames() {
+    List<Frame> getFrames() {
         return frames;
     }
 }

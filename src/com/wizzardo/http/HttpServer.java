@@ -5,7 +5,6 @@ import com.wizzardo.epoll.IOThread;
 import com.wizzardo.http.request.Header;
 import com.wizzardo.http.request.Request;
 import com.wizzardo.http.response.Response;
-import com.wizzardo.http.websocket.Frame;
 import com.wizzardo.http.websocket.Message;
 import com.wizzardo.http.websocket.WebSocketHandler;
 
@@ -193,10 +192,7 @@ public class HttpServer extends EpollServer<HttpConnection> {
                             ConcurrentLinkedQueue<WebSocketListener> listeners = new ConcurrentLinkedQueue<>();
 
                             void broadcast(String message) {
-                                Message m = new Message();
-                                Frame frame = new Frame();
-                                frame.setData(message.getBytes());
-                                m.add(frame);
+                                Message m = new Message().append(message);
 
                                 Iterator<WebSocketListener> iter = listeners.iterator();
                                 while (iter.hasNext()) {
