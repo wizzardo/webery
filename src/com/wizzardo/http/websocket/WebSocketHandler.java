@@ -1,12 +1,13 @@
-package com.wizzardo.http;
+package com.wizzardo.http.websocket;
 
 import com.wizzardo.epoll.readable.ReadableBuilder;
+import com.wizzardo.http.ConnectionListener;
+import com.wizzardo.http.Handler;
+import com.wizzardo.http.HttpConnection;
 import com.wizzardo.http.request.Header;
 import com.wizzardo.http.request.Request;
 import com.wizzardo.http.response.Response;
 import com.wizzardo.http.response.Status;
-import com.wizzardo.http.websocket.Frame;
-import com.wizzardo.http.websocket.Message;
 import com.wizzardo.tools.security.Base64;
 import com.wizzardo.tools.security.SHA1;
 
@@ -83,6 +84,8 @@ public class WebSocketHandler implements Handler {
                             System.arraycopy(buffer, k, buffer, 0, read);
 
                         if (tempFrame.isComplete()) {
+                            if(tempFrame.isPing())
+
                             if (tempMessage == null)
                                 tempMessage = new Message();
 
@@ -110,7 +113,7 @@ public class WebSocketHandler implements Handler {
             webSocketHandler.onConnect(this);
         }
 
-        public void sendMessage(Message message) {
+        public synchronized void sendMessage(Message message) {
             for (Frame frame : message.getFrames()) {
                 connection.write(new ReadableBuilder()
                                 .append(frame.getHeader())

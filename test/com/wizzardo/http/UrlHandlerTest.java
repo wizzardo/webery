@@ -1,6 +1,5 @@
-package com.wizzardo.http.request;
+package com.wizzardo.http;
 
-import com.wizzardo.http.UrlHandler;
 import org.junit.Assert;
 import org.junit.Test;
 

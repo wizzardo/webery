@@ -7,6 +7,7 @@ import com.wizzardo.http.request.Request;
 import com.wizzardo.http.response.Response;
 import com.wizzardo.http.websocket.Frame;
 import com.wizzardo.http.websocket.Message;
+import com.wizzardo.http.websocket.WebSocketHandler;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;

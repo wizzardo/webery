@@ -1,4 +1,4 @@
-package com.wizzardo.http.request;
+package com.wizzardo.http;
 
 import com.wizzardo.http.Handler;
 import com.wizzardo.http.HttpServer;

@@ -42,7 +42,7 @@ public class Message {
         return data;
     }
 
-    public List<Frame> getFrames() {
+    protected List<Frame> getFrames() {
         return frames;
     }
 }

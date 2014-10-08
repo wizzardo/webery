@@ -1,5 +1,6 @@
 package com.wizzardo.http.request;
 
+import com.wizzardo.http.ServerTest;
 import com.wizzardo.http.response.RangeResponse;
 import com.wizzardo.tools.http.ConnectionMethod;
 import com.wizzardo.tools.io.FileTools;
