@@ -1,7 +1,5 @@
 package com.wizzardo.http;
 
-import com.wizzardo.http.Handler;
-import com.wizzardo.http.HttpServer;
 import com.wizzardo.tools.http.HttpClient;
 import com.wizzardo.tools.io.IOTools;
 import org.junit.After;
@@ -37,6 +35,10 @@ public class ServerTest {
     protected com.wizzardo.tools.http.Request makeRequest(String path) {
         return HttpClient.createRequest("http://localhost:" + port + path)
                 .header("Connection", "Close");
+    }
+
+    public int getPort() {
+        return port;
     }
 
     protected String curl(String path, String... params) {
