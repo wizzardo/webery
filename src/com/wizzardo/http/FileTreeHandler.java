@@ -19,29 +19,36 @@ import java.util.Date;
  * Date: 19.09.14
  */
 public class FileTreeHandler implements Handler {
+    private String prefix;
     private File workDir;
 
-    public FileTreeHandler(File workDir) {
+    public FileTreeHandler(File workDir, String prefix) {
         this.workDir = workDir;
+        this.prefix = prefix;
     }
 
-    public FileTreeHandler(String workDir) {
-        this.workDir = new File(workDir);
+    public FileTreeHandler(String workDir, String prefix) {
+        this(new File(workDir), prefix);
     }
 
     @Override
     public Response handle(Request request, Response response) {
-//        System.out.println("FileTreeHandler: " + request.path());
+        String path = request.path();
 
-        File file = new File(workDir, decodePath(request.path()));
+        if (!path.startsWith(prefix))
+            return response.setStatus(Status._400).setBody("path must starts with prefix '" + prefix + "'");
+
+        path = path.substring(prefix.length(), path.length());
+
+        File file = new File(workDir, decodePath(path));
         if (file.getAbsolutePath().length() < workDir.getAbsolutePath().length())
-            return response.setStatus(Status._403).setBody(request.path() + " is forbidden");
+            return response.setStatus(Status._403).setBody(path + " is forbidden");
 
         if (!file.exists())
-            return response.setStatus(Status._404).setBody(request.path() + " not found");
+            return response.setStatus(Status._404).setBody(path + " not found");
 
         if (!file.canRead())
-            return response.setStatus(Status._403).setBody(request.path() + " is forbidden");
+            return response.setStatus(Status._403).setBody(path + " is forbidden");
 
         if (file.isDirectory())
             return renderDirectory(file);
@@ -52,7 +59,7 @@ public class FileTreeHandler implements Handler {
     private Response renderDirectory(File dir) {
         StringBuilder sb = new StringBuilder();
         sb.append("<HTML><HEAD><TITLE>Directory: ");
-        String path = dir.getAbsolutePath().substring(workDir.getAbsolutePath().length());
+        String path = prefix + dir.getAbsolutePath().substring(workDir.getAbsolutePath().length());
         sb.append(path);
         sb.append("</TITLE></HEAD><BODY>");
 

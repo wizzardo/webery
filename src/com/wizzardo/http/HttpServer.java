@@ -166,7 +166,7 @@ public class HttpServer extends EpollServer<HttpConnection> {
         HttpServer server = new HttpServer(null, 8084, args.length > 0 ? Integer.parseInt(args[0]) : 0);
         server.setIoThreadsCount(args.length > 1 ? Integer.parseInt(args[1]) : 4);
         server.setHandler(new UrlHandler()
-//                        .append("/static", new FileTreeHandler("/home/wizzardo/")) //todo ignore prefix
+                        .append("/static/*", new FileTreeHandler("/home/wizzardo/", "/static"))
                         .append("/echo", new WebSocketHandler() {
                             @Override
                             public void onMessage(WebSocketListener listener, Message message) {
