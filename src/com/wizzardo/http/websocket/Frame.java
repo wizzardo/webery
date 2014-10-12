@@ -65,37 +65,7 @@ class Frame {
     }
 
     public void write(OutputStream out) throws IOException {
-        int value = opcode;
-        value |= FINAL_FRAME;
-        out.write(value);
-
-        value = length;
-        if (value <= 125) {
-            value |= MASKED;
-            out.write(value);
-        } else if (value < 65536) {
-            value = 126;
-            value |= MASKED;
-            out.write(value);
-            out.write(length >> 8);
-            out.write(length);
-        } else {
-            value = 127;
-            value |= MASKED;
-            out.write(value);
-//                out.write((int) (length >> 56));
-//                out.write((int) (length >> 48));
-//                out.write((int) (length >> 40));
-//                out.write((int) (length >> 32));
-            out.write(length >> 24);
-            out.write(length >> 16);
-            out.write(length >> 8);
-            out.write(length);
-        }
-
-        byte[] mask = intToBytes(RANDOM.nextInt());
-        out.write(mask);
-        mask(data, mask, offset, length);
+        out.write(getHeader());
         out.write(data, offset, length);
     }
 
@@ -106,6 +76,14 @@ class Frame {
     }
 
     public void unmask() {
+        masked = false;
+        mask(data, maskingKey, offset, length);
+    }
+
+    public void mask() {
+        masked = true;
+        if (maskingKey == null)
+            maskingKey = intToBytes(RANDOM.nextInt());
         mask(data, maskingKey, offset, length);
     }
 
@@ -221,7 +199,8 @@ class Frame {
 
 
         int value = opcode;
-        value |= FINAL_FRAME;
+        if (finalFrame)
+            value |= FINAL_FRAME;
         header[0] = (byte) value;
 
         value = length;
@@ -247,8 +226,12 @@ class Frame {
             header[9] = (byte) length;
         }
 
-        if (masked)
-            intToBytes(RANDOM.nextInt(), header, header.length - 4);
+        if (masked) {
+            header[header.length - 4] = maskingKey[0];
+            header[header.length - 3] = maskingKey[1];
+            header[header.length - 2] = maskingKey[2];
+            header[header.length - 1] = maskingKey[3];
+        }
 
         return header;
     }

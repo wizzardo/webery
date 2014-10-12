@@ -20,7 +20,7 @@ public class Message {
 
     void add(Frame frame) {
         if (!frames.isEmpty())
-            frames.get(frames.size()).setIsFinalFrame(false);
+            frames.get(frames.size()-1).setIsFinalFrame(false);
         frames.add(frame);
     }
 
@@ -35,7 +35,7 @@ public class Message {
     public Message append(byte[] bytes, int offset, int length) {
         Frame frame = new Frame();
         frame.setData(bytes, offset, length);
-        frames.add(frame);
+        add(frame);
         return this;
     }
 

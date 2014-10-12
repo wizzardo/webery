@@ -102,6 +102,13 @@ public class SimpleWebSocketClient extends Thread {
     public void onMessage(Message message) {
     }
 
+    public void send(Message message) throws IOException {
+        for (Frame frame : message.getFrames()) {
+            frame.mask();
+            frame.write(out);
+        }
+    }
+
     public void send(String s) throws IOException {
         send(s.getBytes());
     }
@@ -113,6 +120,7 @@ public class SimpleWebSocketClient extends Thread {
     public void send(byte[] data, int offset, int length) throws IOException {
         Frame frame = new Frame();
         frame.setData(data, offset, length);
+        frame.mask();
         frame.write(out);
     }
 
@@ -135,7 +143,7 @@ public class SimpleWebSocketClient extends Thread {
 //        SimpleWebSocketClient client = new SimpleWebSocketClient("ws://localhost:8080/BrochureDownloader/test") {
 //        SimpleWebSocketClient client = new SimpleWebSocketClient("ws://localhost:8080/BrochureDownloader/echo") {
         SimpleWebSocketClient client = new SimpleWebSocketClient("ws://localhost:8084/echo") {
-//        SimpleWebSocketClient client = new SimpleWebSocketClient("ws://localhost:8084/time") {
+            //        SimpleWebSocketClient client = new SimpleWebSocketClient("ws://localhost:8084/time") {
             @Override
             public void onMessage(Message message) {
                 System.out.println("onMessage: " + message.asString());

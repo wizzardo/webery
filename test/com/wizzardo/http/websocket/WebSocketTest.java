@@ -34,4 +34,27 @@ public class WebSocketTest extends ServerTest {
         client.waitForMessage();
         Assert.assertEquals("foo bar", messageHolder.get());
     }
+
+    @Test
+    public void testFrames() throws IOException, URISyntaxException, InterruptedException {
+        handler = new WebSocketHandler() {
+            @Override
+            public void onMessage(WebSocketListener listener, Message message) {
+                listener.sendMessage(message);
+            }
+        };
+
+        AtomicReference<String> messageHolder = new AtomicReference<>();
+        SimpleWebSocketClient client = new SimpleWebSocketClient("ws://localhost:" + getPort()) {
+            @Override
+            public void onMessage(Message message) {
+                messageHolder.set(message.asString());
+            }
+        };
+        Message message = new Message().append("foo").append(" ").append("bar");
+        client.send(message);
+        client.waitForMessage();
+        Assert.assertEquals("foo bar", messageHolder.get());
+    }
+
 }
