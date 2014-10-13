@@ -85,14 +85,18 @@ public class WebSocketHandler implements Handler {
                             System.arraycopy(buffer, k, buffer, 0, read);
 
                         if (tempFrame.isComplete()) {
+                            if (tempFrame.isMasked())
+                                tempFrame.unmask();
+
                             if (handlePing())
+                                continue;
+
+                            if (handleClose())
                                 continue;
 
                             if (tempMessage == null)
                                 tempMessage = new Message();
 
-                            if (tempFrame.isMasked())
-                                tempFrame.unmask();
                             tempMessage.add(tempFrame);
                             tempFrame = null;
                         }
@@ -112,9 +116,17 @@ public class WebSocketHandler implements Handler {
 
         private boolean handlePing() {
             if (tempFrame.isPing()) {
-                if (tempFrame.isMasked())
-                    tempFrame.unmask();
                 tempFrame.setOpcode(Frame.OPCODE_PONG);
+                sendFrame(tempFrame);
+                tempFrame = null;
+                return true;
+            }
+            return false;
+        }
+
+        private boolean handleClose() {
+            if (tempFrame.isClose()) {
+                connection.setCloseOnFinishWriting(true);
                 sendFrame(tempFrame);
                 tempFrame = null;
                 return true;
@@ -137,10 +149,19 @@ public class WebSocketHandler implements Handler {
             connection.write(convertFrameToReadableData(frame));
         }
 
+        public void close() {
+            Frame frame = new Frame();
+            frame.setOpcode(Frame.OPCODE_CONNECTION_CLOSE);
+            sendFrame(frame);
+        }
+
         private ReadableData convertFrameToReadableData(Frame frame) {
-            return new ReadableBuilder()
-                    .append(frame.getHeader())
-                    .append(frame.getData(), frame.getOffset(), frame.getLength());
+            ReadableBuilder builder = new ReadableBuilder().append(frame.getHeader());
+
+            if (frame.getLength() > 0)
+                builder.append(frame.getData(), frame.getOffset(), frame.getLength());
+
+            return builder;
         }
     }
 

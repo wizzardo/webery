@@ -22,6 +22,7 @@ public class HttpConnection extends Connection {
     private volatile EpollOutputStream outputStream;
     private volatile State state = State.READING_HEADERS;
     private volatile ConnectionListener listener;
+    private volatile boolean closeOnFinishWriting = false;
     private boolean ready = false;
     private RequestReader requestReader;
 
@@ -158,6 +159,9 @@ public class HttpConnection extends Connection {
         if (state != State.UPGRADED && !Header.VALUE_CONNECTION_KEEP_ALIVE.value.equalsIgnoreCase(request.header(Header.KEY_CONNECTION.value))) {
             close();
         }
+
+        if (closeOnFinishWriting)
+            close();
     }
 
     public RequestReader getRequestReader() {
@@ -189,5 +193,9 @@ public class HttpConnection extends Connection {
 
     public byte[] getBuffer() {
         return buffer;
+    }
+
+    public void setCloseOnFinishWriting(boolean closeOnFinishWriting) {
+        this.closeOnFinishWriting = closeOnFinishWriting;
     }
 }

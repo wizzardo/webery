@@ -251,4 +251,8 @@ class Frame {
     public void setIsFinalFrame(boolean isFinalFrame) {
         this.finalFrame = isFinalFrame;
     }
+
+    public boolean isClose() {
+        return opcode == OPCODE_CONNECTION_CLOSE;
+    }
 }
