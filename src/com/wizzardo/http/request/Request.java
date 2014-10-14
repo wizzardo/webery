@@ -19,6 +19,7 @@ import java.util.Map;
  * Date: 7/25/14
  */
 public class Request {
+    private static final int NOT_INITIALISED = -2;
 
     private HttpConnection connection;
     private Map<String, MultiValue> headers;
@@ -28,7 +29,7 @@ public class Request {
     private Method method;
     private String path;
     private String queryString;
-    private long contentLength = -1;
+    private long contentLength = NOT_INITIALISED;
     private boolean bodyParsed = false;
     private Boolean multipart;
     private boolean multiPartDataPrepared = false;
@@ -63,8 +64,8 @@ public class Request {
     }
 
     public long contentLength() {
-        if (contentLength == -1)
-            contentLength = headerLong(Header.KEY_CONTENT_LENGTH, 0);
+        if (contentLength == NOT_INITIALISED)
+            contentLength = headerLong(Header.KEY_CONTENT_LENGTH, -1);
         return contentLength;
     }
 
