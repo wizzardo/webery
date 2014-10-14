@@ -36,4 +36,8 @@ public class MultiValue {
         else
             getValues().add(value);
     }
+
+    public String[] asArray() {
+        return getValues().toArray(new String[getValues().size()]);
+    }
 }
