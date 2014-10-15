@@ -190,99 +190,88 @@ public class Request {
 
     public void prepareMultiPart(final ProgressListener ll) {
         if (isMultipart()) {
-            String temp = header(Header.KEY_CONTENT_TYPE);
+            String boundary = header(Header.KEY_CONTENT_TYPE);
             long length = headerLong(Header.KEY_CONTENT_LENGTH);
             int r, rnrn;
             byte[] b = new byte[(int) Math.min(length, 50 * 1024)];
             BoyerMoore newLine = new BoyerMoore("\r\n\r\n".getBytes());
-            temp = "--" + temp.substring(temp.indexOf("boundary=") + "boundary=".length());
+            boundary = "--" + boundary.substring(boundary.indexOf("boundary=") + "boundary=".length());
             BlockInputStream br;
             InputStream in = getInputStream();
-            br = new BlockInputStream(in, temp.getBytes(), length, ll);
+            br = new BlockInputStream(in, boundary.getBytes(), length, ll);
 
-            ByteArrayOutputStream out = new ByteArrayOutputStream();
-            FileOutputStream fout = null;
+            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+            OutputStream out = null;
             byte[] last = new byte[2];
             boolean headerRead;
             try {
+                outer:
                 while (br.hasNext()) {
                     br.next();
                     headerRead = false;
                     String name = null;
                     MultiPartEntry entry = null;
                     while ((r = br.read(b)) != -1) {
+                        if (!headerRead) {
+                            int read = 0;
+                            while ((rnrn = newLine.search(b, Math.max(read - 4, 0), read + r - 4)) == -1) {
+                                read += r;
+                                r = br.read(b, read, b.length - read);
 
-                        if (!headerRead && (rnrn = newLine.search(b, 0, r)) != -1) {
-                            out.write(b, 0, rnrn);
+                                if (r == -1 && read == 0)
+                                    continue outer;
+
+                                if (r == -1 || read == b.length)
+                                    throw new IllegalStateException("can't find multipart header end");
+                            }
+
+                            byteArrayOutputStream.write(b, 0, rnrn);
 
                             headerRead = true;
-                            String type = new String(out.toByteArray());
-                            out.reset();
+                            String type = new String(byteArrayOutputStream.toByteArray());
+                            byteArrayOutputStream.reset();
 
                             name = type.substring(type.indexOf("name=\"") + 6);
                             name = name.substring(0, name.indexOf("\""));
 
-                            String filename;
                             if (type.contains("filename")) {
-                                filename = type.substring(type.indexOf("filename=\"") + 10);
+                                String filename = type.substring(type.indexOf("filename=\"") + 10);
                                 filename = filename.substring(0, filename.indexOf("\""));
-                                entry = new MultiPartEntry(filename);
-                                fout = new FileOutputStream(entry.getFile());
-                                fout.write(b, rnrn + 4, r - 4 - rnrn - 2);
-                                last[0] = b[r - 2];
-                                last[1] = b[r - 1];
+                                entry = new MultiPartFileEntry(name, filename);
                             } else
-                                out.write(b, rnrn + 4, r - 4 - rnrn);
-                        } else if (entry == null)
-                            out.write(b, 0, r);
-                        else {
-                            fout.write(last);
-                            fout.write(b, 0, r - 2);
+                                entry = new MultiPartTextEntry(name);
+
+                            out = entry.outputStream();
+                            out.write(b, rnrn + 4, r - 4 - rnrn - 2);
+                            last[0] = b[r - 2];
+                            last[1] = b[r - 1];
+                        } else {
+                            out.write(last);
+                            out.write(b, 0, r - 2);
                             last[0] = b[r - 2];
                             last[1] = b[r - 1];
                         }
                     }
-                    if (out.size() == 0 && entry == null)
+                    if (entry == null)
                         continue;
 
-                    if (entry == null) {
-                        byte[] bytes = out.toByteArray();
+                    if (multiPartEntryMap == null)
+                        multiPartEntryMap = new HashMap<>();
 
-                        String value = new String(bytes, 0, bytes.length - 2);
+                    out.close();
+                    multiPartEntryMap.put(name, entry);
+
+                    if (entry instanceof MultiPartTextEntry) {
+                        String value = new String(entry.asBytes());
                         MultiValue multiValue = params.putIfAbsent(name, new MultiValue(value));
                         if (multiValue != null)
                             multiValue.append(value);
-
-                    } else {
-                        if (multiPartEntryMap == null)
-                            multiPartEntryMap = new HashMap<>();
-                        fout.close();
-                        multiPartEntryMap.put(name, entry);
                     }
                 }
                 multiPartDataPrepared = true;
             } catch (IOException e) {
                 e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
             }
-        }
-    }
-
-    public static class MultiPartEntry {
-        private String filename;
-        private File file;
-
-        public MultiPartEntry(String filename) throws IOException {
-            this.filename = filename;
-            file = File.createTempFile("--MultiPartEntry", "--");
-            file.deleteOnExit();
-        }
-
-        public String getFilename() {
-            return filename;
-        }
-
-        public File getFile() {
-            return file;
         }
     }
 

@@ -18,6 +18,7 @@ public class MultiPartFileEntry extends MultiPartEntry {
 
     public MultiPartFileEntry(String name, String filename) throws IOException {
         super(name);
+        this.filename = filename;
         file = File.createTempFile("--MultiPartEntry", "--");
     }
 
@@ -27,7 +28,7 @@ public class MultiPartFileEntry extends MultiPartEntry {
     }
 
     @Override
-    OutputStream outputStream() throws IOException{
+    OutputStream outputStream() throws IOException {
         return new FileOutputStream(file);
     }
 
