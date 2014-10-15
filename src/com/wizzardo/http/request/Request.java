@@ -203,16 +203,16 @@ public class Request {
             ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
             OutputStream out = null;
             byte[] last = new byte[2];
-            boolean headerRead;
+            boolean headerReady;
             try {
                 outer:
                 while (br.hasNext()) {
                     br.next();
-                    headerRead = false;
+                    headerReady = false;
                     String name = null;
                     MultiPartEntry entry = null;
                     while ((r = br.read(b)) != -1) {
-                        if (!headerRead) {
+                        if (!headerReady) {
                             int read = 0;
                             while ((rnrn = newLine.search(b, Math.max(read - 4, 0), read + r - 4)) == -1) {
                                 read += r;
@@ -224,10 +224,11 @@ public class Request {
                                 if (r == -1 || read == b.length)
                                     throw new IllegalStateException("can't find multipart header end");
                             }
+                            r += read;
 
                             byteArrayOutputStream.write(b, 0, rnrn);
 
-                            headerRead = true;
+                            headerReady = true;
                             String type = new String(byteArrayOutputStream.toByteArray());
                             byteArrayOutputStream.reset();
 
@@ -246,10 +247,18 @@ public class Request {
                             last[0] = b[r - 2];
                             last[1] = b[r - 1];
                         } else {
-                            out.write(last);
-                            out.write(b, 0, r - 2);
-                            last[0] = b[r - 2];
-                            last[1] = b[r - 1];
+                            if (r <= 1) {
+                                if (r == 0)
+                                    continue;
+                                out.write(last, 0, 1);
+                                last[0] = last[1];
+                                last[1] = b[0];
+                            } else {
+                                out.write(last);
+                                out.write(b, 0, r - 2);
+                                last[0] = b[r - 2];
+                                last[1] = b[r - 1];
+                            }
                         }
                     }
                     if (entry == null)
