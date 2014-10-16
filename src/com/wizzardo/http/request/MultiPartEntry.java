@@ -1,6 +1,8 @@
 package com.wizzardo.http.request;
 
+import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.HashMap;
 import java.util.Map;
@@ -37,6 +39,9 @@ public abstract class MultiPartEntry {
         return null;
     }
 
+    public void delete() {
+    }
+
     void header(String key, String value) {
         headers.put(key, value);
     }
@@ -48,6 +53,10 @@ public abstract class MultiPartEntry {
     public abstract int length();
 
     public abstract byte[] asBytes();
+
+    public abstract boolean save(File file);
+
+    public abstract InputStream inputStream() throws IOException;
 
     abstract OutputStream outputStream() throws IOException;
 }

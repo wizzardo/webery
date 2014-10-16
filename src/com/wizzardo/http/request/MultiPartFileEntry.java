@@ -2,10 +2,7 @@ package com.wizzardo.http.request;
 
 import com.wizzardo.tools.io.FileTools;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
+import java.io.*;
 
 /**
  * @author: wizzardo
@@ -42,7 +39,22 @@ public class MultiPartFileEntry extends MultiPartEntry {
         return FileTools.bytes(file);
     }
 
+    @Override
+    public boolean save(File file) {
+        return this.file.renameTo(file);
+    }
+
+    @Override
+    public InputStream inputStream() throws IOException {
+        return new FileInputStream(file);
+    }
+
     File getFile() {
         return file;
+    }
+
+    @Override
+    public void delete() {
+        file.delete();
     }
 }

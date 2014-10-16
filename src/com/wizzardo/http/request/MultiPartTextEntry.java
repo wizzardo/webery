@@ -1,8 +1,8 @@
 package com.wizzardo.http.request;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
+import com.wizzardo.tools.io.FileTools;
+
+import java.io.*;
 
 /**
  * @author: wizzardo
@@ -18,6 +18,17 @@ public class MultiPartTextEntry extends MultiPartEntry {
     @Override
     public byte[] asBytes() {
         return data.toByteArray();
+    }
+
+    @Override
+    public boolean save(File file) {
+        FileTools.bytes(file, data.toByteArray());
+        return true;
+    }
+
+    @Override
+    public InputStream inputStream() {
+        return new ByteArrayInputStream(data.toByteArray());
     }
 
     @Override
