@@ -242,6 +242,11 @@ public class Request {
                             } else
                                 entry = new MultiPartTextEntry(name);
 
+                            for (String header : type.split("\r\n")) {
+                                String[] kv = header.split(": ");
+                                entry.header(kv[0], kv[1]);
+                            }
+
                             out = entry.outputStream();
                             out.write(b, rnrn + 4, r - 4 - rnrn - 2);
                             last[0] = b[r - 2];
