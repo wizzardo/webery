@@ -8,11 +8,11 @@ import com.wizzardo.tools.io.BlockInputStream;
 import com.wizzardo.tools.io.ProgressListener;
 import com.wizzardo.tools.misc.BoyerMoore;
 
-import java.io.*;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.*;
 
 /**
  * @author: wizzardo
@@ -170,7 +170,7 @@ public class Request {
         return multipart;
     }
 
-    public MultiPartEntry getMultiPartEntry(String key) {
+    public MultiPartEntry entry(String key) {
         if (!multiPartDataPrepared)
             prepareMultiPart();
 
@@ -178,6 +178,10 @@ public class Request {
             return null;
 
         return multiPartEntryMap.get(key);
+    }
+
+    public Collection<MultiPartEntry> entries() {
+        return multiPartEntryMap.values();
     }
 
     public void prepareMultiPart() {

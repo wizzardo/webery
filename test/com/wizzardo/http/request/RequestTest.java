@@ -257,7 +257,7 @@ public class RequestTest extends ServerTest {
             Assert.assertEquals(null, request.data());
             Assert.assertEquals(true, request.isMultipart());
 
-            MultiPartEntry entry = request.getMultiPartEntry("data");
+            MultiPartEntry entry = request.entry("data");
             String value = entry.asString();
             Assert.assertEquals("some data", value);
             Assert.assertEquals("just some data", entry.fileName());
