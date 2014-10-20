@@ -69,11 +69,15 @@ public class HttpServer extends EpollServer<HttpConnection> {
     }
 
     @Override
-    protected IOThread<HttpConnection> createIOThread() {
-        return new HttpIOThread();
+    protected IOThread<HttpConnection> createIOThread(int number, int divider) {
+        return new HttpIOThread(number, divider);
     }
 
     private class HttpIOThread extends IOThread<HttpConnection> {
+
+        public HttpIOThread(int number, int divider) {
+            super(number, divider);
+        }
 
         @Override
         public void onRead(final HttpConnection connection) {
