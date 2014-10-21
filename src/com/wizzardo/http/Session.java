@@ -47,4 +47,8 @@ public class Session extends ConcurrentHashMap {
         cache.put(id, this, ttl);
     }
 
+    public long getTTL() {
+        return cache.getTTL(id);
+    }
+
 }
