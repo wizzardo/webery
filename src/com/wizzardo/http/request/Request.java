@@ -230,7 +230,7 @@ public class Request {
                             }
                             r += read;
 
-                            byteArrayOutputStream.write(b, 0, rnrn);
+                            byteArrayOutputStream.write(b, 2, rnrn - 2); //skip \r\n
 
                             headerReady = true;
                             String type = new String(byteArrayOutputStream.toByteArray());
