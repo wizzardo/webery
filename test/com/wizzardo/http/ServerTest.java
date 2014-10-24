@@ -1,9 +1,12 @@
 package com.wizzardo.http;
 
+import com.wizzardo.http.request.Header;
 import com.wizzardo.tools.http.HttpClient;
 import com.wizzardo.tools.io.IOTools;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
+import org.junit.rules.TestName;
 
 import java.io.IOException;
 
@@ -18,22 +21,31 @@ public class ServerTest {
     protected int port = 9999;
     protected volatile Handler handler;
 
+    @Rule
+    public TestName name = new TestName();
+
     @Before
     public void setUp() throws NoSuchMethodException, ClassNotFoundException, NoSuchFieldException {
+        System.out.println("setUp " + name.getMethodName());
         server = new HttpServer(null, port, workers);
-        server.setHandler((request, response) -> handler.handle(request, response));
+        server.setHandler((request, response) -> {
+            response.setHeader(Header.KEY_CONNECTION, Header.VALUE_CONNECTION_CLOSE);
+            return handler.handle(request, response);
+        });
         server.setIoThreadsCount(1);
         server.start();
     }
 
     @After
     public void tearDown() throws InterruptedException {
+        System.out.println("tearDown " + name.getMethodName());
         server.stopEpoll();
         handler = null;
     }
 
     protected com.wizzardo.tools.http.Request makeRequest(String path) {
         return HttpClient.createRequest("http://localhost:" + port + path)
+                .header("testMethod", name.getMethodName())
                 .header("Connection", "Close");
     }
 
