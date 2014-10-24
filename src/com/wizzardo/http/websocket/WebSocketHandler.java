@@ -69,7 +69,7 @@ public class WebSocketHandler implements Handler {
                 int r;
 
                 outer:
-                while ((r = connection.read(buffer, read, buffer.length - read)) != -1) {
+                while ((r = connection.read(buffer, read, buffer.length - read)) > 0) {
                     read += r;
                     while (read > 0) {
                         if (tempFrame == null) {
