@@ -4,6 +4,7 @@ import com.wizzardo.http.request.Request;
 import com.wizzardo.http.response.Response;
 import com.wizzardo.http.response.Status;
 
+import java.io.IOException;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -20,7 +21,7 @@ public class UrlHandler implements Handler {
     protected LinkedHashMap<Pattern, Handler> regexpMapping = new LinkedHashMap<>();
 
     @Override
-    public Response handle(Request request, Response response) {
+    public Response handle(Request request, Response response) throws IOException {
         Handler handler = mapping.get(request.path());
         if (handler != null)
             return handler.handle(request, response);

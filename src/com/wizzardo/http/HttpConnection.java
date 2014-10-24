@@ -6,6 +6,7 @@ import com.wizzardo.http.request.Header;
 import com.wizzardo.http.request.Request;
 import com.wizzardo.http.request.RequestReader;
 
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.LinkedHashMap;
 
@@ -151,17 +152,29 @@ public class HttpConnection extends Connection {
 
     @Override
     public void onWriteData(ReadableData readable, boolean hasMore) {
+        if (hasMore)
+            return;
+
         if (state == State.WRITING_OUTPUT_STREAM) {
             outputStream.wakeUp();
             return;
         }
 
         if (state != State.UPGRADED && !Header.VALUE_CONNECTION_KEEP_ALIVE.value.equalsIgnoreCase(request.header(Header.KEY_CONNECTION.value))) {
-            close();
+            try {
+                close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            return;
         }
 
         if (closeOnFinishWriting)
-            close();
+            try {
+                close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
     }
 
     public RequestReader getRequestReader() {

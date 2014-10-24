@@ -100,7 +100,11 @@ public class HttpServer extends EpollServer<HttpConnection> {
 
             } catch (IOException e) {
                 e.printStackTrace();
-                connection.close();
+                try {
+                    connection.close();
+                } catch (IOException e1) {
+                    e1.printStackTrace();
+                }
                 return;
             }
 
@@ -139,7 +143,11 @@ public class HttpServer extends EpollServer<HttpConnection> {
         } catch (Exception t) {
             t.printStackTrace();
             //TODO render error page
-            connection.close();
+            try {
+                connection.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
 

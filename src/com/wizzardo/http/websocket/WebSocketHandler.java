@@ -110,7 +110,11 @@ public class WebSocketHandler implements Handler {
 
             } catch (IOException e) {
                 e.printStackTrace();
-                connection.close();
+                try {
+                    connection.close();
+                } catch (IOException e1) {
+                    e1.printStackTrace();
+                }
             }
         }
 
