@@ -3,7 +3,6 @@ package com.wizzardo.http.response;
 import com.wizzardo.epoll.readable.ReadableData;
 import com.wizzardo.epoll.readable.ReadableFile;
 import com.wizzardo.http.request.Header;
-import com.wizzardo.http.request.Header;
 import com.wizzardo.http.request.Request;
 import com.wizzardo.tools.misc.WrappedException;
 
@@ -40,6 +39,7 @@ public class RangeResponse extends Response {
             this.range = new Range(0, file.length() - 1, file.length());
             setHeader(Header.KEY_CONTENT_LENGTH, file.length());
         }
+        setHeader(Header.KEY_CONNECTION, Header.VALUE_CONNECTION_KEEP_ALIVE);
     }
 
     @Override
