@@ -1,6 +1,5 @@
 package com.wizzardo.http.request;
 
-import com.wizzardo.http.request.RequestReader;
 import com.wizzardo.tools.io.FileTools;
 import com.wizzardo.tools.security.MD5;
 import org.junit.Assert;
@@ -97,6 +96,7 @@ public class HeadersTest {
     private void test(RequestReader hhr) {
         Assert.assertEquals("GET", hhr.method);
         Assert.assertEquals("/http/", hhr.path);
+        Assert.assertEquals("HTTP/1.1", hhr.protocol);
         Assert.assertEquals(true, hhr.complete);
 
         Assert.assertEquals("moxa.no-ip.biz", hhr.headers.get("Host").getValue());
@@ -187,6 +187,22 @@ public class HeadersTest {
             }
         }
         return -1;
+    }
+
+    @Test
+    public void testWhiteSpaces() {
+        String data = "GET    /http/    HTTP/1.1 \r\n" +
+                "Host:   example.com\r\n\r\ndata";
+
+        RequestReader reader = new RequestReader();
+        reader.read(data.getBytes());
+
+        Assert.assertEquals(true, reader.complete);
+        Assert.assertEquals("GET", reader.method);
+        Assert.assertEquals("/http/", reader.path);
+        Assert.assertEquals("HTTP/1.1", reader.protocol);
+
+        Assert.assertEquals("example.com", reader.headers.get("Host").getValue());
     }
 
     //    @Test

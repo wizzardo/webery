@@ -98,6 +98,8 @@ public class RequestReader {
         }
         if (path == null) {
             path = getValue(chars, from, length);
+            if (path.isEmpty())
+                path = null;
             return;
         }
 
@@ -157,25 +159,28 @@ public class RequestReader {
     }
 
     private int parseHeaders(byte[] chars, int offset, int length) {
-
         int l = offset + length;
         if (protocol == null) {
             for (int i = offset; i < l; i++) {
                 byte b = chars[i];
                 if (b == ' ') {
-                    if (method == null)
+                    if (method == null) {
                         method = getValue(chars, offset, i - offset);
-                    else if (path == null) {
+                        if (method.isEmpty())
+                            method = null;
+
+                        i++;
+                        return parseHeaders(chars, i, length - (i - offset));
+                    } else if (path == null) {
                         parsePath(chars, offset, i - offset);
+                        i++;
+                        return parseHeaders(chars, i, length - (i - offset));
                     }
 
-                    i++;
-
-                    return parseHeaders(chars, i, length - (i - offset));
                 } else if (b == '\n') {
                     protocol = getValue(chars, offset, i - offset);
-                    i++;
 
+                    i++;
                     return parseHeaders(chars, i, length - (i - offset));
                 }
             }
@@ -268,7 +273,7 @@ public class RequestReader {
 
     /**
      * @return int offset in given byte array to request body.
-     *         -1 if headers aren't completed
+     * -1 if headers aren't completed
      */
     public int read(byte[] bytes, int offset, int length) {
         if (complete || length == 0)
