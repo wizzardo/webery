@@ -73,13 +73,11 @@ public class Response {
     }
 
     public Response setHeader(byte[] key, byte[] value) {
-        for (int i = 0; i < headersCount; i += 2) {
-            if (Arrays.equals(key, headers[i])) {
-                headers[i + 1] = value;
-                return this;
-            }
-        }
-        appendHeader(key, value);
+        int i = indexOfHeader(key);
+        if (i >= 0)
+            headers[i + 1] = value;
+        else
+            appendHeader(key, value);
         return this;
     }
 
@@ -103,6 +101,25 @@ public class Response {
         headers[headersCount++] = value;
 
         return this;
+    }
+
+    public boolean containsHeader(String key) {
+        return containsHeader(key.getBytes());
+    }
+
+    public boolean containsHeader(Header key) {
+        return containsHeader(key.bytes);
+    }
+
+    public boolean containsHeader(byte[] key) {
+        return indexOfHeader(key) != -1;
+    }
+
+    private int indexOfHeader(byte[] key) {
+        for (int i = 0; i < headersCount; i += 2)
+            if (Arrays.equals(key, headers[i]))
+                return i;
+        return -1;
     }
 
     private void increaseHeadersSize() {
