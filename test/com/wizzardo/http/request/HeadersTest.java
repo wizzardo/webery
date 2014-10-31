@@ -18,70 +18,134 @@ import java.util.Random;
  */
 public class HeadersTest {
 
-
-    String src = "GET /http/ HTTP/1.1\r\n" +
-            "Host: moxa.no-ip.biz\r\n" +
-            "Connection: keep-alive\r\n" +
-            "Cache-Control: no-cache\r\n" +
-            "Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8\r\n" +
-            "Pragma: no-cache\r\n" +
-            "User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/30.0.1599.114 Safari/537.36\r\n" +
-            "Accept-Encoding: gzip,deflate,sdch\r\n" +
-            "Accept-Language: en-US,en;q=0.8,ru;q=0.6\r\n" +
-            "Cookie: JSESSIONID=1dt8eiw5zc9t4j2o9asxcgmzq; __utma=107222046.2138525965.1372169768.1372169768.1372685422.2; __utmz=107222046.1372169768.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none)\r\n" +
-            "\r\nololo data foo bar";
-
-    RequestReader reader = new RequestReader();
-
-    @Test
-    public void test1() {
-        Assert.assertEquals(src.indexOf("\r\n\r\n") + 4, reader.read(src.getBytes()));
-        test(reader);
+    static interface Checker {
+        public void check(RequestReader reader);
     }
 
     @Test
-    public void test2() {
+    public void readerTest() {
+        String src;
+        Checker checker;
+
+        src = "GET /http/?foo=bar HTTP/1.1\r\n" +
+                "Host: example.com\r\n" +
+                "Connection: keep-alive\r\n" +
+                "Cache-Control: no-cache\r\n" +
+                "Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8\r\n" +
+                "Pragma: no-cache\r\n" +
+                "User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/30.0.1599.114 Safari/537.36\r\n" +
+                "Accept-Encoding: gzip,deflate,sdch\r\n" +
+                "Accept-Language: en-US,en;q=0.8,ru;q=0.6\r\n" +
+                "Cookie: JSESSIONID=1dt8eiw5zc9t4j2o9asxcgmzq; __utma=107222046.2138525965.1372169768.1372169768.1372685422.2; __utmz=107222046.1372169768.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none)\r\n" +
+                "\r\nololo data foo bar";
+        checker = hhr -> {
+            Assert.assertEquals("GET", hhr.method);
+            Assert.assertEquals("/http/", hhr.path);
+            Assert.assertEquals("HTTP/1.1", hhr.protocol);
+            Assert.assertEquals("foo=bar", hhr.queryString);
+            Assert.assertEquals(true, hhr.complete);
+
+            Assert.assertEquals("example.com", hhr.headers.get("Host").getValue());
+            Assert.assertEquals("keep-alive", hhr.headers.get("Connection").getValue());
+            Assert.assertEquals("no-cache", hhr.headers.get("Cache-Control").getValue());
+            Assert.assertEquals("text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8", hhr.headers.get("Accept").getValue());
+            Assert.assertEquals("no-cache", hhr.headers.get("Pragma").getValue());
+            Assert.assertEquals("Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/30.0.1599.114 Safari/537.36", hhr.headers.get("User-Agent").getValue());
+            Assert.assertEquals("gzip,deflate,sdch", hhr.headers.get("Accept-Encoding").getValue());
+            Assert.assertEquals("en-US,en;q=0.8,ru;q=0.6", hhr.headers.get("Accept-Language").getValue());
+            Assert.assertEquals("JSESSIONID=1dt8eiw5zc9t4j2o9asxcgmzq; __utma=107222046.2138525965.1372169768.1372169768.1372685422.2; __utmz=107222046.1372169768.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none)", hhr.headers.get("Cookie").getValue());
+        };
+        complexTest(src, checker);
+
+
+        src = "GET /http/? HTTP/1.1\r\n" +
+                "Host: example.com\r\n" +
+                "\r\n";
+        checker = hhr -> {
+            Assert.assertEquals("GET", hhr.method);
+            Assert.assertEquals("/http/", hhr.path);
+            Assert.assertEquals("HTTP/1.1", hhr.protocol);
+            Assert.assertEquals("", hhr.queryString);
+            Assert.assertEquals(true, hhr.complete);
+
+            Assert.assertEquals("example.com", hhr.headers.get("Host").getValue());
+        };
+        complexTest(src, checker);
+
+
+        src = "GET /http/ HTTP/1.1\r\n" +
+                "Host: example.com\r\n" +
+                "\r\n";
+        checker = hhr -> {
+            Assert.assertEquals("GET", hhr.method);
+            Assert.assertEquals("/http/", hhr.path);
+            Assert.assertEquals("HTTP/1.1", hhr.protocol);
+            Assert.assertEquals(null, hhr.queryString);
+            Assert.assertEquals(true, hhr.complete);
+
+            Assert.assertEquals("example.com", hhr.headers.get("Host").getValue());
+        };
+        complexTest(src, checker);
+    }
+
+    public void complexTest(String src, Checker checker) {
+        test1(src, checker);
+        test2(src, checker);
+        test3(src, checker);
+        test4(src, checker);
+        test6(src, checker);
+        testAll(src, checker);
+    }
+
+    public void test1(String src, Checker checker) {
+        RequestReader reader = new RequestReader();
+        Assert.assertEquals(src.indexOf("\r\n\r\n") + 4, reader.read(src.getBytes()));
+        checker.check(reader);
+    }
+
+    public void test2(String src, Checker checker) {
+        RequestReader reader = new RequestReader();
         byte[] bytes = src.getBytes();
         for (int i = 0; i < bytes.length && !reader.complete; i++) {
             reader.read(bytes, i, 1);
         }
 
-        test(reader);
+        checker.check(reader);
     }
 
-    @Test
-    public void test3() {
+    public void test3(String src, Checker checker) {
+        RequestReader reader = new RequestReader();
         byte[] bytes = src.getBytes();
         for (int i = 0; i < bytes.length && !reader.complete; i += 2) {
             reader.read(bytes, i, 2);
         }
 
-        test(reader);
+        checker.check(reader);
     }
 
-    @Test
-    public void test4() {
+    public void test4(String src, Checker checker) {
+        RequestReader reader = new RequestReader();
         byte[] bytes = src.getBytes();
         for (int i = 0; i < bytes.length && !reader.complete; i += 3) {
             reader.read(bytes, i, 3);
         }
 
-        test(reader);
+        checker.check(reader);
     }
 
-    @Test
-    public void test6() {
+    public void test6(String src, Checker checker) {
+        RequestReader reader = new RequestReader();
         byte[] bytes = src.getBytes();
         int j = 7;
         for (int i = 0; i < bytes.length && !reader.complete; i += j) {
             reader.read(bytes, i, i + j > bytes.length ? bytes.length - i : j);
         }
 
-        test(reader);
+        checker.check(reader);
     }
 
-    @Test
-    public void test5() {
+    public void testAll(String src, Checker checker) {
+        RequestReader reader;
         byte[] bytes = src.getBytes();
         for (int j = 1; j < bytes.length; j++) {
             reader = new RequestReader();
@@ -89,26 +153,8 @@ public class HeadersTest {
             for (int i = 0; i < bytes.length && !reader.complete; i += j) {
                 reader.read(bytes, i, i + j > bytes.length ? bytes.length - i : j);
             }
-            test(reader);
+            checker.check(reader);
         }
-    }
-
-    private void test(RequestReader hhr) {
-        Assert.assertEquals("GET", hhr.method);
-        Assert.assertEquals("/http/", hhr.path);
-        Assert.assertEquals("HTTP/1.1", hhr.protocol);
-        Assert.assertEquals(true, hhr.complete);
-
-        Assert.assertEquals("moxa.no-ip.biz", hhr.headers.get("Host").getValue());
-        Assert.assertEquals("keep-alive", hhr.headers.get("Connection").getValue());
-        Assert.assertEquals("no-cache", hhr.headers.get("Cache-Control").getValue());
-        Assert.assertEquals("text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8", hhr.headers.get("Accept").getValue());
-        Assert.assertEquals("no-cache", hhr.headers.get("Pragma").getValue());
-        Assert.assertEquals("Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/30.0.1599.114 Safari/537.36", hhr.headers.get("User-Agent").getValue());
-        Assert.assertEquals("gzip,deflate,sdch", hhr.headers.get("Accept-Encoding").getValue());
-        Assert.assertEquals("en-US,en;q=0.8,ru;q=0.6", hhr.headers.get("Accept-Language").getValue());
-        Assert.assertEquals("JSESSIONID=1dt8eiw5zc9t4j2o9asxcgmzq; __utma=107222046.2138525965.1372169768.1372169768.1372685422.2; __utmz=107222046.1372169768.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none)", hhr.headers.get("Cookie").getValue());
-
     }
 
     //    @Test
@@ -128,7 +174,7 @@ public class HeadersTest {
 
 
             for (int j = 0; j < n; j++) {
-                reader = new RequestReader();
+                RequestReader reader = new RequestReader();
                 bytes = data[j % 100];
                 totalBytes += bytes.length;
                 reader.read(bytes);

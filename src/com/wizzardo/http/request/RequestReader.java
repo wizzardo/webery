@@ -33,7 +33,7 @@ public class RequestReader {
     protected Map<String, MultiValue> params;
     protected String method;
     protected String path;
-    protected String queryString = "";
+    protected String queryString;
     protected String protocol;
 
     private byte[] buffer;
@@ -87,24 +87,30 @@ public class RequestReader {
     }
 
     private void parsePath(byte[] chars, int offset, int length) {
-        int from = offset;
-        int to = offset + length;
+        chars = getCharsValue(chars, offset, length);
+        int from = 0;
+        int to = chars.length;
         for (int i = from; i < to; i++) {
             if (chars[i] == '?') {
-                path = getValue(chars, from, i - from);
+                path = AsciiReader.read(chars, from, i - from);
                 from = i + 1;
                 break;
             }
         }
         if (path == null) {
-            path = getValue(chars, from, length);
+            path = AsciiReader.read(chars);
             if (path.isEmpty())
                 path = null;
             return;
         }
 
-        queryString = getValue(chars, from, to - from);
-        parseParameters(chars, from, to - from);
+        int l = to - from;
+        if (l > 0) {
+            queryString = AsciiReader.read(chars, from, l);
+            parseParameters(chars, from, l);
+        } else if (to > 0 && chars[to - 1] == '?') {
+            queryString = "";
+        }
     }
 
     void parseParameters(byte[] chars, int offset, int length) {
@@ -115,17 +121,17 @@ public class RequestReader {
         for (int i = from; i < to; i++) {
             if (isKey) {
                 if (chars[i] == '=') {
-                    key = decodeParameter(getValue(chars, from, i - from));
+                    key = decodeParameter(AsciiReader.read(chars, from, i - from));
                     from = i + 1;
                     isKey = false;
                 }
                 if (chars[i] == '&' && from != i - 1) {
-                    key = decodeParameter(getValue(chars, from, i - from));
+                    key = decodeParameter(AsciiReader.read(chars, from, i - from));
                     from = i + 1;
                 }
             } else {
                 if (chars[i] == '&') {
-                    String value = decodeParameter(getValue(chars, from, i - from));
+                    String value = decodeParameter(AsciiReader.read(chars, from, i - from));
                     from = i + 1;
                     isKey = true;
 
@@ -302,6 +308,38 @@ public class RequestReader {
         r += length;
     }
 
+    private byte[] getCharsValue(byte[] chars, int offset, int length) {
+        if (r > 0) {
+            int bo = 0;
+            while (bo < buffer.length && buffer[bo] <= ' ') {
+                bo++;
+            }
+            r -= bo;
+
+            byte[] b = new byte[length + r];
+
+            System.arraycopy(buffer, bo, b, 0, r);
+            if (length > 0)
+                System.arraycopy(chars, offset, b, r, length);
+
+            r = 0;
+            return b;
+        }
+
+        while (length > 0 && chars[offset] <= ' ') {
+            offset++;
+            length--;
+        }
+        while (length > 0 && chars[offset + length - 1] <= ' ') {
+            length--;
+        }
+
+        byte[] b = new byte[length];
+        if (length > 0)
+            System.arraycopy(chars, offset, b, 0, length);
+        return b;
+    }
+
     private String getValue(byte[] chars, int offset, int length) {
         ByteTree.Node byteTree = headersTree.getRoot();
 
@@ -336,11 +374,11 @@ public class RequestReader {
             r = 0;
         }
 
-        while (chars[offset] <= ' ') {
+        while (length > 0 && chars[offset] <= ' ') {
             offset++;
             length--;
         }
-        while (chars[offset + length - 1] <= ' ') {
+        while (length > 0 && chars[offset + length - 1] <= ' ') {
             length--;
         }
 
