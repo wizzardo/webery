@@ -28,6 +28,7 @@ public class Request {
     private Map<String, String> cookies;
     private Method method;
     private String path;
+    private String protocol;
     private String queryString;
     private long contentLength = NOT_INITIALISED;
     private boolean bodyParsed = false;
@@ -42,17 +43,22 @@ public class Request {
         GET, PUT, POST, DELETE, HEAD, TRACE, OPTIONS, CONNECT, PATCH
     }
 
-    public Request(HttpConnection connection, Map<String, MultiValue> headers, Map<String, MultiValue> params, String method, String path, String queryString) {
+    public Request(HttpConnection connection, Map<String, MultiValue> headers, Map<String, MultiValue> params, String method, String path, String queryString, String protocol) {
         this.connection = connection;
         this.headers = headers;
         this.params = params;
         this.method = Method.valueOf(method);
         this.path = path;
         this.queryString = queryString;
+        this.protocol = protocol;
     }
 
     public String path() {
         return path;
+    }
+
+    public String protocol() {
+        return protocol;
     }
 
     public SimpleRequestBody getBody() {

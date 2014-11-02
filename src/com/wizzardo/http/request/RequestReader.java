@@ -74,7 +74,7 @@ public class RequestReader {
     }
 
     public Request createRequest(HttpConnection connection) {
-        Request request = new Request(connection, headers, params, method, path, queryString);
+        Request request = new Request(connection, headers, params, method, path, queryString, protocol);
         if (request.contentLength() > 0
                 && request.contentLength() < POST_BODY_SIMPLE_LIMIT
                 && !request.isMultipart())
