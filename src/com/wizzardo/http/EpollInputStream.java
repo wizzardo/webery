@@ -9,7 +9,7 @@ import java.io.InputStream;
  * @author: wizzardo
  * Date: 8/3/14
  */
-class EpollInputStream extends InputStream {
+public class EpollInputStream extends InputStream {
 
     private Connection connection;
     private int offset;
@@ -30,6 +30,10 @@ class EpollInputStream extends InputStream {
         this.contentLength = contentLength;
     }
 
+    public boolean isFinished() {
+        return (contentLength > 0 && read >= contentLength) || limit == -1 || !connection.isAlive();
+    }
+
     @Override
     public int read(byte[] b, int off, int len) throws IOException {
         if (b == null) {
@@ -40,7 +44,7 @@ class EpollInputStream extends InputStream {
             return 0;
         }
 
-        if ((contentLength > 0 && read >= contentLength) || limit == -1 || !connection.isAlive())
+        if (isFinished())
             return -1;
 
         if (offset >= limit)
@@ -48,6 +52,9 @@ class EpollInputStream extends InputStream {
 
         if (limit < 0)
             return -1;
+
+        if (limit == 0)
+            return 0;
 
         int l = Math.min(len, limit - offset);
         System.arraycopy(buffer, offset, b, off, l);
@@ -68,9 +75,13 @@ class EpollInputStream extends InputStream {
         return b;
     }
 
-    private void fillBuffer() throws IOException {
+    protected void fillBuffer() throws IOException {
         limit = connection.read(buffer);
         offset = 0;
+        waitForData();
+    }
+
+    protected void waitForData() throws IOException {
         if (limit == 0) {
             synchronized (this) {
                 while ((limit = connection.read(buffer)) == 0) {
@@ -83,7 +94,7 @@ class EpollInputStream extends InputStream {
         }
     }
 
-    void wakeUp() {
+    protected void wakeUp() {
         synchronized (this) {
             notify();
         }

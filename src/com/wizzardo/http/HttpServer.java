@@ -5,15 +5,10 @@ import com.wizzardo.epoll.IOThread;
 import com.wizzardo.http.request.Header;
 import com.wizzardo.http.request.Request;
 import com.wizzardo.http.response.Response;
-import com.wizzardo.http.websocket.Message;
-import com.wizzardo.http.websocket.WebSocketHandler;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.util.Date;
-import java.util.Iterator;
 import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
 /**
@@ -177,48 +172,48 @@ public class HttpServer extends EpollServer<HttpConnection> {
     public static void main(String[] args) {
         HttpServer server = new HttpServer(null, 8084, args.length > 0 ? Integer.parseInt(args[0]) : 0);
         server.setIoThreadsCount(args.length > 1 ? Integer.parseInt(args[1]) : 4);
-        server.setHandler(new UrlHandler()
-                        .append("/static/*", new FileTreeHandler("/home/wizzardo/", "/static"))
-                        .append("/echo", new WebSocketHandler() {
-                            @Override
-                            public void onMessage(WebSocketListener listener, Message message) {
-                                System.out.println(message.asString());
-                                listener.sendMessage(message);
-                            }
-                        }).append("/time", new WebSocketHandler() {
-                            {
-                                final Thread thread = new Thread(() -> {
-                                    while (true) {
-                                        try {
-                                            Thread.sleep(1000);
-                                        } catch (InterruptedException ignored) {
-                                        }
-
-                                        broadcast(new Date().toString());
-                                    }
-                                });
-                                thread.setDaemon(true);
-                                thread.start();
-                            }
-
-                            ConcurrentLinkedQueue<WebSocketListener> listeners = new ConcurrentLinkedQueue<>();
-
-                            void broadcast(String message) {
-                                Message m = new Message().append(message);
-
-                                Iterator<WebSocketListener> iter = listeners.iterator();
-                                while (iter.hasNext()) {
-                                    WebSocketListener listener = iter.next();
-                                    listener.sendMessage(m);
-                                }
-                            }
-
-                            @Override
-                            public void onConnect(WebSocketListener listener) {
-                                listeners.add(listener);
-                            }
-                        })
-        );
+//        server.setHandler(new UrlHandler()
+//                        .append("/static/*", new FileTreeHandler("/home/wizzardo/", "/static"))
+//                        .append("/echo", new WebSocketHandler() {
+//                            @Override
+//                            public void onMessage(WebSocketListener listener, Message message) {
+//                                System.out.println(message.asString());
+//                                listener.sendMessage(message);
+//                            }
+//                        }).append("/time", new WebSocketHandler() {
+//                            {
+//                                final Thread thread = new Thread(() -> {
+//                                    while (true) {
+//                                        try {
+//                                            Thread.sleep(1000);
+//                                        } catch (InterruptedException ignored) {
+//                                        }
+//
+//                                        broadcast(new Date().toString());
+//                                    }
+//                                });
+//                                thread.setDaemon(true);
+//                                thread.start();
+//                            }
+//
+//                            ConcurrentLinkedQueue<WebSocketListener> listeners = new ConcurrentLinkedQueue<>();
+//
+//                            void broadcast(String message) {
+//                                Message m = new Message().append(message);
+//
+//                                Iterator<WebSocketListener> iter = listeners.iterator();
+//                                while (iter.hasNext()) {
+//                                    WebSocketListener listener = iter.next();
+//                                    listener.sendMessage(m);
+//                                }
+//                            }
+//
+//                            @Override
+//                            public void onConnect(WebSocketListener listener) {
+//                                listeners.add(listener);
+//                            }
+//                        })
+//        );
         server.start();
     }
 }

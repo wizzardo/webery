@@ -19,8 +19,8 @@ public class HttpConnection extends Connection {
     private volatile int r = 0;
     private volatile int position = 0;
     private volatile Request request;
-    private volatile EpollInputStream inputStream;
-    private volatile EpollOutputStream outputStream;
+    private EpollInputStream inputStream;
+    private EpollOutputStream outputStream;
     private volatile State state = State.READING_HEADERS;
     private volatile ConnectionListener listener;
     private volatile boolean closeOnFinishWriting = false;
@@ -187,7 +187,7 @@ public class HttpConnection extends Connection {
 
     public EpollInputStream getInputStream() {
         if (inputStream == null) {
-            inputStream = new EpollInputStream(this, buffer, position, r, request.contentLength());
+            inputStream = createInputStream(buffer, position, r, request.contentLength());
             state = State.READING_INPUT_STREAM;
         }
 
@@ -197,11 +197,19 @@ public class HttpConnection extends Connection {
 
     public EpollOutputStream getOutputStream() {
         if (outputStream == null) {
-            outputStream = new EpollOutputStream(this);
+            outputStream = createOutputStream();
             state = State.WRITING_OUTPUT_STREAM;
         }
 
         return outputStream;
+    }
+
+    protected EpollInputStream createInputStream(byte[] buffer, int currentOffset, int currentLimit, long contentLength) {
+        return new EpollInputStream(this, buffer, position, r, request.contentLength());
+    }
+
+    protected EpollOutputStream createOutputStream() {
+        return new EpollOutputStream(this);
     }
 
     public byte[] getBuffer() {
