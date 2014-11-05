@@ -66,18 +66,19 @@ public class EpollInputStream extends InputStream {
     }
 
     @Override
-    public int available() throws IOException {
+    public int available() {
         return limit - offset;
     }
 
     @Override
     public int read() throws IOException {
-        if (offset >= limit)
+        if (available() == 0)
             fillBuffer();
 
-        int b = buffer[offset] & 0xff;
-        offset++;
-        return b;
+        if (available() == 0)
+            return -1;
+
+        return buffer[offset++] & 0xff;
     }
 
     protected void fillBuffer() throws IOException {
