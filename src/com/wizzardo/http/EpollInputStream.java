@@ -11,12 +11,12 @@ import java.io.InputStream;
  */
 public class EpollInputStream extends InputStream {
 
-    private Connection connection;
-    private int offset;
-    private int limit;
-    private byte[] buffer;
-    private long contentLength = -1;
-    private long read = 0;
+    protected Connection connection;
+    protected int offset;
+    protected int limit;
+    protected byte[] buffer;
+    protected long contentLength = -1;
+    protected long read = 0;
 
     public EpollInputStream(Connection connection, byte[] buffer, int currentOffset, int currentLimit) {
         this(connection, buffer, currentOffset, currentLimit, -1);
@@ -47,7 +47,7 @@ public class EpollInputStream extends InputStream {
         if (isFinished())
             return -1;
 
-        if (offset >= limit)
+        if (available() == 0)
             fillBuffer();
 
         if (limit < 0)
@@ -66,6 +66,11 @@ public class EpollInputStream extends InputStream {
     }
 
     @Override
+    public int available() throws IOException {
+        return limit - offset;
+    }
+
+    @Override
     public int read() throws IOException {
         if (offset >= limit)
             fillBuffer();
@@ -76,7 +81,10 @@ public class EpollInputStream extends InputStream {
     }
 
     protected void fillBuffer() throws IOException {
-        limit = connection.read(buffer);
+        if (contentLength > 0)
+            limit = connection.read(buffer, 0, Math.min(buffer.length, (int) (contentLength - read)));
+        else
+            limit = connection.read(buffer);
         offset = 0;
         waitForData();
     }
