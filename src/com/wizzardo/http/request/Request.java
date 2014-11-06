@@ -320,11 +320,11 @@ public class Request {
             return cookies;
 
         cookies = new LinkedHashMap<>();
-        String cookieRaw = header("Cookie");
+        String cookieRaw = header(Header.KEY_COOKIE);
         if (cookieRaw != null && !cookieRaw.isEmpty()) {
-            for (String kvRaw : cookieRaw.split("; ")) {
+            for (String kvRaw : cookieRaw.split("; *")) {
                 String[] kv = kvRaw.split("=", 2);
-                cookies.put(kv[0], kv[1]);
+                cookies.put(kv[0].trim(), kv[1].trim());
             }
         }
 
