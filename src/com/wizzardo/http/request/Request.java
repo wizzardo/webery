@@ -19,23 +19,22 @@ import java.util.*;
  * Date: 7/25/14
  */
 public class Request {
-    private static final int NOT_INITIALISED = -2;
+    protected static final int NOT_INITIALISED = -2;
 
-    private HttpConnection connection;
-    private Map<String, MultiValue> headers;
-    private Map<String, MultiValue> params;
-    private Map<String, MultiPartEntry> multiPartEntryMap;
-    private Map<String, String> cookies;
-    private Method method;
-    private String path;
-    private String protocol;
-    private String queryString;
-    private long contentLength = NOT_INITIALISED;
-    private boolean bodyParsed = false;
-    private Boolean multipart;
-    private boolean multiPartDataPrepared = false;
-    private String sessionId;
-    private Response response;
+    protected HttpConnection connection;
+    protected Map<String, MultiValue> headers;
+    protected Map<String, MultiValue> params;
+    protected Map<String, MultiPartEntry> multiPartEntryMap;
+    protected Map<String, String> cookies;
+    protected Method method;
+    protected String path;
+    protected String protocol;
+    protected String queryString;
+    protected long contentLength = NOT_INITIALISED;
+    protected boolean bodyParsed = false;
+    protected Boolean multipart;
+    protected boolean multiPartDataPrepared = false;
+    protected String sessionId;
 
     SimpleRequestBody body;
 
@@ -43,14 +42,8 @@ public class Request {
         GET, PUT, POST, DELETE, HEAD, TRACE, OPTIONS, CONNECT, PATCH
     }
 
-    public Request(HttpConnection connection, Map<String, MultiValue> headers, Map<String, MultiValue> params, String method, String path, String queryString, String protocol) {
+    public Request(HttpConnection connection) {
         this.connection = connection;
-        this.headers = headers;
-        this.params = params;
-        this.method = Method.valueOf(method);
-        this.path = path;
-        this.queryString = queryString;
-        this.protocol = protocol;
     }
 
     public String path() {
@@ -158,11 +151,7 @@ public class Request {
     }
 
     public Response response() {
-        return response;
-    }
-
-    public void response(Response response) {
-        this.response = response;
+        return connection.getResponse();
     }
 
     public byte[] data() {
@@ -311,7 +300,7 @@ public class Request {
         Session session = Session.create();
         sessionId = session.getId();
 
-        response.setCookie("JSESSIONID", sessionId, "/");
+        response().setCookie("JSESSIONID", sessionId, "/");
         return session;
     }
 

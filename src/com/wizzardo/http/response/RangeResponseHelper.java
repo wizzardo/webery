@@ -1,6 +1,5 @@
 package com.wizzardo.http.response;
 
-import com.wizzardo.epoll.readable.ReadableData;
 import com.wizzardo.epoll.readable.ReadableFile;
 import com.wizzardo.http.request.Header;
 import com.wizzardo.http.request.Request;
@@ -13,45 +12,34 @@ import java.io.IOException;
  * @author: wizzardo
  * Date: 8/4/14
  */
-public class RangeResponse extends Response {
-    private File file;
-    private Range range;
-    private boolean valid = true;
+public class RangeResponseHelper {
 
-    public RangeResponse(Request request, File file) {
-        this.file = file;
-        setHeader(Header.KEY_ACCEPT_RANGES, Header.VALUE_BYTES);
+    public static Response makeRangeResponse(Request request, Response response, File file) {
+        response.setHeader(Header.KEY_ACCEPT_RANGES, Header.VALUE_BYTES);
 
-        String range = request.header(Header.KEY_RANGE);
-        if (range != null) {
-            this.range = new Range(range, file.length());
-            //TODO check range for validity
-            valid = this.range.isValid();
-            if (!valid) {
-                setStatus(Status._416);
-                return;
+        Range range;
+        String rangeHeader = request.header(Header.KEY_RANGE);
+        if (rangeHeader != null) {
+            range = new Range(rangeHeader, file.length());
+            if (!range.isValid()) {
+                response.setStatus(Status._416);
+                return response;
             }
 
-            setStatus(Status._206);
-            setHeader(Header.KEY_CONTENT_RANGE, this.range.toString());
-            setHeader(Header.KEY_CONTENT_LENGTH, this.range.length());
+            response.setStatus(Status._206);
+            response.setHeader(Header.KEY_CONTENT_RANGE, range.toString());
+            response.setHeader(Header.KEY_CONTENT_LENGTH, range.length());
         } else {
-            this.range = new Range(0, file.length() - 1, file.length());
-            setHeader(Header.KEY_CONTENT_LENGTH, file.length());
+            range = new Range(0, file.length() - 1, file.length());
+            response.setHeader(Header.KEY_CONTENT_LENGTH, file.length());
         }
-        setHeader(Header.KEY_CONNECTION, Header.VALUE_CONNECTION_KEEP_ALIVE);
-    }
-
-    @Override
-    public ReadableData toReadableBytes() {
-        if (!valid)
-            return super.toReadableBytes();
-        else
-            try {
-                return buildResponse().append(new ReadableFile(file, range.from, range.length()));
-            } catch (IOException e) {
-                throw new WrappedException(e);
-            }
+        response.setHeader(Header.KEY_CONNECTION, Header.VALUE_CONNECTION_KEEP_ALIVE);
+        try {
+            response.setBody(new ReadableFile(file, range.from, range.length()));
+        } catch (IOException e) {
+            throw new WrappedException(e);
+        }
+        return response;
     }
 
     private static class Range {

@@ -1,6 +1,5 @@
 package com.wizzardo.http.request;
 
-import com.wizzardo.http.HttpConnection;
 import com.wizzardo.http.MultiValue;
 import com.wizzardo.tools.reflection.StringReflection;
 
@@ -73,8 +72,14 @@ public class RequestReader {
         this.params = params;
     }
 
-    public Request createRequest(HttpConnection connection) {
-        Request request = new Request(connection, headers, params, method, path, queryString, protocol);
+    public Request fillRequest(Request request) {
+        request.headers = headers;
+        request.params = params;
+        request.method = Request.Method.valueOf(method);
+        request.path = path;
+        request.queryString = queryString;
+        request.protocol = protocol;
+
         if (request.contentLength() > 0
                 && request.contentLength() < POST_BODY_SIMPLE_LIMIT
                 && !request.isMultipart())

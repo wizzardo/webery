@@ -1,7 +1,7 @@
 package com.wizzardo.http;
 
 import com.wizzardo.http.request.Request;
-import com.wizzardo.http.response.RangeResponse;
+import com.wizzardo.http.response.RangeResponseHelper;
 import com.wizzardo.http.response.Response;
 import com.wizzardo.http.response.Status;
 import com.wizzardo.tools.misc.DateIso8601;
@@ -53,7 +53,7 @@ public class FileTreeHandler implements Handler {
         if (file.isDirectory())
             return renderDirectory(file);
 
-        return new RangeResponse(request, file);
+        return RangeResponseHelper.makeRangeResponse(request, response, file);
     }
 
     private Response renderDirectory(File dir) {

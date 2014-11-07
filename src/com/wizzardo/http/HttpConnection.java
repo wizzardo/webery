@@ -5,6 +5,7 @@ import com.wizzardo.epoll.readable.ReadableData;
 import com.wizzardo.http.request.Header;
 import com.wizzardo.http.request.Request;
 import com.wizzardo.http.request.RequestReader;
+import com.wizzardo.http.response.Response;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -14,11 +15,10 @@ import java.util.LinkedHashMap;
  * @author: wizzardo
  * Date: 3/14/14
  */
-public class HttpConnection extends Connection {
+public class HttpConnection<Q extends Request, S extends Response> extends Connection {
     private volatile byte[] buffer = new byte[1024];
     private volatile int r = 0;
     private volatile int position = 0;
-    private volatile Request request;
     private EpollInputStream inputStream;
     private EpollOutputStream outputStream;
     private volatile State state = State.READING_HEADERS;
@@ -26,6 +26,8 @@ public class HttpConnection extends Connection {
     private volatile boolean closeOnFinishWriting = false;
     private boolean ready = false;
     private RequestReader requestReader;
+    protected S response;
+    protected Q request;
 
     static enum State {
         READING_HEADERS,
@@ -94,9 +96,19 @@ public class HttpConnection extends Connection {
 
         position = i;
         r = limit;
-        request = requestReader.createRequest(this);
+        request = createRequest();
+        response = createResponse();
+        requestReader.fillRequest(request);
         ready = true;
         return checkData(bb);
+    }
+
+    protected Q createRequest() {
+        return (Q) new Request(this);
+    }
+
+    protected S createResponse() {
+        return (S) new Response();
     }
 
     private int readFromByteBuffer(ByteBuffer bb) {
@@ -181,8 +193,12 @@ public class HttpConnection extends Connection {
         return requestReader;
     }
 
-    public Request getRequest() {
+    public Q getRequest() {
         return request;
+    }
+
+    public S getResponse() {
+        return response;
     }
 
     public EpollInputStream getInputStream() {

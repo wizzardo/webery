@@ -121,20 +121,18 @@ public class HttpServer extends EpollServer<HttpConnection> {
     protected void handle(HttpConnection connection) {
         try {
             Request request = connection.getRequest();
-            Response response = new Response();
-            request.response(response);
+            Response response = connection.getResponse();
 
             if (!filtersMapping.before(request, response)) {
-                finishHandling(connection, response);
+                finishHandling(connection);
                 return;
             }
 
             response = handler.handle(request, response);
-            request.response(response);
 
-            filtersMapping.after(connection.getRequest(), response);
+            filtersMapping.after(request, response);
 
-            finishHandling(connection, response);
+            finishHandling(connection);
         } catch (Exception t) {
             t.printStackTrace();
             //TODO render error page
@@ -146,14 +144,14 @@ public class HttpServer extends EpollServer<HttpConnection> {
         }
     }
 
-    private void finishHandling(HttpConnection connection, Response response) throws IOException {
+    private void finishHandling(HttpConnection connection) throws IOException {
         if (connection.getState() == HttpConnection.State.WRITING_OUTPUT_STREAM)
             connection.getOutputStream().flush();
 
-        if (response.isProcessed())
+        if (connection.getResponse().isProcessed())
             return;
 
-        connection.write(response.toReadableBytes());
+        connection.write(connection.getResponse().toReadableBytes());
         connection.onFinishingHandling();
     }
 

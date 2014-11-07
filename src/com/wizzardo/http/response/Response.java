@@ -2,12 +2,14 @@ package com.wizzardo.http.response;
 
 import com.wizzardo.epoll.ByteBufferWrapper;
 import com.wizzardo.epoll.readable.ReadableBuilder;
+import com.wizzardo.epoll.readable.ReadableByteArray;
 import com.wizzardo.epoll.readable.ReadableByteBuffer;
 import com.wizzardo.epoll.readable.ReadableData;
 import com.wizzardo.http.HttpConnection;
 import com.wizzardo.http.request.Header;
 
 import java.io.OutputStream;
+import java.nio.ByteBuffer;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
@@ -35,20 +37,31 @@ public class Response {
     private int headersCount = 0;
     private boolean processed = false;
     private Status status = Status._200;
-    private byte[] body;
+    private ReadableData body;
 
     public Response setBody(String s) {
         return setBody(s.getBytes());
     }
 
     public Response setBody(byte[] body) {
+        return setBody(new ReadableByteArray(body));
+    }
+
+    public Response setBody(ReadableData body) {
         this.body = body;
-        setHeader(Header.KEY_CONTENT_LENGTH, String.valueOf(body.length));
+        setHeader(Header.KEY_CONTENT_LENGTH, String.valueOf(body.length()));
         return this;
     }
 
     public byte[] getBody() {
-        return body;
+        if (body == null)
+            return null;
+
+        byte[] bytes = new byte[(int) body.length()];
+        ByteBuffer bb = ByteBuffer.wrap(bytes);
+        body.read(bb);
+        body.unread(bytes.length);
+        return bytes;
     }
 
     public Response setStatus(Status status) {

@@ -1,7 +1,7 @@
 package com.wizzardo.http.request;
 
 import com.wizzardo.http.ServerTest;
-import com.wizzardo.http.response.RangeResponse;
+import com.wizzardo.http.response.RangeResponseHelper;
 import com.wizzardo.tools.http.ConnectionMethod;
 import com.wizzardo.tools.io.FileTools;
 import com.wizzardo.tools.io.IOTools;
@@ -283,7 +283,7 @@ public class RequestTest extends ServerTest {
         file.deleteOnExit();
         FileTools.bytes(file, data);
 
-        handler = (request, response) -> new RangeResponse(request, file);
+        handler = (request, response) -> RangeResponseHelper.makeRangeResponse(request, response, file);
 
         byte[] test;
         test = new byte[100];
