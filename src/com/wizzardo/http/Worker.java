@@ -1,23 +1,20 @@
 package com.wizzardo.http;
 
 
-import java.nio.ByteBuffer;
 import java.util.concurrent.BlockingQueue;
 
 /**
  * @author: moxa
  * Date: 4/13/13
  */
-public abstract class Worker extends Thread {
-    protected BlockingQueue<HttpConnection> queue;
-    protected final static int maxRequestSize = 1024 * 2;
-    protected ByteBuffer buf = ByteBuffer.allocateDirect(maxRequestSize * 50);
+public abstract class Worker<T extends HttpConnection> extends Thread {
+    protected BlockingQueue<T> queue;
 
-    public Worker(BlockingQueue<HttpConnection> queue) {
+    public Worker(BlockingQueue<T> queue) {
         this(queue, "Worker");
     }
 
-    public Worker(BlockingQueue<HttpConnection> queue, String name) {
+    public Worker(BlockingQueue<T> queue, String name) {
         this.queue = queue;
         setDaemon(true);
         setName(name);
@@ -35,5 +32,5 @@ public abstract class Worker extends Thread {
         }
     }
 
-    protected abstract void process(HttpConnection connection);
+    protected abstract void process(T connection);
 }

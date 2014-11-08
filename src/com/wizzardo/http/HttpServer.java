@@ -15,7 +15,7 @@ import java.util.concurrent.LinkedBlockingQueue;
  * @author: moxa
  * Date: 11/5/13
  */
-public class HttpServer extends EpollServer<HttpConnection> {
+public class HttpServer<T extends HttpConnection> extends EpollServer<T> {
 
     private Response staticResponse = new Response()
             .appendHeader(Header.KEY_CONNECTION, Header.VALUE_CONNECTION_KEEP_ALIVE)
@@ -23,7 +23,7 @@ public class HttpServer extends EpollServer<HttpConnection> {
             .setBody("It's alive!".getBytes())
             .makeStatic();
 
-    private BlockingQueue<HttpConnection> queue = new LinkedBlockingQueue<>();
+    private BlockingQueue<T> queue = new LinkedBlockingQueue<>();
     private int workersCount;
     private int sessionTimeoutSec = 30 * 60;
     private FiltersMapping filtersMapping = new FiltersMapping();
@@ -43,9 +43,9 @@ public class HttpServer extends EpollServer<HttpConnection> {
 
         System.out.println("worker count: " + workersCount);
         for (int i = 0; i < workersCount; i++) {
-            new Worker(queue, "worker_" + i) {
+            new Worker<T>(queue, "worker_" + i) {
                 @Override
-                protected void process(HttpConnection connection) {
+                protected void process(T connection) {
                     handle(connection);
                 }
             };
@@ -59,23 +59,23 @@ public class HttpServer extends EpollServer<HttpConnection> {
     }
 
     @Override
-    protected HttpConnection createConnection(int fd, int ip, int port) {
-        return new HttpConnection(fd, ip, port);
+    protected T createConnection(int fd, int ip, int port) {
+        return (T) new HttpConnection(fd, ip, port);
     }
 
     @Override
-    protected IOThread<HttpConnection> createIOThread(int number, int divider) {
+    protected IOThread<T> createIOThread(int number, int divider) {
         return new HttpIOThread(number, divider);
     }
 
-    private class HttpIOThread extends IOThread<HttpConnection> {
+    private class HttpIOThread extends IOThread<T> {
 
         public HttpIOThread(int number, int divider) {
             super(number, divider);
         }
 
         @Override
-        public void onRead(final HttpConnection connection) {
+        public void onRead(T connection) {
             if (connection.getState() == HttpConnection.State.READING_INPUT_STREAM) {
                 connection.getInputStream().wakeUp();
                 return;
@@ -110,7 +110,7 @@ public class HttpServer extends EpollServer<HttpConnection> {
         }
 
         @Override
-        public void onWrite(HttpConnection connection) {
+        public void onWrite(T connection) {
             if (connection.hasDataToWrite())
                 connection.write();
             else if (connection.getState() == HttpConnection.State.WRITING_OUTPUT_STREAM)
@@ -118,7 +118,7 @@ public class HttpServer extends EpollServer<HttpConnection> {
         }
     }
 
-    protected void handle(HttpConnection connection) {
+    protected void handle(T connection) {
         try {
             Request request = connection.getRequest();
             Response response = connection.getResponse();
@@ -144,7 +144,7 @@ public class HttpServer extends EpollServer<HttpConnection> {
         }
     }
 
-    private void finishHandling(HttpConnection connection) throws IOException {
+    protected void finishHandling(T connection) throws IOException {
         if (connection.getState() == HttpConnection.State.WRITING_OUTPUT_STREAM)
             connection.getOutputStream().flush();
 
