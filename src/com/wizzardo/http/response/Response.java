@@ -39,6 +39,18 @@ public class Response {
     private Status status = Status._200;
     private ReadableData body;
 
+    public Response body(String s) {
+        return body(s.getBytes());
+    }
+
+    public Response body(byte[] body) {
+        return body(new ReadableByteArray(body));
+    }
+
+    public Response body(ReadableData body) {
+        return setBody(body);
+    }
+
     public Response setBody(String s) {
         return setBody(s.getBytes());
     }
@@ -53,6 +65,10 @@ public class Response {
         return this;
     }
 
+    public byte[] body() {
+        return getBody();
+    }
+
     public byte[] getBody() {
         if (body == null)
             return null;
@@ -64,34 +80,58 @@ public class Response {
         return bytes;
     }
 
+    public Response status(Status status) {
+        return setStatus(status);
+    }
+
     public Response setStatus(Status status) {
         this.status = status;
         return this;
     }
 
-    public Response setHeader(String key, String value) {
-        return setHeader(key.getBytes(), value.getBytes());
+    public void setHeader(String key, String value) {
+        setHeader(key.getBytes(), value.getBytes());
     }
 
-    public Response setHeader(Header key, String value) {
-        return setHeader(key.bytes, value.getBytes());
+    public void setHeader(Header key, String value) {
+        setHeader(key.bytes, value.getBytes());
     }
 
-    public Response setHeader(Header key, long value) {
-        return setHeader(key, String.valueOf(value));
+    public void setHeader(Header key, long value) {
+        setHeader(key, String.valueOf(value));
     }
 
-    public Response setHeader(Header key, Header value) {
-        return setHeader(key.bytes, value.bytes);
+    public void setHeader(Header key, Header value) {
+        setHeader(key.bytes, value.bytes);
     }
 
-    public Response setHeader(byte[] key, byte[] value) {
+    public Response header(String key, String value) {
+        return header(key.getBytes(), value.getBytes());
+    }
+
+    public Response header(Header key, String value) {
+        return header(key.bytes, value.getBytes());
+    }
+
+    public Response header(Header key, long value) {
+        return header(key, String.valueOf(value));
+    }
+
+    public Response header(Header key, Header value) {
+        return header(key.bytes, value.bytes);
+    }
+
+    public Response header(byte[] key, byte[] value) {
         int i = indexOfHeader(key);
         if (i >= 0)
             headers[i + 1] = value;
         else
             appendHeader(key, value);
         return this;
+    }
+
+    public void setHeader(byte[] key, byte[] value) {
+        header(key, value);
     }
 
     public Response appendHeader(String key, String value) {
