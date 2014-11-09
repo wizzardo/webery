@@ -11,10 +11,7 @@ import com.wizzardo.http.request.Header;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.text.SimpleDateFormat;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.Locale;
-import java.util.TimeZone;
+import java.util.*;
 
 /**
  * @author: wizzardo
@@ -161,6 +158,45 @@ public class Response {
         return this;
     }
 
+    public String header(String key) {
+        return header(key.getBytes());
+    }
+
+    public String header(Header key) {
+        return header(key.bytes);
+    }
+
+    public String header(byte[] key) {
+        int i = indexOfHeader(key, 0);
+        if (i != -1)
+            return new String(headers[i + 1]);
+        return null;
+    }
+
+    public List<String> headers(String key) {
+        return headers(key.getBytes());
+    }
+
+    public List<String> headers(Header key) {
+        return headers(key.bytes);
+    }
+
+    public List<String> headers(byte[] key) {
+        List<String> l = new ArrayList<>();
+        int i = -2;
+        while ((i = indexOfHeader(key, i + 2)) != -1)
+            l.add(new String(headers[i + 1]));
+        return l;
+    }
+
+    public Set<String> headerNames() {
+        Set<String> l = new LinkedHashSet<>();
+        for (int i = 0; i < headersCount; i += 2) {
+            l.add(new String(headers[i]));
+        }
+        return l;
+    }
+
     public boolean containsHeader(String key) {
         return containsHeader(key.getBytes());
     }
@@ -174,7 +210,11 @@ public class Response {
     }
 
     private int indexOfHeader(byte[] key) {
-        for (int i = 0; i < headersCount; i += 2)
+        return indexOfHeader(key, 0);
+    }
+
+    private int indexOfHeader(byte[] key, int offset) {
+        for (int i = offset; i < headersCount; i += 2)
             if (Arrays.equals(key, headers[i]))
                 return i;
         return -1;
