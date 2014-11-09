@@ -21,10 +21,10 @@ import java.util.TimeZone;
  * Date: 3/31/14
  */
 public class Response {
-    private static final byte[] LINE_SEPARATOR = "\r\n".getBytes();
-    private static final byte[] HEADER_SEPARATOR = ": ".getBytes();
+    protected static final byte[] LINE_SEPARATOR = "\r\n".getBytes();
+    protected static final byte[] HEADER_SEPARATOR = ": ".getBytes();
 
-    private static ThreadLocal<SimpleDateFormat> dateFormatThreadLocal = new ThreadLocal<SimpleDateFormat>() {
+    protected static ThreadLocal<SimpleDateFormat> dateFormatThreadLocal = new ThreadLocal<SimpleDateFormat>() {
         @Override
         protected SimpleDateFormat initialValue() {
             SimpleDateFormat format = new SimpleDateFormat("EEE, dd-MMM-yyyy kk:mm:ss z", Locale.US);
@@ -33,11 +33,12 @@ public class Response {
         }
     };
 
+    protected boolean processed = false;
+    protected Status status = Status._200;
+    protected ReadableData body;
+
     private byte[][] headers = new byte[20][];
     private int headersCount = 0;
-    private boolean processed = false;
-    private Status status = Status._200;
-    private ReadableData body;
 
     public Response body(String s) {
         return body(s.getBytes());
@@ -87,6 +88,10 @@ public class Response {
     public Response setStatus(Status status) {
         this.status = status;
         return this;
+    }
+
+    public Status status() {
+        return status;
     }
 
     public void setHeader(String key, String value) {
@@ -186,7 +191,7 @@ public class Response {
     }
 
     protected ReadableBuilder buildResponse() {
-        ReadableBuilder builder = new ReadableBuilder(status.header);
+        ReadableBuilder builder = new ReadableBuilder(statusToBytes());
         for (int i = 0; i < headersCount; i += 2) {
             builder.append(headers[i])
                     .append(HEADER_SEPARATOR)
@@ -198,6 +203,10 @@ public class Response {
         if (body != null)
             builder.append(body);
         return builder;
+    }
+
+    protected byte[] statusToBytes() {
+        return status.header;
     }
 
     public boolean isProcessed() {
