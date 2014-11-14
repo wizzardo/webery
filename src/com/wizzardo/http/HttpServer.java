@@ -2,6 +2,7 @@ package com.wizzardo.http;
 
 import com.wizzardo.epoll.EpollServer;
 import com.wizzardo.epoll.IOThread;
+import com.wizzardo.epoll.readable.ReadableByteBuffer;
 import com.wizzardo.http.request.Header;
 import com.wizzardo.http.request.Request;
 import com.wizzardo.http.response.Response;
@@ -17,17 +18,17 @@ import java.util.concurrent.LinkedBlockingQueue;
  */
 public class HttpServer<T extends HttpConnection> extends EpollServer<T> {
 
-    private Response staticResponse = new Response()
+    private ReadableByteBuffer staticResponse = new Response()
             .appendHeader(Header.KEY_CONNECTION, Header.VALUE_CONNECTION_KEEP_ALIVE)
             .appendHeader(Header.KEY_CONTENT_TYPE, Header.VALUE_CONTENT_TYPE_HTML_UTF8)
             .setBody("It's alive!".getBytes())
-            .makeStatic();
+            .buildStaticResponse();
 
     private BlockingQueue<T> queue = new LinkedBlockingQueue<>();
     private int workersCount;
     private int sessionTimeoutSec = 30 * 60;
     private FiltersMapping filtersMapping = new FiltersMapping();
-    private volatile Handler handler = (request, response) -> staticResponse;
+    private volatile Handler handler = (request, response) -> response.setStaticResponse(staticResponse.copy());
 
     public HttpServer(int port) {
         this(null, port);

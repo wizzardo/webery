@@ -33,6 +33,7 @@ public class Response {
     protected boolean processed = false;
     protected Status status = Status._200;
     protected ReadableData body;
+    protected ReadableData staticResponse;
 
     private byte[][] headers = new byte[20][];
     private int headersCount = 0;
@@ -85,6 +86,10 @@ public class Response {
     public Response setStatus(Status status) {
         this.status = status;
         return this;
+    }
+
+    public long contentLength() {
+        return body != null ? body.length() : 0;
     }
 
     public Status status() {
@@ -227,6 +232,8 @@ public class Response {
     }
 
     public ReadableData toReadableBytes() {
+        if (staticResponse != null)
+            return staticResponse;
         return buildResponse();
     }
 
@@ -270,25 +277,12 @@ public class Response {
         appendHeader(Header.KEY_SET_COOKIE, key + "=" + value + "; expires=" + dateFormatThreadLocal.get().format(expdate) + "; path=" + path);
     }
 
-    public Response makeStatic() {
-        return new StaticResponse(toReadableBytes());
+    public ReadableByteBuffer buildStaticResponse() {
+        return new ReadableByteBuffer(new ByteBufferWrapper(toReadableBytes()));
     }
 
-    private static class StaticResponse extends Response {
-        ReadableByteBuffer readable;
-
-        public StaticResponse(ReadableByteBuffer readable) {
-            this.readable = readable;
-        }
-
-        public StaticResponse(ReadableData readable) {
-            ByteBufferWrapper wrapper = new ByteBufferWrapper(readable);
-            this.readable = new ReadableByteBuffer(wrapper);
-        }
-
-        @Override
-        public ReadableData toReadableBytes() {
-            return readable.copy();
-        }
+    public Response setStaticResponse(ReadableByteBuffer data) {
+        staticResponse = data;
+        return this;
     }
 }
