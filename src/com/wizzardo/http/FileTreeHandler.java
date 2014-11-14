@@ -23,6 +23,8 @@ public class FileTreeHandler implements Handler {
     private File workDir;
 
     public FileTreeHandler(File workDir, String prefix) {
+        if (prefix.equals("/"))
+            prefix = "";
         this.workDir = workDir;
         this.prefix = prefix;
     }
@@ -51,12 +53,12 @@ public class FileTreeHandler implements Handler {
             return response.setStatus(Status._403).setBody(path + " is forbidden");
 
         if (file.isDirectory())
-            return renderDirectory(file);
+            return response.setBody(renderDirectory(file));
 
         return RangeResponseHelper.makeRangeResponse(request, response, file);
     }
 
-    private Response renderDirectory(File dir) {
+    private String renderDirectory(File dir) {
         StringBuilder sb = new StringBuilder();
         sb.append("<HTML><HEAD><TITLE>Directory: ");
         String path = prefix + dir.getAbsolutePath().substring(workDir.getAbsolutePath().length());
@@ -108,7 +110,7 @@ public class FileTreeHandler implements Handler {
         }
 
         sb.append("</TABLE>\n</BODY></HTML>");
-        return new Response().setBody(sb.toString());
+        return sb.toString();
     }
 
     private String encodeName(String name) {
