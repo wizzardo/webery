@@ -87,7 +87,7 @@ public class HttpServer<T extends HttpConnection> extends EpollServer<T> {
 
             ByteBuffer b;
             try {
-                while ((b = read(connection, connection.getBufferSize())).limit() > 0) {
+                while ((b = read(connection, connection.getBufferSize(), getBuffer())).limit() > 0) {
                     if (connection.check(b))
                         break;
                 }
@@ -112,10 +112,17 @@ public class HttpServer<T extends HttpConnection> extends EpollServer<T> {
 
         @Override
         public void onWrite(T connection) {
+//            System.out.println("onWrite "+connection);
             if (connection.hasDataToWrite())
                 connection.write();
             else if (connection.getState() == HttpConnection.State.WRITING_OUTPUT_STREAM)
                 connection.getOutputStream().wakeUp();
+        }
+
+        @Override
+        public void onDisconnect(T connection) {
+            super.onDisconnect(connection);
+            System.out.println("close " + connection);
         }
     }
 
@@ -123,6 +130,9 @@ public class HttpServer<T extends HttpConnection> extends EpollServer<T> {
         try {
             Request request = connection.getRequest();
             Response response = connection.getResponse();
+
+            System.out.println(request.method() + " " + request.path());
+            System.out.println(request.headers());
 
             if (!filtersMapping.before(request, response)) {
                 finishHandling(connection);
@@ -170,7 +180,19 @@ public class HttpServer<T extends HttpConnection> extends EpollServer<T> {
 
     public static void main(String[] args) {
         HttpServer server = new HttpServer(null, 8084, args.length > 0 ? Integer.parseInt(args[0]) : 0);
-        server.setIoThreadsCount(args.length > 1 ? Integer.parseInt(args[1]) : 4);
+        server.setIoThreadsCount(args.length > 1 ? Integer.parseInt(args[1]) : 1);
+        ReadableByteBuffer staticResponse = new Response()
+                .appendHeader(Header.KEY_CONNECTION, Header.VALUE_CONNECTION_KEEP_ALIVE)
+                .appendHeader(Header.KEY_CONTENT_TYPE, Header.VALUE_CONTENT_TYPE_HTML_UTF8)
+                .setBody("ololo".getBytes())
+                .buildStaticResponse();
+
+        server.setHandler(new UrlHandler()
+//                        .append("/ololo", (request, response) -> response.setStaticResponse(staticResponse.copy()))
+//                        .append("/*", new FileTreeHandler("/usr/share/nginx/html/", ""))
+                        .append("/*", new FileTreeHandler("/media/wizzardo/DATA/", ""))
+//                        .append("/*", new FileTreeHandler("/home/wizzardo/", ""))
+        );
 //        server.setHandler(new UrlHandler()
 //                        .append("/static/*", new FileTreeHandler("/home/wizzardo/", "/static"))
 //                        .append("/echo", new WebSocketHandler() {

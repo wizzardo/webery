@@ -40,4 +40,12 @@ public class MultiValue {
     public String[] asArray() {
         return getValues().toArray(new String[getValues().size()]);
     }
+
+    @Override
+    public String toString() {
+        if (values == null)
+            return value;
+        else
+            return values.toString();
+    }
 }
