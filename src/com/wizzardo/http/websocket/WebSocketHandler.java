@@ -1,5 +1,6 @@
 package com.wizzardo.http.websocket;
 
+import com.wizzardo.epoll.ByteBufferProvider;
 import com.wizzardo.epoll.readable.ReadableBuilder;
 import com.wizzardo.epoll.readable.ReadableData;
 import com.wizzardo.http.ConnectionListener;
@@ -69,7 +70,7 @@ public class WebSocketHandler implements Handler {
                 int r;
 
                 outer:
-                while ((r = connection.read(buffer, read, buffer.length - read)) > 0) {
+                while ((r = connection.read(buffer, read, buffer.length - read, (ByteBufferProvider) Thread.currentThread())) > 0) {
                     read += r;
                     while (read > 0) {
                         if (tempFrame == null) {
@@ -145,12 +146,12 @@ public class WebSocketHandler implements Handler {
 
         public synchronized void sendMessage(Message message) {
             for (Frame frame : message.getFrames()) {
-                connection.write(convertFrameToReadableData(frame));
+                connection.write(convertFrameToReadableData(frame), (ByteBufferProvider) Thread.currentThread());
             }
         }
 
         private synchronized void sendFrame(Frame frame) {
-            connection.write(convertFrameToReadableData(frame));
+            connection.write(convertFrameToReadableData(frame), (ByteBufferProvider) Thread.currentThread());
         }
 
         public void close() {

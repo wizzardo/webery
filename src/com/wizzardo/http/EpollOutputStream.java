@@ -1,5 +1,7 @@
 package com.wizzardo.http;
 
+import com.wizzardo.epoll.ByteBufferProvider;
+
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.concurrent.CountDownLatch;
@@ -24,7 +26,7 @@ public class EpollOutputStream extends OutputStream {
     public void write(byte[] b, int off, int len) throws IOException {
         flush();
         latch = new CountDownLatch(1);
-        connection.write(b, off, len);
+        connection.write(b, off, len, (ByteBufferProvider) Thread.currentThread());
         while (latch.getCount() > 0)
             try {
                 latch.await();

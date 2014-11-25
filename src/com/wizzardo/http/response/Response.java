@@ -1,5 +1,6 @@
 package com.wizzardo.http.response;
 
+import com.wizzardo.epoll.ByteBufferProvider;
 import com.wizzardo.epoll.ByteBufferWrapper;
 import com.wizzardo.epoll.readable.ReadableBuilder;
 import com.wizzardo.epoll.readable.ReadableByteArray;
@@ -263,7 +264,7 @@ public class Response {
     public OutputStream getOutputStream(HttpConnection connection) {
         if (!processed) {
             connection.getOutputStream();
-            connection.write(toReadableBytes());
+            connection.write(toReadableBytes(), (ByteBufferProvider) Thread.currentThread());
             processed = true;
         }
 

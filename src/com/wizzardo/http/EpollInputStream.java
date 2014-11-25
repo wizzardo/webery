@@ -1,5 +1,6 @@
 package com.wizzardo.http;
 
+import com.wizzardo.epoll.ByteBufferProvider;
 import com.wizzardo.epoll.Connection;
 
 import java.io.IOException;
@@ -83,9 +84,9 @@ public class EpollInputStream extends InputStream {
 
     protected void fillBuffer() throws IOException {
         if (contentLength > 0)
-            limit = connection.read(buffer, 0, Math.min(buffer.length, (int) (contentLength - read)));
+            limit = connection.read(buffer, 0, Math.min(buffer.length, (int) (contentLength - read)), (ByteBufferProvider) Thread.currentThread());
         else
-            limit = connection.read(buffer);
+            limit = connection.read(buffer, (ByteBufferProvider) Thread.currentThread());
         offset = 0;
         waitForData();
     }
@@ -93,7 +94,7 @@ public class EpollInputStream extends InputStream {
     protected void waitForData() throws IOException {
         if (limit == 0) {
             synchronized (this) {
-                while ((limit = connection.read(buffer)) == 0) {
+                while ((limit = connection.read(buffer, (ByteBufferProvider) Thread.currentThread())) == 0) {
                     try {
                         wait();
                     } catch (InterruptedException ignored) {

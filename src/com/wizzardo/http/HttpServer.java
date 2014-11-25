@@ -1,5 +1,6 @@
 package com.wizzardo.http;
 
+import com.wizzardo.epoll.ByteBufferProvider;
 import com.wizzardo.epoll.EpollServer;
 import com.wizzardo.epoll.IOThread;
 import com.wizzardo.epoll.readable.ReadableByteBuffer;
@@ -87,7 +88,7 @@ public class HttpServer<T extends HttpConnection> extends EpollServer<T> {
 
             ByteBuffer b;
             try {
-                while ((b = read(connection, connection.getBufferSize(), getBuffer())).limit() > 0) {
+                while ((b = read(connection, connection.getBufferSize(), this)).limit() > 0) {
                     if (connection.check(b))
                         break;
                 }
@@ -114,7 +115,7 @@ public class HttpServer<T extends HttpConnection> extends EpollServer<T> {
         public void onWrite(T connection) {
 //            System.out.println("onWrite "+connection);
             if (connection.hasDataToWrite())
-                connection.write();
+                connection.write(this);
             else if (connection.getState() == HttpConnection.State.WRITING_OUTPUT_STREAM)
                 connection.getOutputStream().wakeUp();
         }
@@ -162,7 +163,7 @@ public class HttpServer<T extends HttpConnection> extends EpollServer<T> {
         if (connection.getResponse().isProcessed())
             return;
 
-        connection.write(connection.getResponse().toReadableBytes());
+        connection.write(connection.getResponse().toReadableBytes(), (ByteBufferProvider) Thread.currentThread());
         connection.onFinishingHandling();
     }
 
