@@ -1,18 +1,51 @@
 package com.wizzardo.http.response;
 
+import com.wizzardo.epoll.readable.ReadableByteBuffer;
 import com.wizzardo.epoll.readable.ReadableFile;
 import com.wizzardo.http.request.Header;
 import com.wizzardo.http.request.Request;
+import com.wizzardo.tools.cache.MemoryLimitedCache;
 import com.wizzardo.tools.misc.WrappedException;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.RandomAccessFile;
+import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
 
 /**
  * @author: wizzardo
  * Date: 8/4/14
  */
 public class RangeResponseHelper {
+    public static final long CACHE_MEMORY_LIMIT = 1024 * 1024 * 1024;
+    public static final long CACHE_FILE_LENGTH_LIMIT = 10 * 1024 * 1024;
+    public static final long CACHE_TTL = 5 * 60;
+
+    public static MemoryLimitedCache<String, FileHolder> filesCache = new MemoryLimitedCache<>(CACHE_MEMORY_LIMIT, CACHE_TTL, s -> {
+        try {
+            RandomAccessFile aFile = new RandomAccessFile(s, "r");
+            FileChannel inChannel = aFile.getChannel();
+            ByteBuffer buffer = ByteBuffer.allocateDirect((int) inChannel.size());
+            inChannel.read(buffer);
+            return new FileHolder(new ReadableByteBuffer(buffer));
+        } catch (IOException e) {
+            throw new WrappedException(e);
+        }
+    });
+
+    public static class FileHolder implements MemoryLimitedCache.SizeProvider {
+        public final ReadableByteBuffer buffer;
+
+        public FileHolder(ReadableByteBuffer buffer) {
+            this.buffer = buffer;
+        }
+
+        @Override
+        public long size() {
+            return buffer.length();
+        }
+    }
 
     public static Response makeRangeResponse(Request request, Response response, File file) {
         response.setHeader(Header.KEY_ACCEPT_RANGES, Header.VALUE_BYTES);
@@ -35,7 +68,10 @@ public class RangeResponseHelper {
         }
         response.setHeader(Header.KEY_CONNECTION, Header.VALUE_CONNECTION_KEEP_ALIVE);
         try {
-            response.setBody(new ReadableFile(file, range.from, range.length()));
+            if (file.length() <= CACHE_FILE_LENGTH_LIMIT)
+                response.setBody(filesCache.get(file.getAbsolutePath()).buffer.subBuffer((int) range.from, (int) range.length()));
+            else
+                response.setBody(new ReadableFile(file, range.from, range.length()));
         } catch (IOException e) {
             throw new WrappedException(e);
         }
