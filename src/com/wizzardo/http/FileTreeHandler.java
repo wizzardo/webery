@@ -37,10 +37,10 @@ public class FileTreeHandler implements Handler {
     public Response handle(Request request, Response response) {
         String path = request.path();
 
-        if (!path.startsWith(prefix))
+        if (!path.startsWith(prefix, 1))
             return response.setStatus(Status._400).setBody("path must starts with prefix '" + prefix + "'");
 
-        path = path.substring(prefix.length(), path.length());
+        path = path.substring(prefix.length() + 1, path.length());
 
         File file = new File(workDir, decodePath(path));
         if (file.getAbsolutePath().length() < workDir.getAbsolutePath().length())
@@ -58,14 +58,37 @@ public class FileTreeHandler implements Handler {
         return RangeResponseHelper.makeRangeResponse(request, response, file);
     }
 
+    protected StringBuilder renderFolderPath(File dir, StringBuilder sb) {
+        if (dir.equals(workDir)) {
+            StringBuilder s = new StringBuilder("/");
+            renderLink(s, "root", sb).append("/");
+            s.append(prefix).append("/");
+            renderLink(s, prefix, sb).append("/");
+            return s;
+        }
+
+        if (dir.getPath().endsWith("/"))
+            return renderFolderPath(dir.getParentFile(), sb);
+
+        StringBuilder path = renderFolderPath(dir.getParentFile(), sb).append(dir.getName()).append("/");
+        renderLink(path, dir.getName(), sb).append("/");
+        return path;
+    }
+
+    protected StringBuilder renderLink(StringBuilder href, String text, StringBuilder sb) {
+        sb.append("<a href=\"").append(href).append("\">").append(text).append("</a>");
+        return sb;
+    }
+
     private String renderDirectory(File dir) {
         StringBuilder sb = new StringBuilder();
         sb.append("<HTML><HEAD><TITLE>Directory: ");
-        String path = prefix + dir.getAbsolutePath().substring(workDir.getAbsolutePath().length());
+        String path = "/" + prefix + dir.getAbsolutePath().substring(workDir.getAbsolutePath().length());
         sb.append(path);
         sb.append("</TITLE></HEAD><BODY>");
 
-        sb.append("<H1>Directory: ").append(path).append("</H1>\n");
+        renderFolderPath(dir, sb.append("<H1>"));
+        sb.append("</H1>\n");
         sb.append("<TABLE BORDER=0>\n");
 
         File[] files = dir.listFiles();
