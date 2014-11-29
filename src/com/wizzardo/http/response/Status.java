@@ -43,6 +43,11 @@ public enum Status {
     _400(400, "Bad Request"),
 
     /**
+     * Not Authorized
+     */
+    _401(401, "Not Authorized"),
+
+    /**
      * Forbidden
      */
     _403(403, "Forbidden"),

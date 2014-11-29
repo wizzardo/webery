@@ -6,6 +6,7 @@ package com.wizzardo.http.request;
  */
 public enum Header {
     KEY_ACCEPT("Accept"),
+    KEY_AUTHORIZATION("Authorization"),
     KEY_ACCEPT_ENCODING("Accept-Encoding"),
     KEY_ACCEPT_LANGUAGE("Accept-Language"),
     KEY_ALLOW("Allow"),
@@ -27,6 +28,7 @@ public enum Header {
     KEY_SEC_WEBSOCKET_PROTOCOL("Sec-WebSocket-Protocol"),
     KEY_SEC_WEBSOCKET_ACCEPT("Sec-WebSocket-Accept"),
     KEY_SEC_WEBSOCKET_VERSION("Sec-WebSocket-Version"),
+    KEY_WWW_AUTHENTICATE("WWW-Authenticate"),
 
     VALUE_WEBSOCKET("websocket"),
     VALUE_CONNECTION_CLOSE("Close"),
