@@ -272,16 +272,16 @@ public class Response {
     }
 
     public void setCookie(String key, String value, String path) {
-        setCookie(key, value, path, System.currentTimeMillis() + 3600 * 1000, null);
+        setCookie(key, value, path, -1, null);
     }
 
     public void setCookie(String key, String value, String path, long expires, String domain) {
 //Set-Cookie: RMID=732423sdfs73242; expires=Fri, 31 Dec 2010 23:59:59 GMT; path=/; domain=.example.net
-        Date date = new Date(expires);
         StringBuilder sb = new StringBuilder();
         sb.append(key).append('=').append(value);
-        sb.append("; expires=").append(dateFormatThreadLocal.get().format(date));
         sb.append("; path=").append(path);
+        if (expires >= 0)
+            sb.append("; expires=").append(dateFormatThreadLocal.get().format(new Date(expires)));
         if (domain != null)
             sb.append("; domain=").append(domain);
         appendHeader(Header.KEY_SET_COOKIE, sb.toString());
