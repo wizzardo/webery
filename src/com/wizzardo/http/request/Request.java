@@ -3,6 +3,7 @@ package com.wizzardo.http.request;
 import com.wizzardo.http.HttpConnection;
 import com.wizzardo.http.MultiValue;
 import com.wizzardo.http.Session;
+import com.wizzardo.http.response.CookieBuilder;
 import com.wizzardo.http.response.Response;
 import com.wizzardo.tools.io.BlockInputStream;
 import com.wizzardo.tools.io.ProgressListener;
@@ -300,7 +301,7 @@ public class Request {
         Session session = Session.create();
         sessionId = session.getId();
 
-        response().setCookie("JSESSIONID", sessionId, "/");
+        response().setCookie(new CookieBuilder("JSESSIONID", sessionId).path("/").maxAge(30 * 60).expires(System.currentTimeMillis() + 30 * 60 * 1000));
         return session;
     }
 
