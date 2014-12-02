@@ -50,6 +50,16 @@ public class CookieBuilder {
         return this;
     }
 
+    public CookieBuilder httpOnly() {
+        sb.append("; HttpOnly");
+        return this;
+    }
+
+    public CookieBuilder secure() {
+        sb.append("; Secure");
+        return this;
+    }
+
     public String build() {
         return sb.toString();
     }
