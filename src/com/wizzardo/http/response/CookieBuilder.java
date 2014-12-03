@@ -14,7 +14,7 @@ public class CookieBuilder {
     protected static ThreadLocal<SimpleDateFormat> dateFormatThreadLocal = new ThreadLocal<SimpleDateFormat>() {
         @Override
         protected SimpleDateFormat initialValue() {
-            SimpleDateFormat format = new SimpleDateFormat("EEE, dd-MMM-yyyy kk:mm:ss z", Locale.US);
+            SimpleDateFormat format = new SimpleDateFormat("EEE, dd-MMM-yyyy HH:mm:ss z", Locale.US);
             format.setTimeZone(TimeZone.getTimeZone("GMT"));
             return format;
         }
@@ -31,32 +31,33 @@ public class CookieBuilder {
     }
 
     public CookieBuilder expires(Date date) {
-        sb.append("; expires=").append(dateFormatThreadLocal.get().format(date));
+        sb.append(";Expires=").append(dateFormatThreadLocal.get().format(date));
         return this;
     }
 
     public CookieBuilder path(String path) {
-        sb.append("; path=").append(path);
+        sb.append(";Path=").append(path);
         return this;
     }
 
     public CookieBuilder domain(String domain) {
-        sb.append("; domain=").append(domain);
+        sb.append(";Domain=").append(domain);
         return this;
     }
 
     public CookieBuilder maxAge(int seconds) {
-        sb.append("; max-age=").append(seconds);
+        if (seconds >= 0)
+            sb.append(";Max-Age=").append(seconds);
         return this;
     }
 
     public CookieBuilder httpOnly() {
-        sb.append("; HttpOnly");
+        sb.append(";HttpOnly");
         return this;
     }
 
     public CookieBuilder secure() {
-        sb.append("; Secure");
+        sb.append(";Secure");
         return this;
     }
 
