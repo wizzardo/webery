@@ -277,4 +277,14 @@ public class Response {
         staticResponse = data;
         return this;
     }
+
+    public void setRedirectTemporarily(String location) {
+        status(Status._302);
+        header(Header.KEY_LOCATION, location);
+    }
+
+    public void setRedirectPermanently(String location) {
+        status(Status._301);
+        header(Header.KEY_LOCATION, location);
+    }
 }

@@ -13,6 +13,7 @@ public enum Header {
     KEY_CACHE_CONTROL("Cache-Control"),
     KEY_CONNECTION("Connection"),
     KEY_COOKIE("Cookie"),
+    KEY_LOCATION("Location"),
     KEY_SET_COOKIE("Set-Cookie"),
     KEY_HOST("Host"),
     KEY_PRAGMA("Pragma"),
