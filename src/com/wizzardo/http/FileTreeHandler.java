@@ -5,7 +5,7 @@ import com.wizzardo.http.response.RangeResponseHelper;
 import com.wizzardo.http.response.Response;
 import com.wizzardo.http.response.Status;
 import com.wizzardo.tools.misc.DateIso8601;
-import com.wizzardo.tools.misc.WrappedException;
+import com.wizzardo.tools.misc.UncheckedThrow;
 
 import java.io.File;
 import java.io.UnsupportedEncodingException;
@@ -140,7 +140,7 @@ public class FileTreeHandler implements Handler {
         try {
             return URLEncoder.encode(name, "utf-8").replace("+", "%20");
         } catch (UnsupportedEncodingException e) {
-            throw new WrappedException(e);
+            throw UncheckedThrow.rethrow(e);
         }
     }
 
@@ -148,7 +148,7 @@ public class FileTreeHandler implements Handler {
         try {
             return URLDecoder.decode(path, "utf-8");
         } catch (UnsupportedEncodingException e) {
-            throw new WrappedException(e);
+            throw UncheckedThrow.rethrow(e);
         }
     }
 }
