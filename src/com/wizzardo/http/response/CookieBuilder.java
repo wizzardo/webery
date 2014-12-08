@@ -1,24 +1,14 @@
 package com.wizzardo.http.response;
 
-import java.text.SimpleDateFormat;
+import com.wizzardo.http.HttpDateFormatterHolder;
+
 import java.util.Date;
-import java.util.Locale;
-import java.util.TimeZone;
 
 /**
  * @author: wizzardo
  * Date: 01.12.14
  */
 public class CookieBuilder {
-
-    protected static ThreadLocal<SimpleDateFormat> dateFormatThreadLocal = new ThreadLocal<SimpleDateFormat>() {
-        @Override
-        protected SimpleDateFormat initialValue() {
-            SimpleDateFormat format = new SimpleDateFormat("EEE, dd-MMM-yyyy HH:mm:ss z", Locale.US);
-            format.setTimeZone(TimeZone.getTimeZone("GMT"));
-            return format;
-        }
-    };
 
     private StringBuilder sb = new StringBuilder();
 
@@ -31,7 +21,7 @@ public class CookieBuilder {
     }
 
     public CookieBuilder expires(Date date) {
-        sb.append(";Expires=").append(dateFormatThreadLocal.get().format(date));
+        sb.append(";Expires=").append(HttpDateFormatterHolder.get().format(date));
         return this;
     }
 
