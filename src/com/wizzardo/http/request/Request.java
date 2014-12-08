@@ -1,6 +1,7 @@
 package com.wizzardo.http.request;
 
 import com.wizzardo.http.HttpConnection;
+import com.wizzardo.http.HttpDateFormatterHolder;
 import com.wizzardo.http.MultiValue;
 import com.wizzardo.http.Session;
 import com.wizzardo.http.response.CookieBuilder;
@@ -8,11 +9,13 @@ import com.wizzardo.http.response.Response;
 import com.wizzardo.tools.io.BlockInputStream;
 import com.wizzardo.tools.io.ProgressListener;
 import com.wizzardo.tools.misc.BoyerMoore;
+import com.wizzardo.tools.misc.UncheckedThrow;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.text.ParseException;
 import java.util.*;
 
 /**
@@ -101,6 +104,17 @@ public class Request {
             return Long.parseLong(value);
         } catch (NumberFormatException e) {
             return def;
+        }
+    }
+
+    public Date headerDate(Header header) {
+        String s = header(header);
+        if (s == null)
+            return null;
+        try {
+            return HttpDateFormatterHolder.get().parse(s);
+        } catch (ParseException e) {
+            throw UncheckedThrow.rethrow(e);
         }
     }
 

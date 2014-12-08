@@ -2,16 +2,18 @@ package com.wizzardo.http.response;
 
 import com.wizzardo.epoll.readable.ReadableByteBuffer;
 import com.wizzardo.epoll.readable.ReadableFile;
+import com.wizzardo.http.HttpDateFormatterHolder;
 import com.wizzardo.http.request.Header;
 import com.wizzardo.http.request.Request;
 import com.wizzardo.tools.cache.MemoryLimitedCache;
-import com.wizzardo.tools.misc.WrappedException;
+import com.wizzardo.tools.misc.UncheckedThrow;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
+import java.util.Date;
 
 /**
  * @author: wizzardo
@@ -30,7 +32,7 @@ public class RangeResponseHelper {
             inChannel.read(buffer);
             return new FileHolder(new ReadableByteBuffer(buffer));
         } catch (IOException e) {
-            throw new WrappedException(e);
+            throw UncheckedThrow.rethrow(e);
         }
     });
 
@@ -63,8 +65,14 @@ public class RangeResponseHelper {
             response.setHeader(Header.KEY_CONTENT_RANGE, range.toString());
             response.setHeader(Header.KEY_CONTENT_LENGTH, range.length());
         } else {
+            Date modifiedSince = request.headerDate(Header.KEY_IF_MODIFIED_SINCE);
+            if (modifiedSince != null && modifiedSince.getTime() >= file.lastModified()) {
+                response.status(Status._304);
+                return response;
+            }
             range = new Range(0, file.length() - 1, file.length());
             response.setHeader(Header.KEY_CONTENT_LENGTH, file.length());
+            response.setHeader(Header.KEY_LAST_MODIFIED, HttpDateFormatterHolder.get().format(new Date(file.lastModified())));
         }
         response.setHeader(Header.KEY_CONNECTION, Header.VALUE_CONNECTION_KEEP_ALIVE);
         try {
@@ -73,7 +81,7 @@ public class RangeResponseHelper {
             else
                 response.setBody(new ReadableFile(file, range.from, range.length()));
         } catch (IOException e) {
-            throw new WrappedException(e);
+            throw UncheckedThrow.rethrow(e);
         }
         return response;
     }
