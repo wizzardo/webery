@@ -71,11 +71,13 @@ public enum Status {
      */
     _500(500, "Internal Server Error"),;
 
-    public final byte[] header;
+    public final byte[] bytes;
     public final int code;
+    public final String message;
 
-    private Status(int code, String header) {
+    private Status(int code, String message) {
         this.code = code;
-        this.header = ("HTTP/1.1 " + code + " " + header + "\r\n").getBytes();
+        this.message = message;
+        this.bytes = ("HTTP/1.1 " + code + " " + message + "\r\n").getBytes();
     }
 }

@@ -244,7 +244,7 @@ public class Response {
     }
 
     protected byte[] statusToBytes() {
-        return status.header;
+        return status.bytes;
     }
 
     public boolean isProcessed() {
