@@ -22,10 +22,10 @@ import java.util.*;
  * @author: wizzardo
  * Date: 7/25/14
  */
-public class Request {
+public class Request<C extends HttpConnection> {
     protected static final int NOT_INITIALISED = -2;
 
-    protected HttpConnection connection;
+    protected C connection;
     protected Map<String, MultiValue> headers;
     protected Map<String, MultiValue> params;
     protected Map<String, MultiPartEntry> multiPartEntryMap;
@@ -46,7 +46,7 @@ public class Request {
         GET, PUT, POST, DELETE, HEAD, TRACE, OPTIONS, CONNECT, PATCH
     }
 
-    public Request(HttpConnection connection) {
+    public Request(C connection) {
         this.connection = connection;
     }
 
@@ -68,7 +68,7 @@ public class Request {
         return contentLength;
     }
 
-    public HttpConnection connection() {
+    public C connection() {
         return connection;
     }
 

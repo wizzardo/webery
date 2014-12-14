@@ -15,12 +15,12 @@ import java.util.LinkedHashMap;
  * @author: wizzardo
  * Date: 3/14/14
  */
-public class HttpConnection<Q extends Request, S extends Response> extends Connection {
+public class HttpConnection<Q extends Request, S extends Response, I extends EpollInputStream, O extends EpollOutputStream> extends Connection {
     private volatile byte[] buffer = new byte[1024];
     private volatile int r = 0;
     private volatile int position = 0;
-    private EpollInputStream inputStream;
-    private EpollOutputStream outputStream;
+    private I inputStream;
+    private O outputStream;
     private volatile State state = State.READING_HEADERS;
     private volatile ConnectionListener listener;
     private volatile boolean closeOnFinishWriting = false;
@@ -201,7 +201,7 @@ public class HttpConnection<Q extends Request, S extends Response> extends Conne
         return response;
     }
 
-    public EpollInputStream getInputStream() {
+    public I getInputStream() {
         if (inputStream == null) {
             inputStream = createInputStream(buffer, position, r, request.contentLength());
             state = State.READING_INPUT_STREAM;
@@ -211,7 +211,7 @@ public class HttpConnection<Q extends Request, S extends Response> extends Conne
     }
 
 
-    public EpollOutputStream getOutputStream() {
+    public O getOutputStream() {
         if (outputStream == null) {
             outputStream = createOutputStream();
             state = State.WRITING_OUTPUT_STREAM;
@@ -220,12 +220,12 @@ public class HttpConnection<Q extends Request, S extends Response> extends Conne
         return outputStream;
     }
 
-    protected EpollInputStream createInputStream(byte[] buffer, int currentOffset, int currentLimit, long contentLength) {
-        return new EpollInputStream(this, buffer, position, r, request.contentLength());
+    protected I createInputStream(byte[] buffer, int currentOffset, int currentLimit, long contentLength) {
+        return (I) new EpollInputStream(this, buffer, currentOffset, currentLimit, contentLength);
     }
 
-    protected EpollOutputStream createOutputStream() {
-        return new EpollOutputStream(this);
+    protected O createOutputStream() {
+        return (O) new EpollOutputStream(this);
     }
 
     public byte[] getBuffer() {
