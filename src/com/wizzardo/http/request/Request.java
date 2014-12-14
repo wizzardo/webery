@@ -62,10 +62,6 @@ public class Request {
         return body;
     }
 
-    public HttpConnection getConnection() {
-        return connection;
-    }
-
     public long contentLength() {
         if (contentLength == NOT_INITIALISED)
             contentLength = headerLong(Header.KEY_CONTENT_LENGTH, -1);

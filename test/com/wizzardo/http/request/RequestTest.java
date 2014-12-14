@@ -118,11 +118,11 @@ public class RequestTest extends ServerTest {
         handler = (request, response) -> {
             response.setHeader(Header.KEY_CONTENT_LENGTH, 2);
             try {
-                response.getOutputStream(request.getConnection()).write("ok".getBytes());
+                response.getOutputStream(request.connection()).write("ok".getBytes());
             } catch (IOException e) {
                 e.printStackTrace();
             }
-            request.getConnection().close();
+            request.connection().close();
             return response;
         };
 
@@ -137,11 +137,11 @@ public class RequestTest extends ServerTest {
         handler = (request, response) -> {
             response.setHeader(Header.KEY_CONTENT_LENGTH, big.length);
             try {
-                response.getOutputStream(request.getConnection()).write(big);
+                response.getOutputStream(request.connection()).write(big);
             } catch (IOException e) {
                 e.printStackTrace();
             }
-            request.getConnection().close();
+            request.connection().close();
             return response;
         };
 
@@ -151,14 +151,14 @@ public class RequestTest extends ServerTest {
         handler = (request, response) -> {
             response.setHeader(Header.KEY_CONTENT_LENGTH, big.length);
             try {
-                OutputStream out = response.getOutputStream(request.getConnection());
+                OutputStream out = response.getOutputStream(request.connection());
                 for (int i = 0; i < big.length; i++) {
                     out.write(big[i] & 0xff);
                 }
                 out.close();
             } catch (IOException e) {
                 e.printStackTrace();
-                request.getConnection().close();
+                request.connection().close();
             }
             return response;
         };
