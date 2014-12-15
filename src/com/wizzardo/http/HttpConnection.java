@@ -203,7 +203,11 @@ public class HttpConnection<Q extends Request, S extends Response, I extends Epo
 
     public I getInputStream() {
         if (inputStream == null) {
-            inputStream = createInputStream(buffer, position, r, request.contentLength());
+            if (request.getBody() != null) {
+                byte[] bytes = request.data();
+                inputStream = createInputStream(bytes, 0, bytes.length, bytes.length);
+            } else
+                inputStream = createInputStream(buffer, position, r, request.contentLength());
             state = State.READING_INPUT_STREAM;
         }
 

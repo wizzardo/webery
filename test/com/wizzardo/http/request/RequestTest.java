@@ -185,6 +185,15 @@ public class RequestTest extends ServerTest {
                 .data("some data".getBytes(), "just some data")
                 .post().asString());
 
+        handler = (request, response) -> {
+            Assert.assertEquals("some data", new String(IOTools.bytes(request.getInputStream())));
+            return response.setBody("ok");
+        };
+
+        Assert.assertEquals("ok", makeRequest("/")
+                .data("some data".getBytes(), "just some data")
+                .post().asString());
+
 
         byte[] data = new byte[10 * 1024 * 1024];
         new Random().nextBytes(data);
