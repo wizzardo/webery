@@ -6,10 +6,12 @@ import com.wizzardo.epoll.readable.ReadableBuilder;
 import com.wizzardo.epoll.readable.ReadableByteArray;
 import com.wizzardo.epoll.readable.ReadableByteBuffer;
 import com.wizzardo.epoll.readable.ReadableData;
+import com.wizzardo.http.EpollInputStream;
+import com.wizzardo.http.EpollOutputStream;
 import com.wizzardo.http.HttpConnection;
 import com.wizzardo.http.request.Header;
+import com.wizzardo.http.request.Request;
 
-import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.util.*;
 
@@ -251,7 +253,7 @@ public class Response {
         return processed;
     }
 
-    public OutputStream getOutputStream(HttpConnection connection) {
+    public <Q extends Request, S extends Response, I extends EpollInputStream, O extends EpollOutputStream> O getOutputStream(HttpConnection<Q, S, I, O> connection) {
         if (!processed) {
             connection.getOutputStream();
             connection.write(toReadableBytes(), (ByteBufferProvider) Thread.currentThread());
