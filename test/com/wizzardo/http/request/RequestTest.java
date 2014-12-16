@@ -107,9 +107,13 @@ public class RequestTest extends ServerTest {
     public void testMethod() throws IOException {
         handler = (request, response) -> response.setBody(request.method().name());
 
+        System.out.println("get");
         Assert.assertEquals("GET", makeRequest("/").get().asString());
+        System.out.println("post");
         Assert.assertEquals("POST", makeRequest("/").post().asString());
+        System.out.println("put");
         Assert.assertEquals("PUT", makeRequest("/").method(ConnectionMethod.PUT).execute().asString());
+        System.out.println("delete");
         Assert.assertEquals("DELETE", makeRequest("/").method(ConnectionMethod.DELETE).execute().asString());
     }
 
@@ -126,6 +130,21 @@ public class RequestTest extends ServerTest {
             return response;
         };
 
+        Assert.assertEquals("ok", makeRequest("/").get().asString());
+        Assert.assertEquals("ok", makeRequest("/").get().asString());
+        Assert.assertEquals("ok", makeRequest("/").get().asString());
+
+        handler = (request, response) -> {
+            response.setHeader(Header.KEY_CONNECTION, Header.VALUE_CONNECTION_KEEP_ALIVE);
+            response.setHeader(Header.KEY_CONTENT_LENGTH, 2);
+            try {
+                response.getOutputStream(request.connection()).write("ok".getBytes());
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            return response;
+        };
+        Assert.assertEquals("ok", makeRequest("/").get().asString());
         Assert.assertEquals("ok", makeRequest("/").get().asString());
         Assert.assertEquals("ok", makeRequest("/").get().asString());
         Assert.assertEquals("ok", makeRequest("/").get().asString());

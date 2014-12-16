@@ -160,10 +160,9 @@ public class HttpServer<T extends HttpConnection> extends EpollServer<T> {
         if (connection.getState() == HttpConnection.State.WRITING_OUTPUT_STREAM)
             connection.getOutputStream().flush();
 
-        if (connection.getResponse().isProcessed())
-            return;
+        if (!connection.getResponse().isProcessed())
+            connection.write(connection.getResponse().toReadableBytes(), (ByteBufferProvider) Thread.currentThread());
 
-        connection.write(connection.getResponse().toReadableBytes(), (ByteBufferProvider) Thread.currentThread());
         connection.onFinishingHandling();
     }
 
