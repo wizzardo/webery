@@ -4,7 +4,6 @@ import com.wizzardo.epoll.ByteBufferProvider;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.concurrent.CountDownLatch;
 
 /**
  * @author: wizzardo
@@ -14,7 +13,7 @@ public class EpollOutputStream extends OutputStream {
     private HttpConnection connection;
     private int offset;
     private byte[] buffer;
-    private volatile CountDownLatch latch;
+    protected volatile boolean waiting;
 
     public EpollOutputStream(HttpConnection connection) {
         this.connection = connection;
@@ -25,13 +24,9 @@ public class EpollOutputStream extends OutputStream {
     @Override
     public void write(byte[] b, int off, int len) throws IOException {
         flush();
-        latch = new CountDownLatch(1);
+        waiting = true;
         connection.write(b, off, len, (ByteBufferProvider) Thread.currentThread());
-        while (latch.getCount() > 0)
-            try {
-                latch.await();
-            } catch (InterruptedException ignored) {
-            }
+        waitFor();
     }
 
     @Override
@@ -57,8 +52,23 @@ public class EpollOutputStream extends OutputStream {
         buffer[offset++] = (byte) b;
     }
 
-    void wakeUp() {
-        if (latch != null)
-            latch.countDown();
+    protected void waitFor() {
+        if (waiting) {
+            synchronized (this) {
+                while (waiting) {
+                    try {
+                        this.wait();
+                    } catch (InterruptedException ignored) {
+                    }
+                }
+            }
+        }
+    }
+
+    protected void wakeUp() {
+        synchronized (this) {
+            waiting = false;
+            this.notifyAll();
+        }
     }
 }
