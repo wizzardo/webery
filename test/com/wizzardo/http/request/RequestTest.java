@@ -149,7 +149,7 @@ public class RequestTest extends ServerTest {
         Assert.assertEquals("ok", makeRequest("/").get().asString());
         Assert.assertEquals("ok", makeRequest("/").get().asString());
 
-        byte[] big = new byte[10 * 1024 * 1024];
+        byte[] big = new byte[50 * 1024 * 1024];
         new Random().nextBytes(big);
         String md5 = MD5.getMD5AsString(big);
 
@@ -164,6 +164,9 @@ public class RequestTest extends ServerTest {
             return response;
         };
 
+        Assert.assertEquals(md5, MD5.getMD5AsString(makeRequest("/").get().asStream()));
+        Assert.assertEquals(md5, MD5.getMD5AsString(makeRequest("/").get().asStream()));
+        Assert.assertEquals(md5, MD5.getMD5AsString(makeRequest("/").get().asStream()));
         Assert.assertEquals(md5, MD5.getMD5AsString(makeRequest("/").get().asStream()));
 
 
