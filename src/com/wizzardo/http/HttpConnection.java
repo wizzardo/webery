@@ -22,7 +22,8 @@ public class HttpConnection<Q extends Request, S extends Response, I extends Epo
     private I inputStream;
     private O outputStream;
     private volatile State state = State.READING_HEADERS;
-    private volatile InputListener<HttpConnection> listener;
+    private volatile InputListener<HttpConnection> inputListener;
+    private volatile OutputListener<HttpConnection> outputListener;
     private volatile boolean closeOnFinishWriting = false;
     private boolean ready = false;
     private RequestReader requestReader;
@@ -32,7 +33,6 @@ public class HttpConnection<Q extends Request, S extends Response, I extends Epo
     static enum State {
         READING_HEADERS,
         READING_BODY,
-        WRITING_OUTPUT_STREAM,
         UPGRADED
     }
 
@@ -60,20 +60,35 @@ public class HttpConnection<Q extends Request, S extends Response, I extends Epo
     }
 
     public void upgrade(InputListener<HttpConnection> listener) {
-        this.listener = listener;
+        setInputListener(listener);
         state = State.UPGRADED;
     }
 
     public void setInputListener(InputListener<HttpConnection> listener) {
-        this.listener = listener;
+        if (this.inputListener != null && listener != null)
+            throw new IllegalStateException("InputListener already was set");
+        this.inputListener = listener;
+    }
+
+    public void setOutputListener(OutputListener<HttpConnection> listener) {
+        if (this.outputListener != null && listener != null)
+            throw new IllegalStateException("OutputListener already was set");
+        this.outputListener = listener;
     }
 
     boolean processInputListener() {
-        if (listener == null)
+        if (inputListener == null)
             return false;
 
-        listener.onReadyToRead(this);
+        inputListener.onReadyToRead(this);
+        return true;
+    }
 
+    boolean processOutputListener() {
+        if (outputListener == null)
+            return false;
+
+        outputListener.onReadyToWrite(this);
         return true;
     }
 
@@ -150,8 +165,8 @@ public class HttpConnection<Q extends Request, S extends Response, I extends Epo
     }
 
     public void onFinishingHandling() {
-        if (state == State.UPGRADED && listener != null) {
-            listener.onReady(this);
+        if (state == State.UPGRADED && inputListener != null) {
+            inputListener.onReady(this);
             return;
         }
 
@@ -160,7 +175,8 @@ public class HttpConnection<Q extends Request, S extends Response, I extends Epo
         state = State.READING_HEADERS;
         inputStream = null;
         outputStream = null;
-        listener = null;
+        inputListener = null;
+        outputListener = null;
         r = 0;
         requestReader = null;
     }
@@ -170,10 +186,8 @@ public class HttpConnection<Q extends Request, S extends Response, I extends Epo
         if (hasMore)
             return;
 
-        if (state == State.WRITING_OUTPUT_STREAM) {
-            outputStream.wakeUp();
+        if (processOutputListener())
             return;
-        }
 
         if (state != State.UPGRADED && !Header.VALUE_CONNECTION_KEEP_ALIVE.value.equalsIgnoreCase(request.header(Header.KEY_CONNECTION.value))) {
             try {
@@ -211,17 +225,21 @@ public class HttpConnection<Q extends Request, S extends Response, I extends Epo
                 inputStream = createInputStream(bytes, 0, bytes.length, bytes.length);
             } else
                 inputStream = createInputStream(buffer, position, r, request.contentLength());
-            listener = connection -> inputStream.wakeUp();
+            setInputListener(connection -> inputStream.wakeUp());
         }
 
         return inputStream;
     }
 
+    public void flushOutputStream() throws IOException {
+        if (outputStream != null)
+            outputStream.flush();
+    }
 
     public O getOutputStream() {
         if (outputStream == null) {
             outputStream = createOutputStream();
-            state = State.WRITING_OUTPUT_STREAM;
+            setOutputListener(connection -> outputStream.wakeUp());
         }
 
         return outputStream;

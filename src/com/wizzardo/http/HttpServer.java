@@ -107,15 +107,6 @@ public class HttpServer<T extends HttpConnection> extends EpollServer<T> {
         }
 
         @Override
-        public void onWrite(T connection) {
-//            System.out.println("onWrite "+connection);
-            if (connection.hasDataToWrite())
-                connection.write(this);
-            else if (connection.getState() == HttpConnection.State.WRITING_OUTPUT_STREAM)
-                connection.getOutputStream().wakeUp();
-        }
-
-        @Override
         public void onDisconnect(T connection) {
             super.onDisconnect(connection);
             System.out.println("close " + connection);
@@ -152,8 +143,7 @@ public class HttpServer<T extends HttpConnection> extends EpollServer<T> {
     }
 
     protected void finishHandling(T connection) throws IOException {
-        if (connection.getState() == HttpConnection.State.WRITING_OUTPUT_STREAM)
-            connection.getOutputStream().flush();
+        connection.flushOutputStream();
 
         if (!connection.getResponse().isProcessed())
             connection.write(connection.getResponse().toReadableBytes(), (ByteBufferProvider) Thread.currentThread());
