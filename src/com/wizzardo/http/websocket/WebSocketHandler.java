@@ -3,7 +3,7 @@ package com.wizzardo.http.websocket;
 import com.wizzardo.epoll.ByteBufferProvider;
 import com.wizzardo.epoll.readable.ReadableBuilder;
 import com.wizzardo.epoll.readable.ReadableData;
-import com.wizzardo.http.ConnectionListener;
+import com.wizzardo.http.InputListener;
 import com.wizzardo.http.Handler;
 import com.wizzardo.http.HttpConnection;
 import com.wizzardo.http.request.Header;
@@ -51,7 +51,7 @@ public class WebSocketHandler implements Handler {
                 .header(Header.KEY_SEC_WEBSOCKET_ACCEPT, key);
     }
 
-    public static class WebSocketListener implements ConnectionListener {
+    public static class WebSocketListener implements InputListener<HttpConnection> {
         private HttpConnection connection;
         private WebSocketHandler webSocketHandler;
         private Message tempMessage;
@@ -64,7 +64,7 @@ public class WebSocketHandler implements Handler {
         }
 
         @Override
-        public void onData(HttpConnection connection) {
+        public void onReadyToRead(HttpConnection connection) {
             try {
                 byte[] buffer = connection.getBuffer();
                 int r;

@@ -22,7 +22,7 @@ public class HttpConnection<Q extends Request, S extends Response, I extends Epo
     private I inputStream;
     private O outputStream;
     private volatile State state = State.READING_HEADERS;
-    private volatile ConnectionListener listener;
+    private volatile InputListener<HttpConnection> listener;
     private volatile boolean closeOnFinishWriting = false;
     private boolean ready = false;
     private RequestReader requestReader;
@@ -61,16 +61,16 @@ public class HttpConnection<Q extends Request, S extends Response, I extends Epo
         return false;
     }
 
-    public void upgrade(ConnectionListener listener) {
+    public void upgrade(InputListener<HttpConnection> listener) {
         this.listener = listener;
         state = State.UPGRADED;
     }
 
-    boolean processListener() {
-        if (listener == null || state != State.UPGRADED)
+    boolean processInputListener() {
+        if (listener == null)
             return false;
 
-        listener.onData(this);
+        listener.onReadyToRead(this);
 
         return true;
     }

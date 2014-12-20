@@ -83,7 +83,7 @@ public class HttpServer<T extends HttpConnection> extends EpollServer<T> {
                 return;
             }
 
-            if (connection.processListener())
+            if (connection.processInputListener())
                 return;
 
             ByteBuffer b;
