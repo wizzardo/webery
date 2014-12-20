@@ -9,5 +9,6 @@ import com.wizzardo.epoll.Connection;
 public interface InputListener<C extends Connection> {
     public void onReadyToRead(C connection);
 
-    public void onReady(C connection);
+    default public void onReady(C connection) {
+    }
 }

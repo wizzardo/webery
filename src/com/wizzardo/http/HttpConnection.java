@@ -32,9 +32,7 @@ public class HttpConnection<Q extends Request, S extends Response, I extends Epo
     static enum State {
         READING_HEADERS,
         READING_BODY,
-        READING_BODY_MULTIPART,
         WRITING_OUTPUT_STREAM,
-        READING_INPUT_STREAM,
         UPGRADED
     }
 
@@ -64,6 +62,10 @@ public class HttpConnection<Q extends Request, S extends Response, I extends Epo
     public void upgrade(InputListener<HttpConnection> listener) {
         this.listener = listener;
         state = State.UPGRADED;
+    }
+
+    public void setInputListener(InputListener<HttpConnection> listener) {
+        this.listener = listener;
     }
 
     boolean processInputListener() {
@@ -158,6 +160,7 @@ public class HttpConnection<Q extends Request, S extends Response, I extends Epo
         state = State.READING_HEADERS;
         inputStream = null;
         outputStream = null;
+        listener = null;
         r = 0;
         requestReader = null;
     }
@@ -208,7 +211,7 @@ public class HttpConnection<Q extends Request, S extends Response, I extends Epo
                 inputStream = createInputStream(bytes, 0, bytes.length, bytes.length);
             } else
                 inputStream = createInputStream(buffer, position, r, request.contentLength());
-            state = State.READING_INPUT_STREAM;
+            listener = connection -> inputStream.wakeUp();
         }
 
         return inputStream;

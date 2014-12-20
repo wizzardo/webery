@@ -78,11 +78,6 @@ public class HttpServer<T extends HttpConnection> extends EpollServer<T> {
 
         @Override
         public void onRead(T connection) {
-            if (connection.getState() == HttpConnection.State.READING_INPUT_STREAM) {
-                connection.getInputStream().wakeUp();
-                return;
-            }
-
             if (connection.processInputListener())
                 return;
 
