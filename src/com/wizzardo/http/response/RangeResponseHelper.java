@@ -116,14 +116,14 @@ public class RangeResponseHelper {
             range = range.substring(6);
             String[] temp = range.split("\\-", 2);
             if (temp[0].length() > 0 && temp[1].length() > 0) {
-                from = parseInt(temp[0]);
-                to = parseInt(temp[1]);
+                from = parseLong(temp[0]);
+                to = parseLong(temp[1]);
             } else if (range.startsWith("-")) {
-                to = parseInt(temp[1]);
+                to = parseLong(temp[1]);
                 from = length - to;
                 to = length - 1;
             } else {
-                from = parseInt(temp[0]);
+                from = parseLong(temp[0]);
                 to = length - 1;
             }
 
@@ -137,11 +137,11 @@ public class RangeResponseHelper {
             return to >= from && from < total;
         }
 
-        private int parseInt(String s) {
+        private long parseLong(String s) {
             try {
-                return Integer.parseInt(s);
+                return Long.parseLong(s);
             } catch (NumberFormatException e) {
-                throw new IllegalArgumentException("can't parse " + s + " as integer");
+                throw new IllegalArgumentException("can't parse " + s + " as long");
             }
         }
 
