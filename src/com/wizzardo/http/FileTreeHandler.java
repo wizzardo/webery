@@ -8,6 +8,7 @@ import com.wizzardo.tools.misc.DateIso8601;
 import com.wizzardo.tools.misc.UncheckedThrow;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
@@ -20,13 +21,18 @@ import java.util.Date;
  */
 public class FileTreeHandler implements Handler {
     private String prefix;
+    private String workDirPath;
     private File workDir;
 
     public FileTreeHandler(File workDir, String prefix) {
-        if (prefix.equals("/"))
-            prefix = "";
+        if (prefix.endsWith("/"))
+            prefix = prefix.substring(0, prefix.length() - 1);
+        if (!prefix.isEmpty() && !prefix.startsWith("/"))
+            prefix = "/" + prefix;
+
         this.workDir = workDir;
         this.prefix = prefix;
+        workDirPath = getCanonicalPath(workDir);
     }
 
     public FileTreeHandler(String workDir, String prefix) {
@@ -37,13 +43,16 @@ public class FileTreeHandler implements Handler {
     public Response handle(Request request, Response response) {
         String path = request.path();
 
-        if (!path.startsWith(prefix, 1))
+        if (!path.startsWith(prefix))
             return response.setStatus(Status._400).setBody("path must starts with prefix '" + prefix + "'");
 
-        path = path.substring(prefix.length() + 1, path.length());
+        if (!prefix.isEmpty())
+            path = path.substring(prefix.length(), path.length());
 
         File file = new File(workDir, decodePath(path));
-        if (file.getAbsolutePath().length() < workDir.getAbsolutePath().length())
+        String canonicalPath = getCanonicalPath(file);
+
+        if (!canonicalPath.startsWith(workDirPath))
             return response.setStatus(Status._403).setBody(path + " is forbidden");
 
         if (!file.exists())
@@ -58,10 +67,18 @@ public class FileTreeHandler implements Handler {
         return RangeResponseHelper.makeRangeResponse(request, response, file);
     }
 
+    protected String getCanonicalPath(File file) {
+        try {
+            return file.getCanonicalPath();
+        } catch (IOException e) {
+            throw UncheckedThrow.rethrow(e);
+        }
+    }
+
     protected StringBuilder renderFolderPath(File dir, StringBuilder sb) {
         if (dir.equals(workDir)) {
-            StringBuilder s = new StringBuilder("/");
-            renderLink(s, "root", sb).append("/");
+            StringBuilder s = new StringBuilder();
+            sb.append("<a href=\"/\">root</a>");
             s.append(prefix).append("/");
             renderLink(s, prefix, sb).append("/");
             return s;
@@ -83,7 +100,7 @@ public class FileTreeHandler implements Handler {
     private String renderDirectory(File dir) {
         StringBuilder sb = new StringBuilder();
         sb.append("<HTML><HEAD><TITLE>Directory: ");
-        String path = "/" + prefix + dir.getAbsolutePath().substring(workDir.getAbsolutePath().length());
+        String path = prefix + getCanonicalPath(dir).substring(workDirPath.length());
         sb.append(path);
         sb.append("</TITLE></HEAD><BODY>");
 
