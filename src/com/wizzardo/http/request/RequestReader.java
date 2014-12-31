@@ -1,6 +1,7 @@
 package com.wizzardo.http.request;
 
 import com.wizzardo.http.MultiValue;
+import com.wizzardo.http.Path;
 import com.wizzardo.http.utils.AsciiReader;
 
 import java.io.UnsupportedEncodingException;
@@ -31,7 +32,7 @@ public class RequestReader {
     protected Map<String, MultiValue> headers;
     protected Map<String, MultiValue> params;
     protected String method;
-    protected String path;
+    protected Path path;
     protected String queryString;
     protected String protocol;
 
@@ -51,7 +52,7 @@ public class RequestReader {
     }
 
     public String getPath() {
-        return path;
+        return path.getPath();
     }
 
     public String getProtocol() {
@@ -93,29 +94,24 @@ public class RequestReader {
 
     private void parsePath(byte[] chars, int offset, int length) {
         chars = getCharsValue(chars, offset, length);
-        int from = 0;
-        int to = chars.length;
-        for (int i = from; i < to; i++) {
-            if (chars[i] == '?') {
-                path = AsciiReader.read(chars, from, i - from);
-                from = i + 1;
-                break;
-            }
-        }
-        if (path == null) {
-            path = AsciiReader.read(chars);
-            if (path.isEmpty())
-                path = null;
+        if (chars.length == 0)
+            return;
+        path = Path.parse(chars, 0, chars.length);
+    }
+
+    private void parseQueryString(byte[] chars, int offset, int length) {
+        chars = getCharsValue(chars, offset, length);
+        length = chars.length;
+        offset = 0;
+        if (length == 1 && chars[offset] == '?') {
+            queryString = "";
             return;
         }
-
-        int l = to - from;
-        if (l > 0) {
-            queryString = AsciiReader.read(chars, from, l);
-            parseParameters(chars, from, l);
-        } else if (to > 0 && chars[to - 1] == '?') {
+        if (length > 0) {
+            queryString = AsciiReader.read(chars, offset, length);
+            parseParameters(chars, offset, length);
+        } else
             queryString = "";
-        }
     }
 
     void parseParameters(byte[] chars, int offset, int length) {
@@ -174,7 +170,7 @@ public class RequestReader {
         if (protocol == null) {
             for (int i = offset; i < l; i++) {
                 byte b = chars[i];
-                if (b == ' ') {
+                if (b == ' ' || b == '?') {
                     if (method == null) {
                         method = getValue(chars, offset, i - offset);
                         if (method.isEmpty())
@@ -184,6 +180,10 @@ public class RequestReader {
                         return parseHeaders(chars, i, length - (i - offset));
                     } else if (path == null) {
                         parsePath(chars, offset, i - offset);
+                        i++;
+                        return parseHeaders(chars, i, length - (i - offset));
+                    } else if (queryString == null) {
+                        parseQueryString(chars, offset, i - offset);
                         i++;
                         return parseHeaders(chars, i, length - (i - offset));
                     }

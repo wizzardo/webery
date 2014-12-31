@@ -1,9 +1,6 @@
 package com.wizzardo.http.request;
 
-import com.wizzardo.http.HttpConnection;
-import com.wizzardo.http.HttpDateFormatterHolder;
-import com.wizzardo.http.MultiValue;
-import com.wizzardo.http.Session;
+import com.wizzardo.http.*;
 import com.wizzardo.http.response.CookieBuilder;
 import com.wizzardo.http.response.Response;
 import com.wizzardo.tools.io.BlockInputStream;
@@ -31,7 +28,7 @@ public class Request<C extends HttpConnection> {
     protected Map<String, MultiPartEntry> multiPartEntryMap;
     protected Map<String, String> cookies;
     protected Method method;
-    protected String path;
+    protected Path path;
     protected String protocol;
     protected String queryString;
     protected long contentLength = NOT_INITIALISED;
@@ -51,7 +48,7 @@ public class Request<C extends HttpConnection> {
     }
 
     public String path() {
-        return path;
+        return path.getPath();
     }
 
     public String protocol() {

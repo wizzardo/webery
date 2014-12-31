@@ -40,7 +40,7 @@ public class HeadersTest {
                 "\r\nololo data foo bar";
         checker = hhr -> {
             Assert.assertEquals("GET", hhr.method);
-            Assert.assertEquals("/http/", hhr.path);
+            Assert.assertEquals("/http/", hhr.path.getPath());
             Assert.assertEquals("HTTP/1.1", hhr.protocol);
             Assert.assertEquals("foo=bar", hhr.queryString);
             Assert.assertEquals(true, hhr.complete);
@@ -63,7 +63,7 @@ public class HeadersTest {
                 "\r\n";
         checker = hhr -> {
             Assert.assertEquals("GET", hhr.method);
-            Assert.assertEquals("/http/", hhr.path);
+            Assert.assertEquals("/http/", hhr.path.getPath());
             Assert.assertEquals("HTTP/1.1", hhr.protocol);
             Assert.assertEquals("", hhr.queryString);
             Assert.assertEquals(true, hhr.complete);
@@ -78,7 +78,7 @@ public class HeadersTest {
                 "\r\n";
         checker = hhr -> {
             Assert.assertEquals("GET", hhr.method);
-            Assert.assertEquals("/http/", hhr.path);
+            Assert.assertEquals("/http/", hhr.path.getPath());
             Assert.assertEquals("HTTP/1.1", hhr.protocol);
             Assert.assertEquals(null, hhr.queryString);
             Assert.assertEquals(true, hhr.complete);
@@ -245,7 +245,7 @@ public class HeadersTest {
 
         Assert.assertEquals(true, reader.complete);
         Assert.assertEquals("GET", reader.method);
-        Assert.assertEquals("/http/", reader.path);
+        Assert.assertEquals("/http/", reader.path.getPath());
         Assert.assertEquals("HTTP/1.1", reader.protocol);
 
         Assert.assertEquals("example.com", reader.headers.get("Host").getValue());
