@@ -297,18 +297,29 @@ public class Request<C extends HttpConnection> {
     }
 
     public Session session() {
+        return session("/");
+    }
+
+    public Session session(String path) {
+        Session session = null;
         if (sessionId != null)
-            return Session.find(sessionId);
+            session = Session.find(sessionId);
+
+        if (session != null)
+            return session;
 
         sessionId = cookies().get("JSESSIONID");
 
         if (sessionId != null)
-            return Session.find(sessionId);
+            session = Session.find(sessionId);
 
-        Session session = Session.create();
+        if (session != null)
+            return session;
+
+        session = Session.create();
         sessionId = session.getId();
 
-        response().setCookie(new CookieBuilder("JSESSIONID", sessionId).path("/").maxAge(30 * 60).expires(System.currentTimeMillis() + 30 * 60 * 1000));
+        response().setCookie(new CookieBuilder("JSESSIONID", sessionId).path(path).maxAge(30 * 60).expires(System.currentTimeMillis() + 30 * 60 * 1000));
         return session;
     }
 
