@@ -20,8 +20,12 @@ public class Session extends ConcurrentHashMap {
     private Session() {
     }
 
+    private Session(String id) {
+        this.id = id;
+    }
+
     static void createSessionsHolder(long ttl) {
-        cache = new Cache<>(ttl, s -> new Session());
+        cache = new Cache<>(ttl, id -> new Session(id));
     }
 
     public static Session find(String id) {
@@ -51,4 +55,8 @@ public class Session extends ConcurrentHashMap {
         return cache.getTTL(id);
     }
 
+    public void invalidate() {
+        cache.remove(id);
+        clear();
+    }
 }
