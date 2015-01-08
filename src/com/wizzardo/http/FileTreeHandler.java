@@ -1,5 +1,7 @@
 package com.wizzardo.http;
 
+import com.wizzardo.http.html.HtmlBuilder;
+import com.wizzardo.http.html.Tag;
 import com.wizzardo.http.request.Request;
 import com.wizzardo.http.response.RangeResponseHelper;
 import com.wizzardo.http.response.Response;
@@ -14,6 +16,8 @@ import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.util.Arrays;
 import java.util.Date;
+
+import static com.wizzardo.http.html.HtmlBuilder.*;
 
 /**
  * @author: wizzardo
@@ -75,39 +79,30 @@ public class FileTreeHandler implements Handler {
         }
     }
 
-    protected StringBuilder renderFolderPath(File dir, StringBuilder sb) {
+    protected Tag createHeader(File dir, Tag holder) {
+        renderFolderPath(dir, holder);
+        return holder;
+    }
+
+    protected StringBuilder renderFolderPath(File dir, Tag holder) {
         if (dir.equals(workDir)) {
             StringBuilder s = new StringBuilder();
-            sb.append("<a href=\"/\">root</a>");
+            holder.add(a().href("/").text("root: "));
             s.append(prefix).append("/");
-            renderLink(s, prefix, sb).append("/");
+            holder.add(a().href(prefix + "/").text(prefix)).text("/");
             return s;
         }
 
         if (dir.getPath().endsWith("/"))
-            return renderFolderPath(dir.getParentFile(), sb);
+            return renderFolderPath(dir.getParentFile(), holder);
 
-        StringBuilder path = renderFolderPath(dir.getParentFile(), sb).append(dir.getName()).append("/");
-        renderLink(path, dir.getName(), sb).append("/");
+        StringBuilder path = renderFolderPath(dir.getParentFile(), holder).append(dir.getName()).append("/");
+        holder.add(a().href(path.toString()).text(dir.getName())).text("/");
         return path;
     }
 
-    protected StringBuilder renderLink(StringBuilder href, String text, StringBuilder sb) {
-        sb.append("<a href=\"").append(href).append("\">").append(text).append("</a>");
-        return sb;
-    }
-
-    private String renderDirectory(File dir) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("<HTML><HEAD><TITLE>Directory: ");
+    private Tag renderDirectory(File dir) {
         String path = prefix + getCanonicalPath(dir).substring(workDirPath.length());
-        sb.append(path);
-        sb.append("</TITLE></HEAD><BODY>");
-
-        renderFolderPath(dir, sb.append("<H1>"));
-        sb.append("</H1>\n");
-        sb.append("<TABLE BORDER=0>\n");
-
         File[] files = dir.listFiles();
 
         Arrays.sort(files, (o1, o2) -> {
@@ -126,31 +121,22 @@ public class FileTreeHandler implements Handler {
         if (!path.endsWith("/"))
             path += '/';
 
-        for (File file : files) {
-            sb.append("<tr>");
+        final String pathHolder = path;
 
-            sb.append("<td>");
-            sb.append("<a href=\"").append(path).append(encodeName(file.getName()));
-            if (file.isDirectory())
-                sb.append('/');
-            sb.append("\">");
-            sb.append(file.getName());
-            sb.append("</a>");
-            sb.append("</td>");
+        HtmlBuilder html = new HtmlBuilder();
+        html.add(header().add(Meta.charset("utf-8").add(title(path))));
+        html.add(body()
+                        .add(createHeader(dir, h(1)))
+                        .add(table().attr("border", "0").each(files, (file) -> {
+                            String url = pathHolder + encodeName(file.getName()) + (file.isDirectory() ? "/" : "");
+                            return tr()
+                                    .add(td().add(a().href(url).text(file.getName())))
+                                    .add(td().attr("align", "right").text(file.length() + " bytes"))
+                                    .add(td().text(DateIso8601.format(new Date(file.lastModified()))));
+                        }))
+        );
 
-            sb.append("<td align=right>");
-            sb.append(file.length()).append(" bytes");
-            sb.append("</td>");
-
-            sb.append("<td>");
-            sb.append(DateIso8601.format(new Date(file.lastModified())));
-            sb.append("</td>");
-
-            sb.append("<tr>\n");
-        }
-
-        sb.append("</TABLE>\n</BODY></HTML>");
-        return sb.toString();
+        return html;
     }
 
     private String encodeName(String name) {

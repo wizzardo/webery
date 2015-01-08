@@ -9,8 +9,12 @@ import com.wizzardo.epoll.readable.ReadableData;
 import com.wizzardo.http.EpollInputStream;
 import com.wizzardo.http.EpollOutputStream;
 import com.wizzardo.http.HttpConnection;
+import com.wizzardo.http.html.Renderer;
+import com.wizzardo.http.html.Tag;
 import com.wizzardo.http.request.Header;
 import com.wizzardo.http.request.Request;
+import com.wizzardo.tools.misc.ExceptionDrivenStringBuilder;
+import com.wizzardo.tools.misc.SoftThreadLocal;
 
 import java.nio.ByteBuffer;
 import java.util.*;
@@ -31,6 +35,20 @@ public class Response {
     private byte[][] headers = new byte[20][];
     private int headersCount = 0;
 
+    protected static final SoftThreadLocal<ExceptionDrivenStringBuilder> stringBuilder = new SoftThreadLocal<ExceptionDrivenStringBuilder>() {
+        @Override
+        protected ExceptionDrivenStringBuilder init() {
+            return new ExceptionDrivenStringBuilder();
+        }
+
+        @Override
+        public ExceptionDrivenStringBuilder getValue() {
+            ExceptionDrivenStringBuilder builder = super.getValue();
+            builder.setLength(0);
+            return builder;
+        }
+    };
+
     public Response body(String s) {
         return body(s.getBytes());
     }
@@ -45,6 +63,12 @@ public class Response {
 
     public Response setBody(String s) {
         return setBody(s.getBytes());
+    }
+
+    public Response setBody(Tag tag) {
+        ExceptionDrivenStringBuilder sb = stringBuilder.getValue();
+        tag.render(Renderer.create(sb));
+        return setBody(sb.toString());
     }
 
     public Response setBody(byte[] body) {
