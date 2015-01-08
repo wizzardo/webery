@@ -16,7 +16,7 @@ public class UrlHandlerTest extends ServerTest {
         handler = new UrlHandler()
                 .append("/action1", (request, response) -> response.setBody("action1"))
                 .append("/action2", (request, response) -> response.setBody("action2"))
-                .append("/$action/1", (request, response) -> response.setBody("action5"))
+                .append("/$action/1", (request, response) -> response.setBody(request.param("action")))
                 .append("/2/$action?", (request, response) -> response.setBody(request.paramWithDefault("action", "default")))
                 .append("/3/$action?/${id}?", (request, response) ->
                         response.setBody(request.paramWithDefault("action", "action2") + "+" + request.paramWithDefault("id", "action3")))
