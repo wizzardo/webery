@@ -41,7 +41,32 @@ public class HtmlBuilder extends Tag {
         return new Tag("p");
     }
 
-    public static Tag text(String text) {
-        return new Tag.Text(text);
+    public static Tag meta() {
+        return new Tag("meta");
+    }
+
+    public static Tag title(String title) {
+        return new Tag("title").text(title);
+    }
+
+    public static class Meta {
+        private Meta() {
+        }
+
+        public static Tag charset(String charset) {
+            return meta().attr("charset", charset);
+        }
+
+        public static Tag description(String content) {
+            return meta().attr("name", "description").attr("content", content);
+        }
+
+        public static Tag keywords(String content) {
+            return meta().attr("name", "keywords").attr("content", content);
+        }
+
+        public static Tag author(String content) {
+            return meta().attr("name", "author").attr("content", content);
+        }
     }
 }

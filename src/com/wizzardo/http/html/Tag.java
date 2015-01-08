@@ -51,6 +51,10 @@ public class Tag {
         return this;
     }
 
+    public Tag text(String text) {
+        return add(new Tag.Text(text));
+    }
+
     public static class Body {
         private List<Tag> tags = new ArrayList<>();
 
