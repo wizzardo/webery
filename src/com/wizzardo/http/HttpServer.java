@@ -50,7 +50,7 @@ public class HttpServer<T extends HttpConnection> extends EpollServer<T> {
                 protected void process(T connection) {
                     handle(connection);
                 }
-            };
+            }.start();
         }
     }
 

@@ -22,7 +22,6 @@ public abstract class Worker<T extends HttpConnection> extends Thread implements
         this.queue = queue;
         setDaemon(true);
         setName(name);
-        start();
     }
 
 
