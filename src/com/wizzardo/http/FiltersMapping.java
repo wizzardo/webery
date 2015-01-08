@@ -54,13 +54,13 @@ public class FiltersMapping {
     }
 
     public boolean filter(Request request, Response response, Map<String, List<Filter>> mapping, Map<Pattern, List<Filter>> regexpMapping) {
-        List<Filter> filters = mapping.get(request.path());
+        List<Filter> filters = mapping.get(request.path().toString());
         if (filters != null)
-            if (!filter(mapping.get(request.path()), request, response))
+            if (!filter(mapping.get(request.path().toString()), request, response))
                 return false;
 
         for (Map.Entry<Pattern, List<Filter>> entry : regexpMapping.entrySet()) {
-            if (entry.getKey().matcher(request.path()).matches()) {
+            if (entry.getKey().matcher(request.path().toString()).matches()) {
                 if (!filter(regexpMapping.get(entry.getKey()), request, response))
                     return false;
             }

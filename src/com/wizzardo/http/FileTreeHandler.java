@@ -45,7 +45,7 @@ public class FileTreeHandler implements Handler {
 
     @Override
     public Response handle(Request request, Response response) {
-        String path = request.path();
+        String path = request.path().toString();
 
         if (!path.startsWith(prefix))
             return response.setStatus(Status._400).setBody("path must starts with prefix '" + prefix + "'");

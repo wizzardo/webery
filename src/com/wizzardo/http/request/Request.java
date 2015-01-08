@@ -47,8 +47,8 @@ public class Request<C extends HttpConnection> {
         this.connection = connection;
     }
 
-    public String path() {
-        return path.getPath();
+    public Path path() {
+        return path;
     }
 
     public String protocol() {

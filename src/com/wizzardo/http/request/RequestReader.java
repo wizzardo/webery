@@ -52,7 +52,7 @@ public class RequestReader {
     }
 
     public String getPath() {
-        return path.getPath();
+        return path.toString();
     }
 
     public String getProtocol() {

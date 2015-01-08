@@ -1,7 +1,6 @@
 package com.wizzardo.http;
 
 import com.wizzardo.http.request.ByteTree;
-import com.wizzardo.http.utils.AsciiReader;
 import com.wizzardo.tools.reflection.StringReflection;
 
 import java.util.ArrayList;
@@ -18,11 +17,9 @@ public class Path {
     private String path;
 
     public String getPart(int i) {
+        if (parts.size() <= i)
+            return null;
         return parts.get(i);
-    }
-
-    public String getPath() {
-        return path;
     }
 
     public int size() {
@@ -31,7 +28,11 @@ public class Path {
 
     @Override
     public String toString() {
-        return "path: " + parts;
+        return path;
+    }
+
+    List<String> parts() {
+        return parts;
     }
 
     public static Path parse(byte[] bytes, int offset, int limit) {
