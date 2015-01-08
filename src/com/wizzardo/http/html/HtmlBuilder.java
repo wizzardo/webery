@@ -45,8 +45,28 @@ public class HtmlBuilder extends Tag {
         return new Tag("meta");
     }
 
+    public static Tag table() {
+        return new Tag("table");
+    }
+
+    public static Tag tr() {
+        return new Tag("tr");
+    }
+
+    public static Tag td() {
+        return new Tag("td");
+    }
+
     public static Tag title(String title) {
         return new Tag("title").text(title);
+    }
+
+    public static Tag h(int level) {
+        return new Tag("h"+level);
+    }
+
+    public static Tag.A a() {
+        return new Tag.A();
     }
 
     public static class Meta {

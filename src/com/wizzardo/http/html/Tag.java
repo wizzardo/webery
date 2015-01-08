@@ -1,9 +1,8 @@
 package com.wizzardo.http.html;
 
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import com.wizzardo.tools.collections.CollectionTools;
+
+import java.util.*;
 
 /**
  * Created by wizzardo on 08.01.15.
@@ -35,6 +34,22 @@ public class Tag {
             body.render(renderer);
             renderer.append("</").append(name).append('>');
         }
+    }
+
+    public <T> Tag each(Collection<T> collection, CollectionTools.Closure<Tag, T> closure) {
+        if (collection != null)
+            for (T t : collection) {
+                add(closure.execute(t));
+            }
+        return this;
+    }
+
+    public <T> Tag each(T[] collection, CollectionTools.Closure<Tag, T> closure) {
+        if (collection != null)
+            for (T t : collection) {
+                add(closure.execute(t));
+            }
+        return this;
     }
 
     public Tag add(Tag tag) {
@@ -94,6 +109,17 @@ public class Tag {
         @Override
         public Tag add(Tag tag) {
             throw new IllegalStateException("Text tag can not have any inner tags");
+        }
+    }
+
+    public static class A extends Tag {
+        public A() {
+            super("a");
+        }
+
+        public A href(String url) {
+            attr("href", url);
+            return this;
         }
     }
 }
