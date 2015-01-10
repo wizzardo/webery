@@ -13,7 +13,7 @@ public class UrlMappingTest extends ServerTest {
 
     @Test
     public void testMapping() throws IOException {
-        handler = new UrlMapping()
+        handler = new UrlHandler()
                 .append("/action1", (request, response) -> response.setBody("action1"))
                 .append("/action2", (request, response) -> response.setBody("action2"))
                 .append("/$action/1", (request, response) -> response.setBody(request.param("action")))

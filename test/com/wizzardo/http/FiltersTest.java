@@ -18,7 +18,7 @@ public class FiltersTest extends ServerTest {
 
     @Test
     public void before() throws IOException {
-        handler = new UrlMapping()
+        handler = new UrlHandler()
                 .append("/allowed", (request, response) -> response.setBody("ok"))
                 .append("/notAllowed", (request, response) -> response.setBody("ok"));
 
@@ -42,7 +42,7 @@ public class FiltersTest extends ServerTest {
 
     @Test
     public void after() throws IOException {
-        handler = new UrlMapping()
+        handler = new UrlHandler()
                 .append("/say/$what", (request, response) -> response.setBody("I say: " + request.param("what")));
 
         server.getFiltersMapping().addAfter("/say/*", (request, response) -> {

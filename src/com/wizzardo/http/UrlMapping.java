@@ -1,10 +1,7 @@
 package com.wizzardo.http;
 
 import com.wizzardo.http.request.Request;
-import com.wizzardo.http.response.Response;
-import com.wizzardo.http.response.Status;
 
-import java.io.IOException;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -13,14 +10,14 @@ import java.util.regex.Pattern;
  * @author: wizzardo
  * Date: 25.09.14
  */
-public class UrlMapping implements Handler {
+public class UrlMapping<T> {
 
     private static Pattern VARIABLES = Pattern.compile("\\$\\{?([a-zA-Z_]+[\\w]*)\\}?");
 
-    protected Map<String, UrlMapping> mapping = new HashMap<>();
-    protected Map<Pattern, UrlMapping> regexpMapping = new LinkedHashMap<>();
-    protected Handler handler;
-    protected UrlMapping parent;
+    protected Map<String, UrlMapping<T>> mapping = new HashMap<>();
+    protected Map<Pattern, UrlMapping<T>> regexpMapping = new LinkedHashMap<>();
+    protected T value;
+    protected UrlMapping<T> parent;
 
     protected UrlMapping(UrlMapping parent) {
         this.parent = parent;
@@ -68,22 +65,19 @@ public class UrlMapping implements Handler {
             parent.prepare(request);
     }
 
-    @Override
-    public Response handle(Request request, Response response) throws IOException {
-        UrlMapping mapping = find(request.path());
-        if (mapping != null && mapping.handler != null) {
-            mapping.prepare(request);
-            return mapping.handler.handle(request, response);
-        }
+    public T get(Request request) {
+        UrlMapping<T> last = find(request.path());
+        if (last != null && last.value != null)
+            last.prepare(request);
 
-        return response.setStatus(Status._404).setBody(request.path() + " not found");
+        return last == null ? null : last.value;
     }
 
-    public UrlMapping find(Path path) throws IOException {
+    private UrlMapping<T> find(Path path) {
         return find(path.parts());
     }
 
-    public UrlMapping find(List<String> parts) throws IOException {
+    public UrlMapping find(List<String> parts) {
         UrlMapping tree = this;
         for (int i = 0; i < parts.size() && tree != null; i++) {
             String part = parts.get(i);
@@ -92,7 +86,7 @@ public class UrlMapping implements Handler {
 
             tree = tree.find(part);
         }
-        while (tree != null && tree.handler == null)
+        while (tree != null && tree.value == null)
             tree = tree.find("");
 
         return tree;
@@ -103,23 +97,23 @@ public class UrlMapping implements Handler {
         if (handler != null)
             return handler;
 
-        for (Map.Entry<Pattern, UrlMapping> entry : regexpMapping.entrySet()) {
+        for (Map.Entry<Pattern, UrlMapping<T>> entry : regexpMapping.entrySet()) {
             if (entry.getKey().matcher(part).matches())
                 return entry.getValue();
         }
         return null;
     }
 
-    public UrlMapping append(String url, Handler handler) {
+    public UrlMapping append(String url, T handler) {
         String[] parts = url.split("/");
-        UrlMapping tree = this;
+        UrlMapping<T> tree = this;
         int counter = 0;
         for (int i = 0; i < parts.length; i++) {
             String part = parts[i];
             if (part.isEmpty())
                 continue;
 
-            UrlMapping next;
+            UrlMapping<T> next;
             if (part.contains("*")) {
                 Pattern pattern = Pattern.compile(part.replace("*", ".*"));
                 next = tree.regexpMapping.get(pattern);
@@ -145,7 +139,7 @@ public class UrlMapping implements Handler {
             tree = next;
             counter++;
         }
-        tree.handler = handler;
+        tree.value = handler;
 
         return this;
     }

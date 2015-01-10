@@ -15,7 +15,7 @@ public class SessionTest extends ServerTest {
 
     @Test
     public void test() throws IOException {
-        handler = new UrlMapping()
+        handler = new UrlHandler()
                 .append("/set", (request, response) -> {
                     request.session().put("key", "value");
                     return response.setBody("ok");
