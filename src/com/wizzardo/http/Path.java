@@ -41,7 +41,7 @@ public class Path {
 
         int length = limit - offset;
 
-        int h = 0;
+        int h = '/';
         int k;
 
         int partStart = offset + 1;
