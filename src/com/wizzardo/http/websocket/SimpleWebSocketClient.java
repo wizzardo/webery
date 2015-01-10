@@ -32,7 +32,8 @@ public class SimpleWebSocketClient extends Thread {
 
     private void handShake(URI uri) throws IOException {
         Socket s = new Socket(uri.getHost(), uri.getPort());
-        String request = "GET " + uri.getRawPath() + " HTTP/1.1\r\n" +
+        String path = uri.getRawPath();
+        String request = "GET " + (path.isEmpty() ? "/" : path) + " HTTP/1.1\r\n" +
                 "Host: " + uri.getHost() + (uri.getPort() != 80 ? ":" + uri.getPort() : "") + "\r\n" +
                 "Upgrade: websocket\r\n" +
                 "Connection: Upgrade\r\n" +

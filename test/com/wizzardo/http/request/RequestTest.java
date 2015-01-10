@@ -46,21 +46,21 @@ public class RequestTest extends ServerTest {
     @Test
     public void testPath() throws IOException {
         handler = (request, response) -> {
-            Assert.assertEquals("/", request.path());
+            Assert.assertEquals("/", request.path().toString());
             return response.setBody("ok");
         };
 
         Assert.assertEquals("ok", makeRequest("").get().asString());
 
         handler = (request, response) -> {
-            Assert.assertEquals("/path", request.path());
+            Assert.assertEquals("/path", request.path().toString());
             return response.setBody("ok");
         };
 
         Assert.assertEquals("ok", makeRequest("/path").get().asString());
 
         handler = (request, response) -> {
-            Assert.assertEquals("/path", request.path());
+            Assert.assertEquals("/path", request.path().toString());
             return response.setBody("ok");
         };
 
