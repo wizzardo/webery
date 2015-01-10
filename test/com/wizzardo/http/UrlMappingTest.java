@@ -9,11 +9,11 @@ import java.io.IOException;
  * @author: wizzardo
  * Date: 25.09.14
  */
-public class UrlHandlerTest extends ServerTest {
+public class UrlMappingTest extends ServerTest {
 
     @Test
     public void testMapping() throws IOException {
-        handler = new UrlHandler()
+        handler = new UrlMapping()
                 .append("/action1", (request, response) -> response.setBody("action1"))
                 .append("/action2", (request, response) -> response.setBody("action2"))
                 .append("/$action/1", (request, response) -> response.setBody(request.param("action")))

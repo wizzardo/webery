@@ -6,6 +6,7 @@ import com.wizzardo.epoll.IOThread;
 import com.wizzardo.epoll.readable.ReadableByteBuffer;
 import com.wizzardo.http.request.Header;
 import com.wizzardo.http.request.Request;
+import com.wizzardo.http.response.RangeResponseHelper;
 import com.wizzardo.http.response.Response;
 
 import java.io.IOException;
@@ -172,7 +173,7 @@ public class HttpServer<T extends HttpConnection> extends EpollServer<T> {
                 .setBody("ololo".getBytes())
                 .buildStaticResponse();
 
-        server.setHandler(new UrlHandler()
+        server.setHandler(new UrlMapping()
 //                        .append("/ololo", (request, response) -> response.setStaticResponse(staticResponse.copy()))
 //                        .append("/*", new FileTreeHandler("/usr/share/nginx/html/", ""))
                         .append("/*", new FileTreeHandler("/media/wizzardo/DATA/", ""))
