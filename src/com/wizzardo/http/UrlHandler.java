@@ -15,7 +15,7 @@ public class UrlHandler implements Handler {
     @Override
     public Response handle(Request request, Response response) throws IOException {
         Handler handler = mapping.get(request);
-        if (mapping != null)
+        if (handler != null)
             return handler.handle(request, response);
 
 
