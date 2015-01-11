@@ -20,6 +20,7 @@ public class UrlMappingTest extends ServerTest {
                 .append("/2/$action?", (request, response) -> response.setBody(request.paramWithDefault("action", "default")))
                 .append("/3/$action?/${id}?", (request, response) ->
                         response.setBody(request.paramWithDefault("action", "action2") + "+" + request.paramWithDefault("id", "action3")))
+                .append("/any/*", (request, response) -> response.setBody("any"))
         ;
 
         Assert.assertEquals("action1", makeRequest("/action1").get().asString());
@@ -29,5 +30,9 @@ public class UrlMappingTest extends ServerTest {
         Assert.assertEquals("default", makeRequest("/2").get().asString());
         Assert.assertEquals("ololo+123", makeRequest("/3/ololo/123").get().asString());
         Assert.assertEquals("action2+action3", makeRequest("/3").get().asString());
+
+        Assert.assertEquals("any", makeRequest("/any").get().asString());
+        Assert.assertEquals("any", makeRequest("/any/foo").get().asString());
+        Assert.assertEquals("any", makeRequest("/any/foo/bar").get().asString());
     }
 }

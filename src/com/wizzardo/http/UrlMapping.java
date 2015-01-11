@@ -15,15 +15,65 @@ public class UrlMapping<T> {
     private static Pattern VARIABLES = Pattern.compile("\\$\\{?([a-zA-Z_]+[\\w]*)\\}?");
 
     protected Map<String, UrlMapping<T>> mapping = new HashMap<>();
-    protected Map<Pattern, UrlMapping<T>> regexpMapping = new LinkedHashMap<>();
+    protected Map<String, UrlMappingMatcher<T>> regexpMapping = new LinkedHashMap<>();
     protected T value;
     protected UrlMapping<T> parent;
+
+    public UrlMapping() {
+    }
 
     protected UrlMapping(UrlMapping parent) {
         this.parent = parent;
     }
 
-    private static class UrlMappingWithVariables extends UrlMapping {
+    protected boolean checkNextPart() {
+        return true;
+    }
+
+    private static abstract class UrlMappingMatcher<T> extends UrlMapping<T> {
+        protected UrlMappingMatcher(UrlMapping parent) {
+            super(parent);
+        }
+
+        protected abstract boolean matches(String urlPart);
+    }
+
+    private static class UrlMappingMatcherAny<T> extends UrlMappingMatcher<T> {
+        protected UrlMappingMatcherAny(UrlMapping parent) {
+            super(parent);
+        }
+
+        @Override
+        protected boolean matches(String urlPart) {
+            return true;
+        }
+
+        @Override
+        protected boolean checkNextPart() {
+            return false;
+        }
+    }
+
+    private static class UrlMappingMatcherPattern<T> extends UrlMappingMatcher<T> {
+        Pattern pattern;
+
+        protected UrlMappingMatcherPattern(UrlMapping parent, String pattern) {
+            super(parent);
+            this.pattern = Pattern.compile(pattern);
+        }
+
+        @Override
+        protected boolean matches(String urlPart) {
+            return pattern.matcher(urlPart).matches();
+        }
+
+        @Override
+        protected boolean checkNextPart() {
+            return false;
+        }
+    }
+
+    private static class UrlMappingWithVariables<T> extends UrlMappingMatcher<T> {
         String[] variables;
         Pattern pattern;
         int partNumber;
@@ -55,9 +105,11 @@ public class UrlMapping<T> {
                 }
             }
         }
-    }
 
-    public UrlMapping() {
+        @Override
+        protected boolean matches(String urlPart) {
+            return pattern.matcher(urlPart).matches();
+        }
     }
 
     protected void prepare(Request request) {
@@ -85,6 +137,8 @@ public class UrlMapping<T> {
                 continue;
 
             tree = tree.find(part);
+            if (tree != null && !tree.checkNextPart())
+                break;
         }
         while (tree != null && tree.value == null)
             tree = tree.find("");
@@ -97,8 +151,8 @@ public class UrlMapping<T> {
         if (handler != null)
             return handler;
 
-        for (Map.Entry<Pattern, UrlMapping<T>> entry : regexpMapping.entrySet()) {
-            if (entry.getKey().matcher(part).matches())
+        for (Map.Entry<String, UrlMappingMatcher<T>> entry : regexpMapping.entrySet()) {
+            if (entry.getValue().matches(part))
                 return entry.getValue();
         }
         return null;
@@ -115,23 +169,29 @@ public class UrlMapping<T> {
 
             UrlMapping<T> next;
             if (part.contains("*")) {
-                Pattern pattern = Pattern.compile(part.replace("*", ".*"));
+                String pattern = part.replace("*", ".*");
                 next = tree.regexpMapping.get(pattern);
                 if (next == null) {
-                    next = new UrlMapping(tree);
-                    tree.regexpMapping.put(pattern, next);
+                    UrlMappingMatcher<T> t;
+                    if (pattern.equals(".*"))
+                        t = new UrlMappingMatcherAny<>(tree);
+                    else
+                        t = new UrlMappingMatcherPattern<>(tree, pattern);
+                    tree.regexpMapping.put(pattern, t);
+                    next = t;
                 }
             } else if (part.contains("$")) {
-                Pattern pattern = Pattern.compile(convertRegexpVariables(part));
+                String pattern = convertRegexpVariables(part);
                 next = tree.regexpMapping.get(pattern);
                 if (next == null) {
-                    next = new UrlMappingWithVariables(tree, part, counter);
-                    tree.regexpMapping.put(pattern, next);
+                    UrlMappingWithVariables<T> t = new UrlMappingWithVariables<>(tree, part, counter);
+                    tree.regexpMapping.put(pattern, t);
+                    next = t;
                 }
             } else {
                 next = tree.mapping.get(part);
                 if (next == null) {
-                    next = new UrlMapping(tree);
+                    next = new UrlMapping<>(tree);
                     tree.mapping.put(part, next);
                 }
             }
