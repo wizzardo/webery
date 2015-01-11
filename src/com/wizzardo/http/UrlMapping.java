@@ -12,7 +12,8 @@ import java.util.regex.Pattern;
  */
 public class UrlMapping<T> {
 
-    private static Pattern VARIABLES = Pattern.compile("\\$\\{?([a-zA-Z_]+[\\w]*)\\}?");
+    private static final Pattern VARIABLES = Pattern.compile("\\$\\{?([a-zA-Z_]+[\\w]*)\\}?");
+    private static final String OPTIONAL = "([^/]+)?";
 
     protected Map<String, UrlMapping<T>> mapping = new HashMap<>();
     protected Map<String, UrlMappingMatcher<T>> regexpMapping = new LinkedHashMap<>();
@@ -51,6 +52,13 @@ public class UrlMapping<T> {
         @Override
         protected boolean checkNextPart() {
             return false;
+        }
+
+        @Override
+        protected void setValue(T t) {
+            super.setValue(t);
+            if (parent != null)
+                parent.setValue(t);
         }
     }
 
@@ -110,6 +118,13 @@ public class UrlMapping<T> {
         protected boolean matches(String urlPart) {
             return pattern.matcher(urlPart).matches();
         }
+
+        @Override
+        protected void setValue(T t) {
+            super.setValue(t);
+            if (parent != null && pattern.pattern().equals(OPTIONAL))
+                parent.setValue(t);
+        }
     }
 
     protected void prepare(Request request) {
@@ -140,8 +155,6 @@ public class UrlMapping<T> {
             if (tree != null && !tree.checkNextPart())
                 break;
         }
-        while (tree != null && tree.value == null)
-            tree = tree.find("");
 
         return tree;
     }
@@ -199,9 +212,13 @@ public class UrlMapping<T> {
             tree = next;
             counter++;
         }
-        tree.value = handler;
+        tree.setValue(handler);
 
         return this;
+    }
+
+    protected void setValue(T t) {
+        value = t;
     }
 
     private String convertRegexpVariables(String s) {
