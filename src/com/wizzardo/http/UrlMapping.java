@@ -140,12 +140,17 @@ public class UrlMapping<T> {
         return last == null ? null : last.value;
     }
 
+    public T get(String path) {
+        UrlMapping<T> last = find(path.split("/"));
+        return last == null ? null : last.value;
+    }
+
     private UrlMapping<T> find(Path path) {
         return find(path.parts());
     }
 
-    public UrlMapping find(List<String> parts) {
-        UrlMapping tree = this;
+    public UrlMapping<T> find(List<String> parts) {
+        UrlMapping<T> tree = this;
         for (int i = 0; i < parts.size() && tree != null; i++) {
             String part = parts.get(i);
             if (part.isEmpty())
@@ -159,8 +164,28 @@ public class UrlMapping<T> {
         return tree;
     }
 
-    private UrlMapping find(String part) {
-        UrlMapping handler = mapping.get(part);
+    public UrlMapping<T> find(String[] parts) {
+        UrlMapping<T> tree = this;
+        for (int i = 0; i < parts.length && tree != null; i++) {
+            String part = parts[i];
+            if (part.isEmpty())
+                continue;
+
+            if (part.contains("*"))
+                part = part.replace("*", ".*");
+            else if (part.contains("$"))
+                part = convertRegexpVariables(part);
+
+            tree = tree.find(part);
+            if (tree != null && !tree.checkNextPart())
+                break;
+        }
+
+        return tree;
+    }
+
+    private UrlMapping<T> find(String part) {
+        UrlMapping<T> handler = mapping.get(part);
         if (handler != null)
             return handler;
 
