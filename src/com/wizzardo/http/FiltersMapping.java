@@ -7,74 +7,49 @@ package com.wizzardo.http;
 import com.wizzardo.http.request.Request;
 import com.wizzardo.http.response.Response;
 
-import java.util.*;
-import java.util.regex.Pattern;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author Moxa
  */
 public class FiltersMapping {
 
-    protected Map<String, List<Filter>> mappingBefore = new HashMap<String, List<Filter>>();
-    protected Map<Pattern, List<Filter>> regexpMappingBefore = new LinkedHashMap<Pattern, List<Filter>>();
-
-    protected Map<String, List<Filter>> mappingAfter = new HashMap<String, List<Filter>>();
-    protected Map<Pattern, List<Filter>> regexpMappingAfter = new LinkedHashMap<Pattern, List<Filter>>();
+    protected UrlMapping<List<Filter>> before = new UrlMapping<>();
+    protected UrlMapping<List<Filter>> after = new UrlMapping<>();
 
     public FiltersMapping addBefore(String url, Filter handler) {
-        return add(url, handler, mappingBefore, regexpMappingBefore);
+        return add(url, handler, before);
     }
 
     public FiltersMapping addAfter(String url, Filter handler) {
-        return add(url, handler, mappingAfter, regexpMappingAfter);
+        return add(url, handler, after);
     }
 
-    protected FiltersMapping add(String url, Filter handler, Map<String, List<Filter>> mapping, Map<Pattern, List<Filter>> regexpMapping) {
-        if (url.contains("*"))
-            add(Pattern.compile(url.replace("*", ".*")), handler, regexpMapping);
-        else {
-            List<Filter> l = mapping.get(url);
-            if (l == null) {
-                l = new ArrayList<>();
-                mapping.put(url, l);
-            }
-            l.add(handler);
-        }
+    protected FiltersMapping add(String url, Filter handler, UrlMapping<List<Filter>> mapping) {
+        List<Filter> list = mapping.get(url);
+        if (list == null)
+            mapping.append(url, list = new ArrayList<>());
+
+        list.add(handler);
         return this;
     }
 
-    protected FiltersMapping add(Pattern url, Filter handler, Map<Pattern, List<Filter>> regexpMapping) {
-        List<Filter> l = regexpMapping.get(url);
-        if (l == null) {
-            l = new ArrayList<>();
-            regexpMapping.put(url, l);
-        }
-        l.add(handler);
-        return this;
-    }
-
-    public boolean filter(Request request, Response response, Map<String, List<Filter>> mapping, Map<Pattern, List<Filter>> regexpMapping) {
-        List<Filter> filters = mapping.get(request.path().toString());
+    public boolean filter(Request request, Response response, UrlMapping<List<Filter>> mapping) {
+        List<Filter> filters = mapping.get(request);
         if (filters != null)
-            if (!filter(mapping.get(request.path().toString()), request, response))
+            if (!filter(filters, request, response))
                 return false;
-
-        for (Map.Entry<Pattern, List<Filter>> entry : regexpMapping.entrySet()) {
-            if (entry.getKey().matcher(request.path().toString()).matches()) {
-                if (!filter(regexpMapping.get(entry.getKey()), request, response))
-                    return false;
-            }
-        }
 
         return true;
     }
 
     public boolean before(Request request, Response response) {
-        return filter(request, response, mappingBefore, regexpMappingBefore);
+        return filter(request, response, before);
     }
 
     public boolean after(Request request, Response response) {
-        return filter(request, response, mappingAfter, regexpMappingAfter);
+        return filter(request, response, after);
     }
 
     protected boolean filter(List<Filter> filters, Request request, Response response) {
