@@ -1,0 +1,32 @@
+apply plugin: 'java'
+
+repositories {
+    jcenter()
+}
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+version = '0.1'
+
+
+dependencies {
+    compile files(
+            '../Utils/out/tools.jar',
+            '../epollserver/out/artifacts/epollserver_jar/epollserver.jar'
+    )
+    testCompile 'junit:junit:4.+'
+}
+
+//create a single Jar with all dependencies
+task fatJar(type: Jar) {
+    manifest {
+        attributes(
+                "Main-Class": 'com.wizzardo.http.HttpServer'
+        )
+    }
+    baseName = project.name + '-all'
+    from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
+    with jar
+}
+
