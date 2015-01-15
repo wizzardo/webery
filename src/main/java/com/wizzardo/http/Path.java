@@ -35,6 +35,13 @@ public class Path {
         return parts;
     }
 
+    public Path getContextPath() {
+        Path path = new Path();
+        path.parts = parts.subList(1, parts.size());
+        path.path = this.path.substring(this.path.indexOf("/", 1));
+        return path;
+    }
+
     public static Path parse(byte[] bytes, int offset, int limit) {
         if (bytes[offset] != '/')
             throw new IllegalStateException("path must starts with '/'");

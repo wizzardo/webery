@@ -133,7 +133,11 @@ public class UrlMapping<T> {
     }
 
     public T get(Request request) {
-        UrlMapping<T> last = find(request.path());
+        return get(request, request.path());
+    }
+
+    public T get(Request request, Path path) {
+        UrlMapping<T> last = find(path);
         if (last != null && last.value != null)
             last.prepare(request);
 
