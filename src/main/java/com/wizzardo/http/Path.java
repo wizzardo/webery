@@ -35,10 +35,17 @@ public class Path {
         return parts;
     }
 
-    public Path getContextPath() {
+    public Path subPath(int beginIndex) {
+        return subPath(beginIndex, size());
+    }
+
+    public Path subPath(int beginIndex, int endIndex) {
         Path path = new Path();
-        path.parts = parts.subList(1, parts.size());
-        path.path = this.path.substring(this.path.indexOf("/", 1));
+        path.parts = parts.subList(beginIndex, endIndex);
+        StringBuilder sb = new StringBuilder(this.path.length());
+        for (String part : path.parts)
+            sb.append('/').append(part);
+        path.path = sb.toString();
         return path;
     }
 
