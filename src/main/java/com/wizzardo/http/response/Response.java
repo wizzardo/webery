@@ -13,8 +13,8 @@ import com.wizzardo.http.html.Renderer;
 import com.wizzardo.http.html.Tag;
 import com.wizzardo.http.request.Header;
 import com.wizzardo.http.request.Request;
+import com.wizzardo.http.utils.StringBuilderThreadLocalHolder;
 import com.wizzardo.tools.misc.ExceptionDrivenStringBuilder;
-import com.wizzardo.tools.misc.SoftThreadLocal;
 
 import java.nio.ByteBuffer;
 import java.util.*;
@@ -35,19 +35,7 @@ public class Response {
     private byte[][] headers = new byte[20][];
     private int headersCount = 0;
 
-    protected static final SoftThreadLocal<ExceptionDrivenStringBuilder> stringBuilder = new SoftThreadLocal<ExceptionDrivenStringBuilder>() {
-        @Override
-        protected ExceptionDrivenStringBuilder init() {
-            return new ExceptionDrivenStringBuilder();
-        }
-
-        @Override
-        public ExceptionDrivenStringBuilder getValue() {
-            ExceptionDrivenStringBuilder builder = super.getValue();
-            builder.setLength(0);
-            return builder;
-        }
-    };
+    protected static final StringBuilderThreadLocalHolder stringBuilder = new StringBuilderThreadLocalHolder();
 
     public Response body(String s) {
         return body(s.getBytes());
@@ -66,7 +54,7 @@ public class Response {
     }
 
     public Response setBody(Tag tag) {
-        ExceptionDrivenStringBuilder sb = stringBuilder.getValue();
+        ExceptionDrivenStringBuilder sb = stringBuilder.get();
         tag.render(Renderer.create(sb));
         return setBody(sb.toString());
     }
