@@ -1,6 +1,8 @@
 package com.wizzardo.http;
 
 import com.wizzardo.http.request.ByteTree;
+import com.wizzardo.http.utils.StringBuilderThreadLocalHolder;
+import com.wizzardo.tools.misc.ExceptionDrivenStringBuilder;
 import com.wizzardo.tools.reflection.StringReflection;
 
 import java.util.ArrayList;
@@ -11,10 +13,12 @@ import java.util.List;
  */
 public class Path {
 
+    protected static final StringBuilderThreadLocalHolder stringBuilder = new StringBuilderThreadLocalHolder();
     private static ByteTree byteTree = new ByteTree();
 
     private List<String> parts = new ArrayList<>(10);
     private String path;
+    private boolean endsWithSlash;
 
     public String getPart(int i) {
         if (parts.size() <= i)
@@ -22,12 +26,15 @@ public class Path {
         return parts.get(i);
     }
 
-    public int size() {
+    public int length() {
         return parts.size();
     }
 
     @Override
     public String toString() {
+        if (path == null)
+            path = build();
+
         return path;
     }
 
@@ -36,17 +43,50 @@ public class Path {
     }
 
     public Path subPath(int beginIndex) {
-        return subPath(beginIndex, size());
+        return subPath(beginIndex, length());
     }
 
     public Path subPath(int beginIndex, int endIndex) {
         Path path = new Path();
         path.parts = parts.subList(beginIndex, endIndex);
-        StringBuilder sb = new StringBuilder(this.path.length());
-        for (String part : path.parts)
-            sb.append('/').append(part);
-        path.path = sb.toString();
+        if (endsWithSlash || endIndex != parts.size())
+            path.endsWithSlash = true;
         return path;
+    }
+
+    public Path add(String part) {
+        Path path = new Path();
+        path.parts = new ArrayList<>(parts);
+        if (part.isEmpty())
+            path.endsWithSlash = true;
+        else {
+            for (String s : part.split("/")) {
+                if (s.isEmpty())
+                    continue;
+                path.parts.add(s);
+            }
+            if (part.endsWith("/"))
+                path.endsWithSlash = true;
+        }
+        return path;
+    }
+
+    private String build() {
+        ExceptionDrivenStringBuilder sb = stringBuilder.get();
+        for (String part : parts)
+            sb.append('/').append(part);
+
+        if (endsWithSlash)
+            sb.append('/');
+        return sb.toString();
+    }
+
+    public boolean isEndsWithSlash() {
+        return endsWithSlash;
+    }
+
+    public static Path parse(byte[] bytes) {
+        return parse(bytes, 0, bytes.length);
     }
 
     public static Path parse(byte[] bytes, int offset, int limit) {
@@ -103,7 +143,8 @@ public class Path {
                 value = StringReflection.createString(part, partHash);
             }
             path.parts.add(value);
-        }
+        } else
+            path.endsWithSlash = true;
 
         path.path = StringReflection.createString(data, h);
 
