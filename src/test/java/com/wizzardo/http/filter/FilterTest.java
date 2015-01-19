@@ -1,9 +1,6 @@
 package com.wizzardo.http.filter;
 
-import com.wizzardo.http.Filter;
 import com.wizzardo.http.ServerTest;
-import com.wizzardo.http.request.Request;
-import com.wizzardo.http.response.Response;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -28,7 +25,7 @@ public class FilterTest extends ServerTest {
 
     @Test
     public void testChain() throws IOException {
-        handler = (request, response) -> response.setBody(request.param("all")+" "+request.param("foo")+" "+request.param("bar"));
+        handler = (request, response) -> response.setBody(request.param("all") + " " + request.param("foo") + " " + request.param("bar"));
         server.getFiltersMapping().addBefore("/*", (request, response) -> {
             request.param("all", "true");
             return true;

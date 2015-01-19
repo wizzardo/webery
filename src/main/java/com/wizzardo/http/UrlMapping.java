@@ -144,16 +144,11 @@ public class UrlMapping<T> {
         return last == null ? null : last.value;
     }
 
-    public T get(String path) {
-        UrlMapping<T> last = find(path.split("/"));
-        return last == null ? null : last.value;
-    }
-
     private UrlMapping<T> find(Path path) {
         return find(path.parts());
     }
 
-    public UrlMapping<T> find(List<String> parts) {
+    private UrlMapping<T> find(List<String> parts) {
         UrlMapping<T> tree = this;
         for (int i = 0; i < parts.size() && tree != null; i++) {
             String part = parts.get(i);
@@ -168,27 +163,7 @@ public class UrlMapping<T> {
         return tree;
     }
 
-    public UrlMapping<T> find(String[] parts) {
-        UrlMapping<T> tree = this;
-        for (int i = 0; i < parts.length && tree != null; i++) {
-            String part = parts[i];
-            if (part.isEmpty())
-                continue;
-
-            if (part.contains("*"))
-                part = part.replace("*", ".*");
-            else if (part.contains("$"))
-                part = convertRegexpVariables(part);
-
-            tree = tree.find(part);
-            if (tree != null && !tree.checkNextPart())
-                break;
-        }
-
-        return tree;
-    }
-
-    private UrlMapping<T> find(String part) {
+    protected UrlMapping<T> find(String part) {
         UrlMapping<T> handler = mapping.get(part);
         if (handler != null)
             return handler;
@@ -250,7 +225,7 @@ public class UrlMapping<T> {
         value = t;
     }
 
-    private String convertRegexpVariables(String s) {
+    protected String convertRegexpVariables(String s) {
         return s.replaceAll(VARIABLES.pattern(), "([^/]+)").replace("/([^/]+)?", "/?([^/]+)?");
     }
 }

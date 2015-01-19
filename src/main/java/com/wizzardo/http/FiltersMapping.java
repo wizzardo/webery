@@ -7,36 +7,29 @@ package com.wizzardo.http;
 import com.wizzardo.http.request.Request;
 import com.wizzardo.http.response.Response;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 /**
  * @author Moxa
  */
 public class FiltersMapping {
 
-    protected UrlMapping<List<Filter>> before = new UrlMapping<>();
-    protected UrlMapping<List<Filter>> after = new UrlMapping<>();
+    protected ChainUrlMapping<Filter> before = new ChainUrlMapping<>();
+    protected ChainUrlMapping<Filter> after = new ChainUrlMapping<>();
 
     public FiltersMapping addBefore(String url, Filter handler) {
-        return add(url, handler, before);
-    }
-
-    public FiltersMapping addAfter(String url, Filter handler) {
-        return add(url, handler, after);
-    }
-
-    protected FiltersMapping add(String url, Filter handler, UrlMapping<List<Filter>> mapping) {
-        List<Filter> list = mapping.get(url);
-        if (list == null)
-            mapping.append(url, list = new ArrayList<>());
-
-        list.add(handler);
+        before.add(url, handler);
         return this;
     }
 
-    public boolean filter(Request request, Response response, UrlMapping<List<Filter>> mapping) {
-        List<Filter> filters = mapping.get(request);
+    public FiltersMapping addAfter(String url, Filter handler) {
+        after.add(url, handler);
+        return this;
+    }
+
+    public boolean filter(Request request, Response response, ChainUrlMapping<Filter> mapping) {
+        Set<Filter> filters = mapping.get(request);
         if (filters != null)
             if (!filter(filters, request, response))
                 return false;
@@ -52,7 +45,7 @@ public class FiltersMapping {
         return filter(request, response, after);
     }
 
-    protected boolean filter(List<Filter> filters, Request request, Response response) {
+    protected boolean filter(Set<Filter> filters, Request request, Response response) {
         for (Filter f : filters) {
             if (!f.filter(request, response))
                 return false;
