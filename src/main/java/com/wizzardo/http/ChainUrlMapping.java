@@ -47,18 +47,26 @@ public class ChainUrlMapping<T> extends UrlMapping<Set<T>> {
             else if (part.contains("$"))
                 part = convertRegexpVariables(part);
 
-            UrlMapping<Set<T>> next = tree.find(part);
-            if (next != null) {
-                if (next.value != null)
-                    set.addAll(next.value);
-                tree = next;
-            } else
+            addAll(part, tree, set);
+            tree = tree.find(part);
+            if (tree == null)
                 break;
         }
         set.add(t);
         append(url, set);
 
         return this;
+    }
+
+    private void addAll(String part, UrlMapping<Set<T>> tree, Set<T> set) {
+        UrlMapping<Set<T>> values = tree.mapping.get(part);
+        if (values != null && values.value != null)
+            set.addAll(values.value);
+
+        for (Map.Entry<String, UrlMappingMatcher<Set<T>>> entry : regexpMapping.entrySet()) {
+            if (entry.getValue().matches(part) && entry.getValue().value != null)
+                set.addAll(entry.getValue().value);
+        }
     }
 
     private void addToAll(UrlMapping<Set<T>> tree, T t) {
