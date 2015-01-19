@@ -45,4 +45,28 @@ public class FilterTest extends ServerTest {
         Assert.assertEquals("true true null", makeRequest("/foo").get().asString());
         Assert.assertEquals("true null null", makeRequest("/").get().asString());
     }
+
+    @Test
+    public void testChainReverse() throws IOException {
+        handler = (request, response) -> response.setBody(request.param("all") + " " + request.param("foo") + " " + request.param("bar"));
+        server.getFiltersMapping().addBefore("/foo/bar/*", (request, response) -> {
+            request.param("bar", "true");
+            return true;
+        });
+        server.getFiltersMapping().addBefore("/foo/*", (request, response) -> {
+            request.param("foo", "true");
+            return true;
+        });
+        server.getFiltersMapping().addBefore("/*", (request, response) -> {
+            request.param("all", "true");
+            return true;
+        });
+
+        Assert.assertEquals("true true true", makeRequest("/foo/bar/123").get().asString());
+        Assert.assertEquals("true true true", makeRequest("/foo/bar").get().asString());
+        Assert.assertEquals("true true null", makeRequest("/foo/").get().asString());
+        Assert.assertEquals("true true null", makeRequest("/foo").get().asString());
+        Assert.assertEquals("true null null", makeRequest("/").get().asString());
+    }
+
 }
