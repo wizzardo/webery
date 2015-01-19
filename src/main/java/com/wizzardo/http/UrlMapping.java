@@ -31,7 +31,7 @@ public class UrlMapping<T> {
         return true;
     }
 
-    private static abstract class UrlMappingMatcher<T> extends UrlMapping<T> {
+    protected static abstract class UrlMappingMatcher<T> extends UrlMapping<T> {
         protected UrlMappingMatcher(UrlMapping parent) {
             super(parent);
         }
