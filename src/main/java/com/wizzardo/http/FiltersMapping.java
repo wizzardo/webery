@@ -7,9 +7,6 @@ package com.wizzardo.http;
 import com.wizzardo.http.request.Request;
 import com.wizzardo.http.response.Response;
 
-import java.util.List;
-import java.util.Set;
-
 /**
  * @author Moxa
  */
@@ -29,7 +26,7 @@ public class FiltersMapping {
     }
 
     public boolean filter(Request request, Response response, ChainUrlMapping<Filter> mapping) {
-        Set<Filter> filters = mapping.get(request);
+        ChainUrlMapping.Chain<Filter> filters = mapping.get(request);
         if (filters != null)
             if (!filter(filters, request, response))
                 return false;
@@ -45,7 +42,7 @@ public class FiltersMapping {
         return filter(request, response, after);
     }
 
-    protected boolean filter(Set<Filter> filters, Request request, Response response) {
+    protected boolean filter(ChainUrlMapping.Chain<Filter> filters, Request request, Response response) {
         for (Filter f : filters) {
             if (!f.filter(request, response))
                 return false;
