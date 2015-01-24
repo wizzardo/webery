@@ -147,12 +147,12 @@ public class UrlMapping<T> {
 
         @Override
         protected UrlMapping<T> find(String part, List<String> parts) {
-            return endsWith.findEnds(StringReflection.chars(parts.get(parts.size() - 1)));
+            return endsWith.findEnds(parts.get(parts.size() - 1));
         }
 
         @Override
         protected UrlMapping<T> find(String part, String[] parts) {
-            return endsWith.findEnds(StringReflection.chars(parts[parts.length - 1]));
+            return endsWith.findEnds(parts[parts.length - 1]);
         }
     }
 
