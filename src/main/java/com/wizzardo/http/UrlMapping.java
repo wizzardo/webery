@@ -1,6 +1,8 @@
 package com.wizzardo.http;
 
 import com.wizzardo.http.request.Request;
+import com.wizzardo.tools.misc.CharTree;
+import com.wizzardo.tools.reflection.StringReflection;
 
 import java.util.*;
 import java.util.regex.Matcher;
@@ -13,12 +15,14 @@ import java.util.regex.Pattern;
 public class UrlMapping<T> {
 
     private static final Pattern VARIABLES = Pattern.compile("\\$\\{?([a-zA-Z_]+[\\w]*)\\}?");
+    private static final Pattern END = Pattern.compile("\\*([a-zA-Z_0-9\\.]+)");
     private static final String OPTIONAL = "([^/]+)?";
 
     protected Map<String, UrlMapping<T>> mapping = new HashMap<>();
     protected Map<String, UrlMappingMatcher<T>> regexpMapping = new LinkedHashMap<>();
     protected T value;
     protected UrlMapping<T> parent;
+    protected UrlMappingEndsWith<T> endsWithMapping;
 
     public UrlMapping() {
     }
@@ -127,6 +131,42 @@ public class UrlMapping<T> {
         }
     }
 
+    protected static class UrlMappingEndsWith<T> extends UrlMapping<T> {
+        protected CharTree<UrlMapping<T>> endsWith = new CharTree<>();
+
+        protected UrlMappingEndsWith(UrlMapping parent) {
+            super(parent);
+        }
+
+        UrlMapping<T> append(String pattern) {
+            UrlMappingHolder<T> mapping = new UrlMappingHolder<>(this);
+            pattern = pattern.substring(1);
+            endsWith.appendReverse(pattern, mapping);
+            return mapping;
+        }
+
+        @Override
+        protected UrlMapping<T> find(String part, List<String> parts) {
+            return endsWith.findEnds(StringReflection.chars(parts.get(parts.size() - 1)));
+        }
+
+        @Override
+        protected UrlMapping<T> find(String part, String[] parts) {
+            return endsWith.findEnds(StringReflection.chars(parts[parts.length - 1]));
+        }
+    }
+
+    private static class UrlMappingHolder<T> extends UrlMapping<T> {
+        protected UrlMappingHolder(UrlMapping parent) {
+            super(parent);
+        }
+
+        @Override
+        protected boolean checkNextPart() {
+            return false;
+        }
+    }
+
     protected void prepare(Request request) {
         if (parent != null)
             parent.prepare(request);
@@ -155,7 +195,7 @@ public class UrlMapping<T> {
             if (part.isEmpty())
                 continue;
 
-            tree = tree.find(part);
+            tree = tree.find(part, parts);
             if (tree != null && !tree.checkNextPart())
                 break;
         }
@@ -163,7 +203,7 @@ public class UrlMapping<T> {
         return tree;
     }
 
-    protected UrlMapping<T> find(String part) {
+    protected UrlMapping<T> find(String part, List<String> parts) {
         UrlMapping<T> handler = mapping.get(part);
         if (handler != null)
             return handler;
@@ -172,6 +212,26 @@ public class UrlMapping<T> {
             if (entry.getValue().matches(part))
                 return entry.getValue();
         }
+
+        if (endsWithMapping != null)
+            return endsWithMapping.find(part, parts);
+
+        return null;
+    }
+
+    protected UrlMapping<T> find(String part, String[] parts) {
+        UrlMapping<T> handler = mapping.get(part);
+        if (handler != null)
+            return handler;
+
+        for (Map.Entry<String, UrlMappingMatcher<T>> entry : regexpMapping.entrySet()) {
+            if (entry.getValue().matches(part))
+                return entry.getValue();
+        }
+
+        if (endsWithMapping != null)
+            return endsWithMapping.find(part, parts);
+
         return null;
     }
 
@@ -186,16 +246,24 @@ public class UrlMapping<T> {
 
             UrlMapping<T> next;
             if (part.contains("*")) {
-                String pattern = part.replace("*", ".*");
-                next = tree.regexpMapping.get(pattern);
-                if (next == null) {
-                    UrlMappingMatcher<T> t;
-                    if (pattern.equals(".*"))
-                        t = new UrlMappingMatcherAny<>(tree);
-                    else
-                        t = new UrlMappingMatcherPattern<>(tree, pattern);
-                    tree.regexpMapping.put(pattern, t);
-                    next = t;
+                if (i == parts.length - 1 && END.matcher(part).matches()) {
+                    part = part.substring(1);
+                    if (tree.endsWithMapping == null)
+                        tree.endsWithMapping = new UrlMappingEndsWith<>(tree);
+
+                    next = tree.endsWithMapping.append(part);
+                } else {
+                    String pattern = part.replace("*", ".*");
+                    next = tree.regexpMapping.get(pattern);
+                    if (next == null) {
+                        UrlMappingMatcher<T> t;
+                        if (pattern.equals(".*"))
+                            t = new UrlMappingMatcherAny<>(tree);
+                        else
+                            t = new UrlMappingMatcherPattern<>(tree, pattern);
+                        tree.regexpMapping.put(pattern, t);
+                        next = t;
+                    }
                 }
             } else if (part.contains("$")) {
                 String pattern = convertRegexpVariables(part);

@@ -35,4 +35,20 @@ public class UrlMappingTest extends ServerTest {
         Assert.assertEquals("any", makeRequest("/any/foo").get().asString());
         Assert.assertEquals("any", makeRequest("/any/foo/bar").get().asString());
     }
+
+    @Test
+    public void testEndsWith() throws IOException {
+        handler = new UrlHandler()
+                .append("*.html", (request, response) -> response.setBody("html"))
+                .append("/special/*.html", (request, response) -> response.setBody("special"));
+
+
+        Assert.assertEquals("html", makeRequest("/foo.html").get().asString());
+        Assert.assertEquals("html", makeRequest("/foo/bar.html").get().asString());
+        Assert.assertEquals("html", makeRequest("/foo/bar/qwerty.html").get().asString());
+
+        Assert.assertEquals("special", makeRequest("/special/foo.html").get().asString());
+        Assert.assertEquals("special", makeRequest("/special/foo/bar.html").get().asString());
+        Assert.assertEquals("special", makeRequest("/special/foo/bar/qwerty.html").get().asString());
+    }
 }

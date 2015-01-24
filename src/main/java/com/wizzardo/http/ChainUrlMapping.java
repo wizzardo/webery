@@ -28,7 +28,7 @@ public class ChainUrlMapping<T> extends UrlMapping<ChainUrlMapping.Chain<T>> {
             else if (part.contains("$"))
                 part = convertRegexpVariables(part);
 
-            UrlMapping<Chain<T>> next = tree.find(part);
+            UrlMapping<Chain<T>> next = tree.find(part, parts);
             if (next != null && next.value != null && i == parts.length - 1)
                 next.value.chain.add(t);
 
@@ -51,7 +51,7 @@ public class ChainUrlMapping<T> extends UrlMapping<ChainUrlMapping.Chain<T>> {
                 part = convertRegexpVariables(part);
 
             addAll(part, tree, chain);
-            tree = tree.find(part);
+            tree = tree.find(part, parts);
             if (tree == null)
                 break;
         }
