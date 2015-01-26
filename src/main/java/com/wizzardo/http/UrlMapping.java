@@ -2,7 +2,6 @@ package com.wizzardo.http;
 
 import com.wizzardo.http.request.Request;
 import com.wizzardo.tools.misc.CharTree;
-import com.wizzardo.tools.reflection.StringReflection;
 
 import java.util.*;
 import java.util.regex.Matcher;
@@ -15,8 +14,8 @@ import java.util.regex.Pattern;
 public class UrlMapping<T> {
 
     private static final Pattern VARIABLES = Pattern.compile("\\$\\{?([a-zA-Z_]+[\\w]*)\\}?");
-    private static final Pattern END = Pattern.compile("\\*([a-zA-Z_0-9\\.]+)");
     private static final String OPTIONAL = "([^/]+)?";
+    protected static final Pattern END = Pattern.compile("\\*([a-zA-Z_0-9\\.]+)");
 
     protected Map<String, UrlMapping<T>> mapping = new HashMap<>();
     protected Map<String, UrlMappingMatcher<T>> regexpMapping = new LinkedHashMap<>();
@@ -156,7 +155,7 @@ public class UrlMapping<T> {
         }
     }
 
-    private static class UrlMappingHolder<T> extends UrlMapping<T> {
+    protected static class UrlMappingHolder<T> extends UrlMapping<T> {
         protected UrlMappingHolder(UrlMapping parent) {
             super(parent);
         }
@@ -204,35 +203,47 @@ public class UrlMapping<T> {
     }
 
     protected UrlMapping<T> find(String part, List<String> parts) {
-        UrlMapping<T> handler = mapping.get(part);
+        UrlMapping<T> handler = findStatic(part);
         if (handler != null)
             return handler;
 
+        handler = findDynamic(part);
+        if (handler != null)
+            return handler;
+
+        return findEndsWith(parts);
+    }
+
+    protected UrlMapping<T> findStatic(String part) {
+        return mapping.get(part);
+    }
+
+    protected UrlMapping<T> findDynamic(String part) {
         for (Map.Entry<String, UrlMappingMatcher<T>> entry : regexpMapping.entrySet()) {
             if (entry.getValue().matches(part))
                 return entry.getValue();
         }
-
-        if (endsWithMapping != null)
-            return endsWithMapping.find(part, parts);
-
         return null;
     }
 
+    protected UrlMapping<T> findEndsWith(List<String> parts) {
+        return endsWithMapping != null ? endsWithMapping.find(null, parts) : null;
+    }
+
+    protected UrlMapping<T> findEndsWith(String[] parts) {
+        return endsWithMapping != null ? endsWithMapping.find(null, parts) : null;
+    }
+
     protected UrlMapping<T> find(String part, String[] parts) {
-        UrlMapping<T> handler = mapping.get(part);
+        UrlMapping<T> handler = findStatic(part);
         if (handler != null)
             return handler;
 
-        for (Map.Entry<String, UrlMappingMatcher<T>> entry : regexpMapping.entrySet()) {
-            if (entry.getValue().matches(part))
-                return entry.getValue();
-        }
+        handler = findDynamic(part);
+        if (handler != null)
+            return handler;
 
-        if (endsWithMapping != null)
-            return endsWithMapping.find(part, parts);
-
-        return null;
+        return findEndsWith(parts);
     }
 
     public UrlMapping append(String url, T handler) {
