@@ -28,8 +28,9 @@ public class HttpServer<T extends HttpConnection> extends EpollServer<T> {
     private BlockingQueue<T> queue = new LinkedBlockingQueue<>();
     private int workersCount;
     private int sessionTimeoutSec = 30 * 60;
-    private FiltersMapping filtersMapping = new FiltersMapping();
     private volatile Handler handler = (request, response) -> response.setStaticResponse(staticResponse.copy());
+
+    protected FiltersMapping filtersMapping = new FiltersMapping();
 
     public HttpServer(int port) {
         this(null, port);
@@ -109,7 +110,7 @@ public class HttpServer<T extends HttpConnection> extends EpollServer<T> {
         @Override
         public void onDisconnect(T connection) {
             super.onDisconnect(connection);
-            System.out.println("close " + connection);
+//            System.out.println("close " + connection);
         }
     }
 
@@ -118,8 +119,8 @@ public class HttpServer<T extends HttpConnection> extends EpollServer<T> {
             Request request = connection.getRequest();
             Response response = connection.getResponse();
 
-            System.out.println(request.method() + " " + request.path());
-            System.out.println(request.headers());
+//            System.out.println(request.method() + " " + request.path());
+//            System.out.println(request.headers());
 
             if (!filtersMapping.before(request, response)) {
                 finishHandling(connection);

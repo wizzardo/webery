@@ -1,6 +1,8 @@
 package com.wizzardo.http;
 
 import com.wizzardo.http.request.Header;
+import com.wizzardo.http.request.Request;
+import com.wizzardo.http.response.Response;
 import com.wizzardo.tools.http.HttpClient;
 import com.wizzardo.tools.io.IOTools;
 import org.junit.After;
@@ -27,7 +29,19 @@ public class ServerTest {
     @Before
     public void setUp() throws NoSuchMethodException, ClassNotFoundException, NoSuchFieldException {
         System.out.println("setUp " + name.getMethodName());
-        server = new HttpServer(null, port, workers);
+        server = new HttpServer(null, port, workers) {{
+            filtersMapping = new FiltersMapping() {
+                @Override
+                public FiltersMapping addBefore(String url, Filter handler) {
+                    return super.addBefore(url, new FilterWrapper(url, handler));
+                }
+
+                @Override
+                public FiltersMapping addAfter(String url, Filter handler) {
+                    return super.addAfter(url, new FilterWrapper(url, handler));
+                }
+            };
+        }};
         server.setHandler((request, response) -> {
             response.setHeader(Header.KEY_CONNECTION, Header.VALUE_CONNECTION_CLOSE);
             return handler.handle(request, response);
@@ -41,6 +55,27 @@ public class ServerTest {
         System.out.println("tearDown " + name.getMethodName());
         server.stopEpoll();
         handler = null;
+    }
+
+
+    static class FilterWrapper implements Filter {
+        String mapping;
+        Filter filter;
+
+        public FilterWrapper(String mapping, Filter filter) {
+            this.mapping = mapping;
+            this.filter = filter;
+        }
+
+        @Override
+        public boolean filter(Request request, Response response) {
+            return filter.filter(request, response);
+        }
+
+        @Override
+        public String toString() {
+            return "filter: " + mapping;
+        }
     }
 
     protected com.wizzardo.tools.http.Request makeRequest(String path) {
