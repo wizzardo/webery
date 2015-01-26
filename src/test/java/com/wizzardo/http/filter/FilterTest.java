@@ -92,4 +92,45 @@ public class FilterTest extends ServerTest {
         Assert.assertEquals("true null null", makeRequest("/").get().asString());
     }
 
+
+    @Test
+    public void testEndsWithMapping() throws IOException {
+        handler = (request, response) -> response.setBody(request.param("foo"));
+        server.getFiltersMapping().addBefore("*.foo", (request, response) -> {
+            request.param("foo", "true");
+            return true;
+        });
+        Assert.assertEquals("true", makeRequest("/bar.foo").get().asString());
+        Assert.assertEquals("true", makeRequest("/bar/qwerty.foo").get().asString());
+
+
+        handler = (request, response) -> response.setBody(request.param("foo") + " " + request.param("bar"));
+        server.getFiltersMapping().addBefore("/bar/*", (request, response) -> {
+            request.param("bar", "true");
+            return true;
+        });
+        Assert.assertEquals("true true", makeRequest("/bar/qwerty.foo").get().asString());
+        Assert.assertEquals("true null", makeRequest("/1.foo").get().asString());
+        Assert.assertEquals("null true", makeRequest("/bar/1").get().asString());
+
+
+        handler = (request, response) -> response.setBody(request.param("foo") + " " + request.param("bar") + " " + request.param("qwe"));
+        server.getFiltersMapping().addBefore("/*", (request, response) -> {
+            request.param("qwe", "true");
+            return true;
+        });
+        Assert.assertEquals("true true true", makeRequest("/bar/qwerty.foo").get().asString());
+        Assert.assertEquals("true null true", makeRequest("/1.foo").get().asString());
+        Assert.assertEquals("null true true", makeRequest("/bar/1").get().asString());
+
+
+        handler = (request, response) -> response.setBody(request.param("foo") + " " + request.param("bar") + " " + request.param("qwe") + " " + request.param("foobar"));
+        server.getFiltersMapping().addBefore("*.bar.foo", (request, response) -> {
+            request.param("foobar", "true");
+            return true;
+        });
+        Assert.assertEquals("true true true true", makeRequest("/bar/qwerty.bar.foo").get().asString());
+        Assert.assertEquals("true null true null", makeRequest("/1.foo").get().asString());
+        Assert.assertEquals("true null true true", makeRequest("/1.bar.foo").get().asString());
+    }
 }

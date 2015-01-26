@@ -1,11 +1,6 @@
 package com.wizzardo.http;
 
-import com.wizzardo.http.request.Request;
-
-import java.util.Iterator;
-import java.util.LinkedHashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.regex.Pattern;
 
 /**
@@ -23,9 +18,12 @@ public class ChainUrlMapping<T> extends UrlMapping<ChainUrlMapping.Chain<T>> {
             if (part.isEmpty())
                 continue;
 
-            if (part.contains("*"))
+            if (part.contains("*")) {
+                if (i == parts.length - 1 && END.matcher(part).matches())
+                    break;
+
                 part = part.replace("*", ".*");
-            else if (part.contains("$"))
+            } else if (part.contains("$"))
                 part = convertRegexpVariables(part);
 
             UrlMapping<Chain<T>> next = tree.find(part, parts);
@@ -45,9 +43,18 @@ public class ChainUrlMapping<T> extends UrlMapping<ChainUrlMapping.Chain<T>> {
             if (part.isEmpty())
                 continue;
 
-            if (part.contains("*"))
+            if (part.contains("*")) {
+                if (i == parts.length - 1 && END.matcher(part).matches()) {
+                    if (tree.endsWithMapping == null)
+                        break;
+                    part = part.substring(1);
+                    for (UrlMapping<Chain<T>> chainUrlMapping : tree.endsWithMapping.endsWith.findAllEnds(part)) {
+                        chain.chain.addAll(chainUrlMapping.value.chain);
+                    }
+                    break;
+                }
                 part = part.replace("*", ".*");
-            else if (part.contains("$"))
+            } else if (part.contains("$"))
                 part = convertRegexpVariables(part);
 
             addAll(part, tree, chain);
@@ -61,9 +68,35 @@ public class ChainUrlMapping<T> extends UrlMapping<ChainUrlMapping.Chain<T>> {
         return this;
     }
 
+    protected List<UrlMapping<Chain<T>>> findAllEndsWith(List<String> parts) {
+        return endsWithMapping != null ? endsWithMapping.endsWith.findAllEnds(parts.get(parts.size() - 1)) : null;
+    }
+
     @Override
-    public Chain<T> get(Request request, Path path) {
-        return super.get(request, path);
+    protected UrlMapping<Chain<T>> find(String part, List<String> parts) {
+        List<UrlMapping<Chain<T>>> endsWith = findAllEndsWith(parts);
+
+        UrlMapping<Chain<T>> mapping = findStatic(part);
+        if (mapping == null)
+            mapping = findDynamic(part);
+
+        if (endsWith == null)
+            return mapping;
+
+        UrlMapping<Chain<T>> parent = null;
+        if (mapping != null)
+            parent = mapping.parent;
+
+        UrlMapping<Chain<T>> doubleMapping = new UrlMappingHolder<>(parent);
+        doubleMapping.value = new Chain<>();
+        if (mapping != null)
+            doubleMapping.value.chain.addAll(mapping.value.chain);
+
+        for (UrlMapping<Chain<T>> chainUrlMapping : endsWith) {
+            doubleMapping.value.chain.addAll(chainUrlMapping.value.chain);
+        }
+
+        return doubleMapping;
     }
 
     private void addAll(String part, UrlMapping<Chain<T>> tree, Chain<T> set) {
