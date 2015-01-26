@@ -1,4 +1,5 @@
 apply plugin: 'java'
+apply plugin: 'application'
 
 repositories {
     jcenter()
@@ -9,6 +10,7 @@ targetCompatibility = 1.8
 
 version = '0.1'
 
+mainClassName = "com.wizzardo.http.HttpServer"
 
 dependencies {
     compile files(
