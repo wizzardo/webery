@@ -16,6 +16,10 @@ import java.util.LinkedHashMap;
  * Date: 3/14/14
  */
 public class HttpConnection<Q extends Request, S extends Response, I extends EpollInputStream, O extends EpollOutputStream> extends Connection {
+
+    public static final String HTTP_1_0 = "HTTP/1.0";
+    public static final String HTTP_1_1 = "HTTP/1.1";
+
     private volatile byte[] buffer = new byte[1024];
     private volatile int r = 0;
     private volatile int position = 0;
@@ -26,6 +30,7 @@ public class HttpConnection<Q extends Request, S extends Response, I extends Epo
     private volatile OutputListener<HttpConnection> outputListener;
     private volatile boolean closeOnFinishWriting = false;
     private boolean ready = false;
+    private boolean keepAlive = false;
     private RequestReader requestReader;
     protected S response;
     protected Q request;
@@ -116,8 +121,18 @@ public class HttpConnection<Q extends Request, S extends Response, I extends Epo
         request = createRequest();
         response = createResponse();
         requestReader.fillRequest(request);
+        keepAlive = prepareKeepAlive();
         ready = true;
         return checkData(bb);
+    }
+
+    protected boolean prepareKeepAlive() {
+        String connection = request.header(Header.KEY_CONNECTION);
+        boolean keepAlive = (request.protocol().equals(HttpConnection.HTTP_1_1) && connection == null) || Header.VALUE_CONNECTION_KEEP_ALIVE.value.equalsIgnoreCase(connection);
+        if (keepAlive && request.protocol().equals(HttpConnection.HTTP_1_0))
+            response.setHeader(Header.KEY_CONNECTION, Header.VALUE_CONNECTION_KEEP_ALIVE);
+
+        return keepAlive;
     }
 
     protected Q createRequest() {
@@ -189,7 +204,7 @@ public class HttpConnection<Q extends Request, S extends Response, I extends Epo
         if (processOutputListener())
             return;
 
-        if (state != State.UPGRADED && !Header.VALUE_CONNECTION_KEEP_ALIVE.value.equalsIgnoreCase(request.header(Header.KEY_CONNECTION.value))) {
+        if (state != State.UPGRADED && !keepAlive) {
             try {
                 close();
             } catch (IOException e) {

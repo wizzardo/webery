@@ -1,5 +1,6 @@
 package com.wizzardo.http.request;
 
+import com.wizzardo.http.HttpConnection;
 import com.wizzardo.http.MultiValue;
 import com.wizzardo.http.Path;
 import com.wizzardo.http.utils.AsciiReader;
@@ -27,6 +28,8 @@ public class RequestReader {
         headersTree.append("keep-alive");
         headersTree.append("gzip,deflate,sdch");
         headersTree.append("en-US,en;q=0.8,ru;q=0.6");
+        headersTree.append(HttpConnection.HTTP_1_0);
+        headersTree.append(HttpConnection.HTTP_1_1);
     }
 
     protected Map<String, MultiValue> headers;
