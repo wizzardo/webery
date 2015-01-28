@@ -62,6 +62,11 @@ public class ByteTree {
     }
 
     private ByteTree appendIgnoreCase(byte[] bytes, String s, int i, Node current, Node prev, byte p) {
+        if (i == bytes.length) {
+            current.setValue(s);
+            return this;
+        }
+
         byte b = bytes[i];
         byte upper = toUpperCase(b);
         byte lower = toLowerCase(b);
@@ -70,12 +75,8 @@ public class ByteTree {
         if (prev != null)
             prev.set(p, current);
 
-        if (i == bytes.length - 1)
-            current.setValue(s);
-        else {
-            appendIgnoreCase(bytes, s, i + 1, current.next(upper), current, upper);
-            appendIgnoreCase(bytes, s, i + 1, current.next(lower), current, lower);
-        }
+        appendIgnoreCase(bytes, s, i + 1, current.next(upper), current, upper);
+        appendIgnoreCase(bytes, s, i + 1, current.next(lower), current, lower);
 
         return this;
     }
