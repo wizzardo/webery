@@ -55,6 +55,39 @@ public class ByteTree {
         return this;
     }
 
+    public ByteTree appendIgnoreCase(String s) {
+        if (root == null)
+            root = new ArrayNode(0);
+        return appendIgnoreCase(s.getBytes(), s, 0, root, null, (byte) 0);
+    }
+
+    private ByteTree appendIgnoreCase(byte[] bytes, String s, int i, Node current, Node prev, byte p) {
+        byte b = bytes[i];
+        byte upper = toUpperCase(b);
+        byte lower = toLowerCase(b);
+        current = current.append(upper);
+        current = current.append(lower);
+        if (prev != null)
+            prev.set(p, current);
+
+        if (i == bytes.length - 1)
+            current.setValue(s);
+        else {
+            appendIgnoreCase(bytes, s, i + 1, current.next(upper), current, upper);
+            appendIgnoreCase(bytes, s, i + 1, current.next(lower), current, lower);
+        }
+
+        return this;
+    }
+
+    private byte toUpperCase(byte b) {
+        return (byte) String.valueOf((char) b).toUpperCase().charAt(0);
+    }
+
+    private byte toLowerCase(byte b) {
+        return (byte) String.valueOf((char) b).toLowerCase().charAt(0);
+    }
+
     public boolean contains(String name) {
         if (root == null)
             return false;
