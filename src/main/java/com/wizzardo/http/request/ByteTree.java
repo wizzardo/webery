@@ -57,36 +57,26 @@ public class ByteTree {
 
     public ByteTree appendIgnoreCase(String s) {
         if (root == null)
-            root = new ArrayNode(0);
-        return appendIgnoreCase(s.getBytes(), s, 0, root, null, (byte) 0);
+            root = new ArrayNode();
+        return appendIgnoreCase(s.toLowerCase().getBytes(), s.toUpperCase().getBytes(), s, 0, root, null, (byte) 0);
     }
 
-    private ByteTree appendIgnoreCase(byte[] bytes, String s, int i, Node current, Node prev, byte p) {
-        if (i == bytes.length) {
+    private ByteTree appendIgnoreCase(byte[] lower, byte[] upper, String s, int i, Node current, Node prev, byte p) {
+        if (i == lower.length) {
             current.setValue(s);
             return this;
         }
 
-        byte b = bytes[i];
-        byte upper = toUpperCase(b);
-        byte lower = toLowerCase(b);
-        current = current.append(upper);
-        current = current.append(lower);
+        byte u = upper[i];
+        byte l = lower[i];
+        current = current.append(u);
+        current = current.append(l);
         if (prev != null)
             prev.set(p, current);
 
-        appendIgnoreCase(bytes, s, i + 1, current.next(upper), current, upper);
-        appendIgnoreCase(bytes, s, i + 1, current.next(lower), current, lower);
-
+        appendIgnoreCase(lower, upper, s, i + 1, current.next(u), current, u);
+        current.set(l, current.next(u));
         return this;
-    }
-
-    private byte toUpperCase(byte b) {
-        return (byte) String.valueOf((char) b).toUpperCase().charAt(0);
-    }
-
-    private byte toLowerCase(byte b) {
-        return (byte) String.valueOf((char) b).toLowerCase().charAt(0);
     }
 
     public boolean contains(String name) {
@@ -133,15 +123,26 @@ public class ByteTree {
 
     public static class ArrayNode extends Node {
         private Node[] nodes;
+        int shift = -1;
 
-        public ArrayNode(int size) {
-            increase(size);
+        public ArrayNode() {
+        }
+
+        public ArrayNode(byte b, Node node, byte b2, Node node2) {
+            int i1 = b & 0xff;
+            int i2 = b2 & 0xff;
+
+            shift = Math.min(i1, i2);
+            increase(Math.max(i1, i2) - shift + 1);
+
+            nodes[i1 - shift] = node;
+            nodes[i2 - shift] = node2;
         }
 
         @Override
         public Node next(byte b) {
-            int i = b & 0xff;
-            if (i >= nodes.length)
+            int i = (b & 0xff) - shift;
+            if (i >= nodes.length || i < 0)
                 return null;
 
             return nodes[i];
@@ -149,29 +150,50 @@ public class ByteTree {
 
         @Override
         public Node append(byte b) {
-            int i = b & 0xff;
-            increase(i + 1);
-
-            if (nodes[i] == null)
-                nodes[i] = new SingleNode();
-
+            set((b & 0xff), new SingleNode(), true);
             return this;
         }
 
         @Override
         public Node set(byte b, Node node) {
-            int i = b & 0xff;
-            increase(i + 1);
+            set(b & 0xff, node);
+            return this;
+        }
 
-            nodes[i] = node;
+        public Node set(int i, Node node) {
+            return set(i, node, false);
+        }
+
+        public Node set(int i, Node node, boolean ifNull) {
+            if (shift == -1)
+                shift = i;
+            if (i - shift < 0)
+                increase(i - shift);
+            else
+                increase(i + 1 - shift);
+
+
+            if (ifNull) {
+                if (nodes[i - shift] == null)
+                    nodes[i - shift] = node;
+            } else
+                nodes[i - shift] = node;
 
             return this;
         }
 
         private void increase(int size) {
+            if (size == 0)
+                size = -1;
+
             if (nodes == null)
                 nodes = new Node[size];
-            else if (nodes.length < size) {
+            else if (size < 0) {
+                Node[] temp = new Node[nodes.length - size];
+                System.arraycopy(nodes, 0, temp, -size, nodes.length);
+                nodes = temp;
+                shift += size;
+            } else if (nodes.length < size) {
                 Node[] temp = new Node[size];
                 System.arraycopy(nodes, 0, temp, 0, nodes.length);
                 nodes = temp;
@@ -193,10 +215,7 @@ public class ByteTree {
         @Override
         public Node append(byte b) {
             if (next != null && this.b != b) {
-                ArrayNode node = new ArrayNode(Math.max(this.b & 0xff, b & 0xff));
-                node.set(this.b, next);
-                node.append(b);
-                return node;
+                return new ArrayNode(this.b, next, b, new SingleNode());
             } else if (this.b == b)
                 return this;
             else {
@@ -209,10 +228,7 @@ public class ByteTree {
         @Override
         public Node set(byte b, Node n) {
             if (next != null && this.b != b) {
-                ArrayNode node = new ArrayNode(Math.max(this.b & 0xff, b & 0xff));
-                node.set(this.b, next);
-                node.set(b, n);
-                return node;
+                return new ArrayNode(this.b, next, b, n);
             } else if (this.b == b) {
                 next = n;
                 return this;
