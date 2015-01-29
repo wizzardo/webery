@@ -20,14 +20,13 @@ public class RequestReader {
 
     static {
         for (Header header : Header.values()) {
-            headersTree.append(header.value);
+            headersTree.appendIgnoreCase(header.value);
         }
-        for (Request.Method header : Request.Method.values()) {
-            headersTree.append(header.name());
+        for (Request.Method method : Request.Method.values()) {
+            headersTree.appendIgnoreCase(method.name());
         }
-        headersTree.append("keep-alive");
-        headersTree.append("gzip,deflate,sdch");
-        headersTree.append("en-US,en;q=0.8,ru;q=0.6");
+        headersTree.appendIgnoreCase("gzip,deflate,sdch");
+        headersTree.appendIgnoreCase("en-US,en;q=0.8,ru;q=0.6");
         headersTree.append(HttpConnection.HTTP_1_0);
         headersTree.append(HttpConnection.HTTP_1_1);
     }
