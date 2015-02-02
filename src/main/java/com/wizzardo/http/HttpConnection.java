@@ -102,10 +102,14 @@ public class HttpConnection<Q extends Request, S extends Response, I extends Epo
     }
 
     private boolean handleHeaders(ByteBuffer bb) {
-        if (requestReader == null)
+        RequestReader requestReader = this.requestReader;
+        if (requestReader == null) {
             requestReader = new RequestReader(new LinkedHashMap<>(20));
+            this.requestReader = requestReader;
+        }
 
         int limit, i;
+        byte[] buffer = this.buffer;
         do {
             limit = readFromByteBuffer(bb);
             i = requestReader.read(buffer, 0, limit);
