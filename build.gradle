@@ -15,7 +15,7 @@ mainClassName = "com.wizzardo.http.HttpServer"
 dependencies {
     compile files(
             '../Utils/out/tools.jar',
-            '../epollserver/out/artifacts/epollserver_jar/epollserver.jar'
+            '../epollserver/build/libs/epoll-0.1.jar'
     )
     testCompile 'junit:junit:4.+'
 }
