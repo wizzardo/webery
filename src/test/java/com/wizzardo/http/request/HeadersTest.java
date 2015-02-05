@@ -19,7 +19,7 @@ import java.util.Random;
 public class HeadersTest {
 
     static interface Checker {
-        public void check(RequestReader reader);
+        public void check(RequestReader reader, int end);
     }
 
     @Test
@@ -38,7 +38,7 @@ public class HeadersTest {
                 "Accept-Language: en-US,en;q=0.8,ru;q=0.6\r\n" +
                 "Cookie: JSESSIONID=1dt8eiw5zc9t4j2o9asxcgmzq; __utma=107222046.2138525965.1372169768.1372169768.1372685422.2; __utmz=107222046.1372169768.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none)\r\n" +
                 "\r\nololo data foo bar";
-        checker = hhr -> {
+        checker = (hhr, end) -> {
             Assert.assertEquals("GET", hhr.method);
             Assert.assertEquals("/http/", hhr.path.toString());
             Assert.assertEquals("HTTP/1.1", hhr.protocol);
@@ -61,7 +61,7 @@ public class HeadersTest {
         src = "GET /http/? HTTP/1.1\r\n" +
                 "Host: example.com\r\n" +
                 "\r\n";
-        checker = hhr -> {
+        checker = (hhr, end) -> {
             Assert.assertEquals("GET", hhr.method);
             Assert.assertEquals("/http/", hhr.path.toString());
             Assert.assertEquals("HTTP/1.1", hhr.protocol);
@@ -76,7 +76,7 @@ public class HeadersTest {
         src = "GET /http/ HTTP/1.1\r\n" +
                 "Host: example.com\r\n" +
                 "\r\n";
-        checker = hhr -> {
+        checker = (hhr, end) -> {
             Assert.assertEquals("GET", hhr.method);
             Assert.assertEquals("/http/", hhr.path.toString());
             Assert.assertEquals("HTTP/1.1", hhr.protocol);
@@ -99,49 +99,54 @@ public class HeadersTest {
 
     public void test1(String src, Checker checker) {
         RequestReader reader = new RequestReader();
-        Assert.assertEquals(src.indexOf("\r\n\r\n") + 4, reader.read(src.getBytes()));
-        checker.check(reader);
+        int end = 0;
+        Assert.assertEquals(src.indexOf("\r\n\r\n") + 4, end = reader.read(src.getBytes()));
+        checker.check(reader, end);
     }
 
     public void test2(String src, Checker checker) {
         RequestReader reader = new RequestReader();
         byte[] bytes = src.getBytes();
+        int end = 0;
         for (int i = 0; i < bytes.length && !reader.complete; i++) {
-            reader.read(bytes, i, 1);
+            end = reader.read(bytes, i, 1);
         }
 
-        checker.check(reader);
+        checker.check(reader, end);
     }
 
     public void test3(String src, Checker checker) {
         RequestReader reader = new RequestReader();
         byte[] bytes = src.getBytes();
+        int end = 0;
         for (int i = 0; i < bytes.length && !reader.complete; i += 2) {
-            reader.read(bytes, i, 2);
+            end = reader.read(bytes, i, 2);
         }
 
-        checker.check(reader);
+        checker.check(reader, end);
     }
 
     public void test4(String src, Checker checker) {
         RequestReader reader = new RequestReader();
         byte[] bytes = src.getBytes();
+        int end = 0;
         for (int i = 0; i < bytes.length && !reader.complete; i += 3) {
-            reader.read(bytes, i, 3);
+            end = reader.read(bytes, i, 3);
         }
 
-        checker.check(reader);
+        checker.check(reader, end);
     }
 
     public void test6(String src, Checker checker) {
         RequestReader reader = new RequestReader();
         byte[] bytes = src.getBytes();
         int j = 7;
+        int end = 0;
         for (int i = 0; i < bytes.length && !reader.complete; i += j) {
-            reader.read(bytes, i, i + j > bytes.length ? bytes.length - i : j);
+            end = reader.read(bytes, i, i + j > bytes.length ? bytes.length - i : j);
         }
 
-        checker.check(reader);
+        checker.check(reader, end);
     }
 
     public void testAll(String src, Checker checker) {
@@ -150,11 +155,29 @@ public class HeadersTest {
         for (int j = 1; j < bytes.length; j++) {
             reader = new RequestReader();
 //            System.out.println(j);
+            int end = 0;
             for (int i = 0; i < bytes.length && !reader.complete; i += j) {
-                reader.read(bytes, i, i + j > bytes.length ? bytes.length - i : j);
+                end = reader.read(bytes, i, i + j > bytes.length ? bytes.length - i : j);
             }
-            checker.check(reader);
+            checker.check(reader, end);
         }
+    }
+
+    @Test
+    public void simpleTest() {
+        byte[] request = "GET /http HTTP/1.1\r\nHost: localhost:8084\r\n\r\n".getBytes();
+        Assert.assertEquals(44, request.length);
+        complexTest(new String(request), (reader, end) -> {
+                    Assert.assertEquals(44, end);
+                    Assert.assertEquals("GET", reader.method);
+                    Assert.assertEquals("/http", reader.path.toString());
+                    Assert.assertEquals("HTTP/1.1", reader.protocol);
+                    Assert.assertEquals(null, reader.queryString);
+                    Assert.assertEquals(true, reader.complete);
+
+                    Assert.assertEquals("localhost:8084", reader.headers.get("Host").getValue());
+                }
+        );
     }
 
     //    @Test
