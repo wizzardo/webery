@@ -115,11 +115,12 @@ public class HttpConnection<Q extends Request, S extends Response, I extends Epo
             i = requestReader.read(buffer, 0, limit);
             if (i > 0)
                 break;
-        } while (bb.remaining() > 0);
+        } while (bb.hasRemaining());
 
         if (i < 0)
             return false;
 
+        this.requestReader = null;
         position = i;
         r = limit;
         request = createRequest();
@@ -149,7 +150,7 @@ public class HttpConnection<Q extends Request, S extends Response, I extends Epo
 
     private int readFromByteBuffer(ByteBuffer bb) {
         int limit;
-        limit = bb.limit();
+        limit = bb.remaining();
         limit = Math.min(limit, buffer.length);
         bb.get(buffer, 0, limit);
         return limit;
@@ -172,7 +173,7 @@ public class HttpConnection<Q extends Request, S extends Response, I extends Epo
 
     private boolean handleData(ByteBuffer bb) {
         int limit;
-        while (bb.remaining() > 0) {
+        while (bb.hasRemaining()) {
             limit = readFromByteBuffer(bb);
             ready = request.getBody().read(buffer, 0, limit);
         }
@@ -197,7 +198,6 @@ public class HttpConnection<Q extends Request, S extends Response, I extends Epo
         inputListener = null;
         outputListener = null;
         r = 0;
-        requestReader = null;
     }
 
     @Override
@@ -223,10 +223,6 @@ public class HttpConnection<Q extends Request, S extends Response, I extends Epo
             } catch (IOException e) {
                 e.printStackTrace();
             }
-    }
-
-    public RequestReader getRequestReader() {
-        return requestReader;
     }
 
     public Q getRequest() {
