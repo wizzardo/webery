@@ -57,6 +57,10 @@ public class HtmlBuilder extends Tag {
         return new Tag("td");
     }
 
+    public static Tag th() {
+        return new Tag("th");
+    }
+
     public static Tag title(String title) {
         return new Tag("title").text(title);
     }

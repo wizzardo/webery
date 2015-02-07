@@ -66,7 +66,7 @@ public class FileTreeHandler implements Handler {
             return response.setStatus(Status._403).setBody(path + " is forbidden");
 
         if (file.isDirectory())
-            return response.setBody(renderDirectory(file));
+            return response.setBody(renderDirectory(request, file));
 
         return RangeResponseHelper.makeRangeResponse(request, response, file);
     }
@@ -82,6 +82,20 @@ public class FileTreeHandler implements Handler {
     protected Tag createHeader(File dir, Tag holder) {
         renderFolderPath(dir, holder);
         return holder;
+    }
+
+    protected Tag createTableHeader(String path, String sort, String order) {
+        return tr()
+                .add(th().add(a().href(path + "?sort=name&order=" + ("name".equals(sort) ? ("desc".equals(order) ? "asc" : "desc") : "asc"))
+                                .text("Name"))
+                )
+                .add(th().add(a().href(path + "?sort=size&order=" + ("size".equals(sort) ? ("desc".equals(order) ? "asc" : "desc") : "desc"))
+                                .text("Size"))
+                )
+                .add(th().add(a().href(path + "?sort=modified&order=" + ("modified".equals(sort) ? ("desc".equals(order) ? "asc" : "desc") : "desc"))
+                                .text("Last modified"))
+                )
+                ;
     }
 
     protected StringBuilder renderFolderPath(File dir, Tag holder) {
@@ -101,21 +115,36 @@ public class FileTreeHandler implements Handler {
         return path;
     }
 
-    private Tag renderDirectory(File dir) {
+    private Tag renderDirectory(Request request, File dir) {
         String path = prefix + getCanonicalPath(dir).substring(workDirPath.length());
         File[] files = dir.listFiles();
 
-        Arrays.sort(files, (o1, o2) -> {
-            if (o1.isDirectory() && o2.isDirectory())
-                return o1.getName().compareTo(o2.getName());
+        String sort = request.paramWithDefault("sort", "name");
+        String order = request.paramWithDefault("order", "asc");
 
-            if (o1.isDirectory())
+        int orderInt = order.equals("asc") ? 1 : -1;
+        int sortInt = sort.equals("modified") ? 3 : sort.equals("size") ? 2 : 1;
+
+        Arrays.sort(files, (o1, o2) -> {
+            if (o1.isDirectory() && !o2.isDirectory())
                 return -1;
 
-            if (o2.isDirectory())
+            if (o2.isDirectory() && !o1.isDirectory())
                 return 1;
 
-            return o1.getName().compareTo(o2.getName());
+            if (sortInt == 3) {
+                int result = Long.compare(o1.lastModified(), o2.lastModified());
+                if (result != 0)
+                    return result * orderInt;
+            }
+
+            if (sortInt == 2) {
+                int result = Long.compare(o1.length(), o2.length());
+                if (result != 0)
+                    return result * orderInt;
+            }
+
+            return o1.getName().compareTo(o2.getName()) * orderInt;
         });
 
         if (!path.endsWith("/"))
@@ -127,13 +156,16 @@ public class FileTreeHandler implements Handler {
         html.add(header().add(Meta.charset("utf-8").add(title(path))));
         html.add(body()
                         .add(createHeader(dir, h(1)))
-                        .add(table().attr("border", "0").each(files, (file) -> {
-                            String url = pathHolder + encodeName(file.getName()) + (file.isDirectory() ? "/" : "");
-                            return tr()
-                                    .add(td().add(a().href(url).text(file.getName())))
-                                    .add(td().attr("align", "right").text(file.length() + " bytes"))
-                                    .add(td().text(DateIso8601.format(new Date(file.lastModified()))));
-                        }))
+                        .add(table()
+                                .attr("border", "0")
+                                .add(createTableHeader(path, sort, order))
+                                .each(files, (file) -> {
+                                    String url = pathHolder + encodeName(file.getName()) + (file.isDirectory() ? "/" : "");
+                                    return tr()
+                                            .add(td().add(a().href(url).text(file.getName())))
+                                            .add(td().attr("align", "right").text(file.length() + " bytes"))
+                                            .add(td().text(DateIso8601.format(new Date(file.lastModified()))));
+                                }))
         );
 
         return html;
