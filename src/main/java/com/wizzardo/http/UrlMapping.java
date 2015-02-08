@@ -106,6 +106,9 @@ public class UrlMapping<T> {
         @Override
         protected void prepare(Request request) {
             super.prepare(request);
+            if (request == null)
+                return;
+
             String part = request.path().getPart(partNumber);
             if (part == null)
                 return;
@@ -167,12 +170,17 @@ public class UrlMapping<T> {
     }
 
     protected void prepare(Request request) {
-        if (parent != null)
+        if (parent != null && request != null)
             parent.prepare(request);
     }
 
     public T get(Request request) {
         return get(request, request.path());
+    }
+
+    public T get(String path) {
+        UrlMapping<T> last = find(Arrays.asList(path.split("/")));
+        return last == null ? null : last.value;
     }
 
     public T get(Request request, Path path) {
