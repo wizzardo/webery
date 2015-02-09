@@ -27,7 +27,7 @@ public class Response {
     protected static final byte[] LINE_SEPARATOR = "\r\n".getBytes();
     protected static final byte[] HEADER_SEPARATOR = ": ".getBytes();
 
-    protected boolean processed = false;
+    protected boolean committed = false;
     protected Status status = Status._200;
     protected ReadableData body;
     protected ReadableData staticResponse;
@@ -261,18 +261,22 @@ public class Response {
         return status.bytes;
     }
 
-    public boolean isProcessed() {
-        return processed;
+    public boolean isCommitted() {
+        return committed;
     }
 
     public <Q extends Request, S extends Response, I extends EpollInputStream, O extends EpollOutputStream> O getOutputStream(HttpConnection<Q, S, I, O> connection) {
-        if (!processed) {
-            connection.getOutputStream();
-            connection.write(toReadableBytes(), (ByteBufferProvider) Thread.currentThread());
-            processed = true;
-        }
+        commit(connection);
 
         return connection.getOutputStream();
+    }
+
+    protected void commit(HttpConnection connection) {
+        if (!committed) {
+            connection.getOutputStream();
+            connection.write(toReadableBytes(), (ByteBufferProvider) Thread.currentThread());
+            committed = true;
+        }
     }
 
     public void setCookie(String cookie) {

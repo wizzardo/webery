@@ -119,7 +119,7 @@ public class HttpServer<T extends HttpConnection> extends EpollServer<T> {
             Request request = connection.getRequest();
             Response response = connection.getResponse();
 
-//            System.out.println(request.method() + " " + request.path());
+//            System.out.println(request.method() + " " + request.path() + " " + request.protocol());
 //            System.out.println(request.headers());
 
             if (!filtersMapping.before(request, response)) {
@@ -146,7 +146,7 @@ public class HttpServer<T extends HttpConnection> extends EpollServer<T> {
     protected void finishHandling(T connection) throws IOException {
         connection.flushOutputStream();
 
-        if (!connection.getResponse().isProcessed())
+        if (!connection.getResponse().isCommitted())
             connection.write(connection.getResponse().toReadableBytes(), (ByteBufferProvider) Thread.currentThread());
 
         connection.onFinishingHandling();

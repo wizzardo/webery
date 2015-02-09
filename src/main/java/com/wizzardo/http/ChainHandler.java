@@ -17,7 +17,7 @@ public class ChainHandler implements Handler {
     @Override
     public Response handle(Request request, Response response) {
         Iterator<Link> iterator = handlers.iterator();
-        while (!response.isProcessed() && iterator.hasNext()) {
+        while (!response.isCommitted() && iterator.hasNext()) {
             Link link = iterator.next();
             if (!link.handle(request, response))
                 break;
