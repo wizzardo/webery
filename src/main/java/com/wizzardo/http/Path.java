@@ -63,7 +63,8 @@ public class Path {
             for (String s : part.split("/")) {
                 if (s.isEmpty())
                     continue;
-                path.parts.add(s);
+                if (!append(s, path))
+                    throw new IllegalStateException("can't parse: " + part);
             }
             if (part.endsWith("/"))
                 path.endsWithSlash = true;
@@ -122,7 +123,9 @@ public class Path {
                     value = StringReflection.createString(part, partHash);
                 }
 
-                path.parts.add(value);
+                if (!append(value, path))
+                    throw new IllegalStateException("can't parse: " + new String(bytes, offset, length));
+
                 partStart = i + 1;
                 partHash = 0;
                 node = byteTree.getRoot();
@@ -142,12 +145,25 @@ public class Path {
                 System.arraycopy(data, partStart, part, 0, limit - partStart);
                 value = StringReflection.createString(part, partHash);
             }
-            path.parts.add(value);
+
+            if (!append(value, path))
+                throw new IllegalStateException("can't parse: " + new String(bytes, offset, length));
+
         } else
             path.endsWithSlash = true;
 
         path.path = StringReflection.createString(data, h);
 
         return path;
+    }
+
+    private static boolean append(String part, Path path) {
+        if (part.equals("..")) {
+            if (path.parts.isEmpty())
+                return false;
+            path.parts.remove(path.parts.size() - 1);
+        } else
+            path.parts.add(part);
+        return true;
     }
 }

@@ -72,4 +72,21 @@ public class PathTest {
         Assert.assertEquals(1, sub.length());
         Assert.assertEquals("bar", sub.getPart(0));
     }
+
+    @Test
+    public void dots() {
+        Path path;
+
+        path = parse("/foo/../bar");
+        Assert.assertEquals("/foo/../bar", path.toString());
+        Assert.assertEquals(1, path.length());
+        Assert.assertEquals("bar", path.getPart(0));
+        Assert.assertEquals(false, path.isEndsWithSlash());
+
+        path = parse("/foo/foo/../../bar");
+        Assert.assertEquals("/foo/foo/../../bar", path.toString());
+        Assert.assertEquals(1, path.length());
+        Assert.assertEquals("bar", path.getPart(0));
+        Assert.assertEquals(false, path.isEndsWithSlash());
+    }
 }
