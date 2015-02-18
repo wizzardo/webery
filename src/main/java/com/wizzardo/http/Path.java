@@ -14,7 +14,6 @@ import java.util.List;
 public class Path {
 
     protected static final StringBuilderThreadLocalHolder stringBuilder = new StringBuilderThreadLocalHolder();
-    private static ByteTree byteTree = new ByteTree();
 
     private List<String> parts = new ArrayList<>(10);
     private String path;
@@ -91,6 +90,10 @@ public class Path {
     }
 
     public static Path parse(byte[] bytes, int offset, int limit) {
+        return parse(bytes, offset, limit, null);
+    }
+
+    public static Path parse(byte[] bytes, int offset, int limit, ByteTree byteTree) {
         if (bytes[offset] != '/')
             throw new IllegalStateException("path must starts with '/'");
 
@@ -101,7 +104,7 @@ public class Path {
 
         int partStart = offset + 1;
         int partHash = 0;
-        ByteTree.Node node = byteTree.getRoot();
+        ByteTree.Node node = getByteTreeRoot(byteTree);
 
         Path path = new Path();
 
@@ -128,7 +131,7 @@ public class Path {
 
                 partStart = i + 1;
                 partHash = 0;
-                node = byteTree.getRoot();
+                node = getByteTreeRoot(byteTree);
             } else {
                 partHash = 31 * partHash + k;
                 if (node != null)
@@ -155,6 +158,10 @@ public class Path {
         path.path = StringReflection.createString(data, h);
 
         return path;
+    }
+
+    private static ByteTree.Node getByteTreeRoot(ByteTree byteTree) {
+        return byteTree != null ? byteTree.getRoot() : null;
     }
 
     private static boolean append(String part, Path path) {
