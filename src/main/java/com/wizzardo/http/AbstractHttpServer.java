@@ -3,9 +3,6 @@ package com.wizzardo.http;
 import com.wizzardo.epoll.ByteBufferProvider;
 import com.wizzardo.epoll.EpollServer;
 import com.wizzardo.epoll.IOThread;
-import com.wizzardo.epoll.readable.ReadableByteBuffer;
-import com.wizzardo.http.request.Header;
-import com.wizzardo.http.response.Response;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -18,18 +15,9 @@ import java.util.concurrent.LinkedBlockingQueue;
  */
 public abstract class AbstractHttpServer<T extends HttpConnection> extends EpollServer<T> {
 
-    private ReadableByteBuffer staticResponse = new Response()
-            .appendHeader(Header.KEY_CONNECTION, Header.VALUE_CONNECTION_KEEP_ALIVE)
-            .appendHeader(Header.KEY_CONTENT_TYPE, Header.VALUE_CONTENT_TYPE_HTML_UTF8)
-            .setBody("It's alive!".getBytes())
-            .buildStaticResponse();
-
     private BlockingQueue<T> queue = new LinkedBlockingQueue<>();
     private int workersCount;
     private int sessionTimeoutSec = 30 * 60;
-    private volatile Handler handler = (request, response) -> response.setStaticResponse(staticResponse.copy());
-
-    protected FiltersMapping filtersMapping = new FiltersMapping();
 
     public AbstractHttpServer(int port) {
         this(null, port);
@@ -118,17 +106,20 @@ public abstract class AbstractHttpServer<T extends HttpConnection> extends Epoll
             handle(connection);
             finishHandling(connection);
         } catch (Exception t) {
-            t.printStackTrace();
-            //TODO render error page
             try {
-                connection.close();
-            } catch (IOException e) {
+                onError(connection, t);
+            } catch (Exception e) {
                 e.printStackTrace();
             }
         }
     }
 
-    protected abstract void handle(T connection);
+    protected abstract void handle(T connection) throws Exception;
+
+    protected void onError(T connection, Exception e) {
+        e.printStackTrace();
+        //TODO render error page
+    }
 
     protected void finishHandling(T connection) throws IOException {
         connection.flushOutputStream();
@@ -137,14 +128,6 @@ public abstract class AbstractHttpServer<T extends HttpConnection> extends Epoll
             connection.write(connection.getResponse().toReadableBytes(), (ByteBufferProvider) Thread.currentThread());
 
         connection.onFinishingHandling();
-    }
-
-    public FiltersMapping getFiltersMapping() {
-        return filtersMapping;
-    }
-
-    public void setHandler(Handler handler) {
-        this.handler = handler;
     }
 
     public void setSessionTimeout(int sec) {

@@ -29,23 +29,28 @@ public class ServerTest {
     @Before
     public void setUp() throws NoSuchMethodException, ClassNotFoundException, NoSuchFieldException {
         System.out.println("setUp " + name.getMethodName());
-        server = new HttpServer(null, port, workers) {{
-            filtersMapping = new FiltersMapping() {
-                @Override
-                public FiltersMapping addBefore(String url, Filter handler) {
-                    return super.addBefore(url, new FilterWrapper(url, handler));
-                }
+        server = new HttpServer(null, port, workers) {
+            @Override
+            protected Response handle(Request request, Response response) throws IOException {
+                response.setHeader(Header.KEY_CONNECTION, Header.VALUE_CONNECTION_CLOSE);
+                return handler.handle(request, response);
+            }
 
-                @Override
-                public FiltersMapping addAfter(String url, Filter handler) {
-                    return super.addAfter(url, new FilterWrapper(url, handler));
-                }
-            };
-        }};
-        server.setHandler((request, response) -> {
-            response.setHeader(Header.KEY_CONNECTION, Header.VALUE_CONNECTION_CLOSE);
-            return handler.handle(request, response);
-        });
+            {
+                filtersMapping = new FiltersMapping() {
+                    @Override
+                    public FiltersMapping addBefore(String url, Filter handler) {
+                        return super.addBefore(url, new FilterWrapper(url, handler));
+                    }
+
+                    @Override
+                    public FiltersMapping addAfter(String url, Filter handler) {
+                        return super.addAfter(url, new FilterWrapper(url, handler));
+                    }
+                };
+
+            }
+        };
         server.setIoThreadsCount(1);
         server.start();
     }
