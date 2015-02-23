@@ -20,11 +20,8 @@ public class BasicAuthFilter implements Filter {
     @Override
     public boolean filter(Request request, Response response) {
         String s = request.header(Header.KEY_AUTHORIZATION);
-        if (s != null && s.startsWith("Basic ")) {
-            s = new String(Base64.decode(s.substring(6)));
-            if (userPasswords.contains(s))
-                return true;
-        }
+        if (s != null && userPasswords.contains(s))
+            return true;
 
         response.setStatus(Status._401);
         response.header(Header.KEY_WWW_AUTHENTICATE, "Basic realm=\"simple http server\"");
@@ -32,7 +29,15 @@ public class BasicAuthFilter implements Filter {
     }
 
     public BasicAuthFilter allow(String user, String password) {
-        userPasswords.add(user + ":" + password);
+        userPasswords.add(headerValue(user, password));
         return this;
+    }
+
+    protected String encode(String user, String password) {
+        return Base64.encodeToString((user + ":" + password).getBytes());
+    }
+
+    protected String headerValue(String user, String password) {
+        return "Basic " + encode(user, password);
     }
 }
