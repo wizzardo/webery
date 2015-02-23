@@ -23,6 +23,10 @@ public class BasicAuthFilter implements Filter {
         if (s != null && userPasswords.contains(s))
             return true;
 
+        return returnNotAuthorized(response);
+    }
+
+    protected boolean returnNotAuthorized(Response response) {
         response.setStatus(Status._401);
         response.header(Header.KEY_WWW_AUTHENTICATE, "Basic realm=\"simple http server\"");
         return false;

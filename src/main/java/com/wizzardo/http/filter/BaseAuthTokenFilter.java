@@ -28,30 +28,30 @@ public class BaseAuthTokenFilter extends BasicAuthFilter {
             return super.filter(request, response);
 
         if (token.length() <= 64)
-            return false;
+            return returnNotAuthorized(response);
 
         String decoded = new String(Base64.decode(token));
         String authHash = decoded.substring(0, 32);
 
         String innerHash = hashesOuter.get(authHash);
         if (innerHash == null)
-            return false;
+            return returnNotAuthorized(response);
 
         String sign = decoded.substring(32, 64);
         String timestamp = decoded.substring(64);
 
         if (!sign.equals(MD5.getMD5AsString((timestamp + innerHash).getBytes())))
-            return false;
+            return returnNotAuthorized(response);
 
         long time;
         try {
             time = Long.parseLong(timestamp);
         } catch (NumberFormatException e) {
-            return false;
+            return returnNotAuthorized(response);
         }
 
         if (System.currentTimeMillis() > time)
-            return false;
+            return returnNotAuthorized(response);
 
         return true;
     }
