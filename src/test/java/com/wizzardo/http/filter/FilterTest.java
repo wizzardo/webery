@@ -24,6 +24,27 @@ public class FilterTest extends ServerTest {
     }
 
     @Test
+    public void testBasicAuthToken() throws IOException {
+        BaseAuthTokenFilter tokenFilter = new BaseAuthTokenFilter();
+
+        handler = (request, response) -> {
+            if (request.param("token") != null)
+                return response.setBody("ok");
+            else
+                return response.setBody(tokenFilter.generateToken(request));
+        };
+
+        String user = "user";
+        String password = "password";
+        server.getFiltersMapping().addBefore("/*", tokenFilter.allow(user, password));
+
+        Assert.assertEquals(401, makeRequest("").get().getResponseCode());
+        String token = makeRequest("").setBasicAuthentication(user, password).get().asString();
+        Assert.assertNotNull(token);
+        Assert.assertEquals("ok", makeRequest("").param("token", token).get().asString());
+    }
+
+    @Test
     public void testChain() throws IOException {
         handler = (request, response) -> response.setBody(request.param("all") + " " + request.param("foo") + " " + request.param("bar"));
         server.getFiltersMapping().addBefore("/*", (request, response) -> {
