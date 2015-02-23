@@ -20,7 +20,7 @@ public class Message {
 
     void add(Frame frame) {
         if (!frames.isEmpty())
-            frames.get(frames.size()-1).setIsFinalFrame(false);
+            frames.get(frames.size() - 1).setIsFinalFrame(false);
         frames.add(frame);
     }
 
