@@ -254,7 +254,7 @@ public class UrlMapping<T> {
         return findEndsWith(parts);
     }
 
-    public UrlMapping append(String url, T handler) {
+    public UrlMapping<T> append(String url, T handler) {
         String[] parts = url.split("/");
         UrlMapping<T> tree = this;
         int counter = 0;

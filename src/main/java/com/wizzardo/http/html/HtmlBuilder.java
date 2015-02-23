@@ -66,7 +66,7 @@ public class HtmlBuilder extends Tag {
     }
 
     public static Tag h(int level) {
-        return new Tag("h"+level);
+        return new Tag("h" + level);
     }
 
     public static Tag.A a() {

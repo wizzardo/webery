@@ -30,7 +30,7 @@ public class ByteTreeTest {
     }
 
     @Test
-    public void testIgnoreCase(){
+    public void testIgnoreCase() {
         ByteTree tree = new ByteTree();
 
         String foo = "foo";
