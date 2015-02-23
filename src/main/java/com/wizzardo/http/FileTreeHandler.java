@@ -160,7 +160,7 @@ public class FileTreeHandler implements Handler {
                                 .attr("border", "0")
                                 .add(createTableHeader(path, sort, order))
                                 .each(files, (file) -> {
-                                    String url = pathHolder + encodeName(file.getName()) + (file.isDirectory() ? "/" : "");
+                                    String url = generateUrl(pathHolder, file, request);
                                     return tr()
                                             .add(td().add(a().href(url).text(file.getName())))
                                             .add(td().attr("align", "right").text(file.length() + " bytes"))
@@ -169,6 +169,10 @@ public class FileTreeHandler implements Handler {
         );
 
         return html;
+    }
+
+    protected String generateUrl(String path, File file, Request request) {
+        return path + encodeName(file.getName()) + (file.isDirectory() ? "/" : "");
     }
 
     private String encodeName(String name) {
