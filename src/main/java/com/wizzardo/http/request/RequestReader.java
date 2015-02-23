@@ -219,6 +219,7 @@ public class RequestReader {
                         }
                     } else if (i == offset && r > 0 && buffer[r - 1] == 13) {
                         waitForNewLine = false;
+                        r--;
                         if (tempKey != null) {
                             put(tempKey, getValue(chars, offset, i - offset - 1));
 //                                headers.put(tempKey, getValue(s, offset, i - offset - 1));
@@ -351,6 +352,9 @@ public class RequestReader {
         ByteTree.Node byteTree = headersTree.getRoot();
 
         if (r > 0) {
+            if (length < 0)
+                length = 0;
+
             int bo = 0;
             while (bo < buffer.length && buffer[bo] <= ' ') {
                 bo++;
