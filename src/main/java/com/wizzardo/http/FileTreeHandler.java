@@ -23,7 +23,7 @@ import static com.wizzardo.http.html.HtmlBuilder.*;
  * @author: wizzardo
  * Date: 19.09.14
  */
-public class FileTreeHandler implements Handler {
+public class FileTreeHandler<T extends FileTreeHandler.HandlerContext> implements Handler {
     private String prefix;
     private String workDirPath;
     private File workDir;
@@ -150,7 +150,7 @@ public class FileTreeHandler implements Handler {
         if (!path.endsWith("/"))
             path += '/';
 
-        final String pathHolder = path;
+        T handlerContext = createHandlerContext(path, request);
 
         HtmlBuilder html = new HtmlBuilder();
         html.add(header().add(Meta.charset("utf-8").add(title(path))));
@@ -160,7 +160,7 @@ public class FileTreeHandler implements Handler {
                                 .attr("border", "0")
                                 .add(createTableHeader(path, sort, order))
                                 .each(files, (file) -> {
-                                    String url = generateUrl(pathHolder, file, request);
+                                    String url = generateUrl(file, handlerContext);
                                     return tr()
                                             .add(td().add(a().href(url).text(file.getName())))
                                             .add(td().attr("align", "right").text(file.length() + " bytes"))
@@ -171,8 +171,12 @@ public class FileTreeHandler implements Handler {
         return html;
     }
 
-    protected String generateUrl(String path, File file, Request request) {
-        return path + encodeName(file.getName()) + (file.isDirectory() ? "/" : "");
+    protected T createHandlerContext(String path, Request request) {
+        return (T) new HandlerContext(path);
+    }
+
+    protected String generateUrl(File file, T handlerContext) {
+        return handlerContext.path + encodeName(file.getName()) + (file.isDirectory() ? "/" : "");
     }
 
     private String encodeName(String name) {
@@ -188,6 +192,14 @@ public class FileTreeHandler implements Handler {
             return URLDecoder.decode(path, "utf-8");
         } catch (UnsupportedEncodingException e) {
             throw UncheckedThrow.rethrow(e);
+        }
+    }
+
+    protected static class HandlerContext {
+        protected final String path;
+
+        public HandlerContext(String path) {
+            this.path = path;
         }
     }
 }

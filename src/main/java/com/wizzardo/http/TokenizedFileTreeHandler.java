@@ -8,7 +8,7 @@ import java.io.File;
 /**
  * Created by wizzardo on 23.02.15.
  */
-public class TokenizedFileTreeHandler extends FileTreeHandler {
+public class TokenizedFileTreeHandler<T extends TokenizedFileTreeHandler.HandlerContextWithToken> extends FileTreeHandler<T> {
     protected BaseAuthTokenFilter tokenFilter;
 
     public TokenizedFileTreeHandler(File workDir, String prefix, BaseAuthTokenFilter tokenFilter) {
@@ -22,7 +22,21 @@ public class TokenizedFileTreeHandler extends FileTreeHandler {
     }
 
     @Override
-    protected String generateUrl(String path, File file, Request request) {
-        return super.generateUrl(path, file, request) + "?token=" + tokenFilter.generateToken(request);
+    protected String generateUrl(File file, T handlerContext) {
+        return super.generateUrl(file, handlerContext) + "?token=" + handlerContext.token;
+    }
+
+    @Override
+    protected T createHandlerContext(String path, Request request) {
+        return (T) new HandlerContextWithToken(path, request);
+    }
+
+    protected class HandlerContextWithToken extends HandlerContext {
+        protected final String token;
+
+        public HandlerContextWithToken(String path, Request request) {
+            super(path);
+            token = tokenFilter.generateToken(request);
+        }
     }
 }
