@@ -3,6 +3,7 @@ package com.wizzardo.http.request;
 import com.wizzardo.http.HttpConnection;
 import com.wizzardo.http.MultiValue;
 import com.wizzardo.http.Path;
+import com.wizzardo.http.UrlMapping;
 import com.wizzardo.http.utils.AsciiReader;
 
 import java.io.UnsupportedEncodingException;
@@ -98,7 +99,7 @@ public class RequestReader {
         chars = getCharsValue(chars, offset, length);
         if (chars.length == 0)
             return;
-        path = Path.parse(chars, 0, chars.length);
+        path = Path.parse(chars, 0, chars.length, UrlMapping.SEGMENT_CACHE);
     }
 
     private void parseQueryString(byte[] chars, int offset, int length) {

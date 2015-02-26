@@ -1,5 +1,6 @@
 package com.wizzardo.http;
 
+import com.wizzardo.http.request.ByteTree;
 import com.wizzardo.http.request.Request;
 import com.wizzardo.tools.misc.CharTree;
 
@@ -12,6 +13,7 @@ import java.util.regex.Pattern;
  * Date: 25.09.14
  */
 public class UrlMapping<T> {
+    public static final ByteTree SEGMENT_CACHE = new ByteTree();
 
     private static final Pattern VARIABLES = Pattern.compile("\\$\\{?([a-zA-Z_]+[\\w]*)\\}?");
     private static final String OPTIONAL = "([^/]+)?";
@@ -293,6 +295,7 @@ public class UrlMapping<T> {
                     next = t;
                 }
             } else {
+                SEGMENT_CACHE.append(part);
                 next = tree.mapping.get(part);
                 if (next == null) {
                     next = new UrlMapping<>(tree);
