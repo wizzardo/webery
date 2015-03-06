@@ -19,6 +19,8 @@ public abstract class AbstractHttpServer<T extends HttpConnection> extends Epoll
     private int workersCount;
     private int sessionTimeoutSec = 30 * 60;
 
+    protected MimeProvider mimeProvider;
+
     public AbstractHttpServer(int port) {
         this(null, port);
     }
@@ -50,7 +52,7 @@ public abstract class AbstractHttpServer<T extends HttpConnection> extends Epoll
 
     @Override
     protected T createConnection(int fd, int ip, int port) {
-        return (T) new HttpConnection(fd, ip, port);
+        return (T) new HttpConnection(fd, ip, port, this);
     }
 
     @Override
@@ -132,5 +134,16 @@ public abstract class AbstractHttpServer<T extends HttpConnection> extends Epoll
 
     public void setSessionTimeout(int sec) {
         this.sessionTimeoutSec = sec;
+    }
+
+    public MimeProvider getMimeProvider() {
+        if (mimeProvider == null)
+            mimeProvider = createMimeProvider();
+
+        return mimeProvider;
+    }
+
+    protected MimeProvider createMimeProvider() {
+        return new MimeProvider();
     }
 }

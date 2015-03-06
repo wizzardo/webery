@@ -6,6 +6,7 @@ import com.wizzardo.epoll.readable.ReadableBuilder;
 import com.wizzardo.epoll.readable.ReadableByteArray;
 import com.wizzardo.epoll.readable.ReadableByteBuffer;
 import com.wizzardo.epoll.readable.ReadableData;
+import com.wizzardo.http.AbstractHttpServer;
 import com.wizzardo.http.EpollInputStream;
 import com.wizzardo.http.EpollOutputStream;
 import com.wizzardo.http.HttpConnection;
@@ -265,7 +266,7 @@ public class Response {
         return committed;
     }
 
-    public <Q extends Request, S extends Response, I extends EpollInputStream, O extends EpollOutputStream> O getOutputStream(HttpConnection<Q, S, I, O> connection) {
+    public <H extends AbstractHttpServer, Q extends Request, S extends Response, I extends EpollInputStream, O extends EpollOutputStream> O getOutputStream(HttpConnection<H, Q, S, I, O> connection) {
         commit(connection);
 
         return connection.getOutputStream();

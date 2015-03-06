@@ -15,7 +15,7 @@ import java.util.LinkedHashMap;
  * @author: wizzardo
  * Date: 3/14/14
  */
-public class HttpConnection<Q extends Request, S extends Response, I extends EpollInputStream, O extends EpollOutputStream> extends Connection {
+public class HttpConnection<H extends AbstractHttpServer, Q extends Request, S extends Response, I extends EpollInputStream, O extends EpollOutputStream> extends Connection {
 
     public static final String HTTP_1_0 = "HTTP/1.0";
     public static final String HTTP_1_1 = "HTTP/1.1";
@@ -34,6 +34,7 @@ public class HttpConnection<Q extends Request, S extends Response, I extends Epo
     private RequestReader requestReader;
     protected S response;
     protected Q request;
+    protected H server;
 
     static enum State {
         READING_HEADERS,
@@ -41,8 +42,9 @@ public class HttpConnection<Q extends Request, S extends Response, I extends Epo
         UPGRADED
     }
 
-    public HttpConnection(int fd, int ip, int port) {
+    public HttpConnection(int fd, int ip, int port, H server) {
         super(fd, ip, port);
+        this.server = server;
     }
 
     int getBufferSize() {
@@ -62,6 +64,10 @@ public class HttpConnection<Q extends Request, S extends Response, I extends Epo
                 return handleData(bb);
         }
         return false;
+    }
+
+    public H getServer() {
+        return server;
     }
 
     public void upgrade(InputListener<HttpConnection> listener) {
