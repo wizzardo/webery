@@ -4,9 +4,9 @@ Java HTTP-server
 server based on my [epoll-lib]
 
 ```java
-HttpServer server = new HttpServer(8080);
-server.setHandler(new UrlHandler()
-        .append("/", (request, response) -> response.setBody("It's alive!")));
+HttpServer<HttpConnection> server = new HttpServer<>(8080);
+server.getUrlMapping()
+        .append("/", (request, response) -> response.setBody("It's alive!"));
 server.start();
 ```
 
