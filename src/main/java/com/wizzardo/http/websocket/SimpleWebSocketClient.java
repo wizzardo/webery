@@ -1,13 +1,18 @@
 package com.wizzardo.http.websocket;
 
 import com.wizzardo.tools.misc.BoyerMoore;
+import com.wizzardo.tools.misc.UncheckedThrow;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.UnsupportedEncodingException;
 import java.net.Socket;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URLEncoder;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author: wizzardo
@@ -17,36 +22,96 @@ public class SimpleWebSocketClient extends Thread {
     private InputStream in;
     private OutputStream out;
     private byte[] buffer = new byte[1024];
-    private int bufferOffset = 0;
+    private volatile int bufferOffset = 0;
 
-    public SimpleWebSocketClient(String url) throws URISyntaxException, IOException {
-        URI u = new URI(url.trim());
-        if (u.getScheme().equals("wss"))
-            throw new IllegalArgumentException("wss not implemented yet");
+    public static class Request {
+        private URI uri;
 
-        if (!u.getScheme().equals("ws"))
-            throw new IllegalArgumentException("url must use ws scheme");
+        public Request(String url) throws URISyntaxException {
+            URI u = new URI(url.trim());
+            if (u.getScheme().equals("wss"))
+                throw new IllegalArgumentException("wss not implemented yet");
 
-        handShake(u);
+            if (!u.getScheme().equals("ws"))
+                throw new IllegalArgumentException("url must use ws scheme");
+            uri = u;
+        }
+
+        private Map<String, String> params = new HashMap<>();
+        private Map<String, String> headers = new HashMap<>();
+
+        public Request param(String key, String value) {
+            try {
+                params.put(URLEncoder.encode(key, "utf-8"), URLEncoder.encode(value, "utf-8"));
+            } catch (UnsupportedEncodingException e) {
+                throw UncheckedThrow.rethrow(e);
+            }
+            return this;
+        }
+
+        public Request header(String key, String value) {
+            headers.put(key, value);
+            return this;
+        }
+
+        public String build() {
+            StringBuilder sb = new StringBuilder();
+            String path = uri.getRawPath();
+            String query = uri.getRawQuery();
+            sb.append("GET ").append(path.isEmpty() ? "/" : path);
+            boolean amp = query != null;
+            if (amp || !params.isEmpty())
+                sb.append('?');
+            if (amp)
+                sb.append(query);
+            for (Map.Entry<String, String> param : params.entrySet()) {
+                if (amp)
+                    sb.append('&');
+                else
+                    amp = true;
+                sb.append(param.getKey()).append('=').append(param.getValue());
+            }
+
+            sb.append(" HTTP/1.1\r\n");
+            sb.append("Host: ").append(uri.getHost());
+            if (uri.getPort() != 80)
+                sb.append(":").append(uri.getPort());
+            sb.append("\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Key: x3JJHMbDL1EzLkh9GBhXDw==\r\nSec-WebSocket-Version: 13\r\n");
+            sb.append("Origin: http://").append(uri.getHost());
+            if (uri.getPort() != 80)
+                sb.append(":").append(uri.getPort());
+            sb.append("\r\n");
+
+            for (Map.Entry<String, String> header : headers.entrySet())
+                sb.append(header.getKey()).append(": ").append(header.getValue()).append("\r\n");
+            sb.append("\r\n");
+
+            return sb.toString();
+        }
+
+        public String host() {
+            return uri.getHost();
+        }
+
+        public int port() {
+            return uri.getPort();
+        }
     }
 
-    private void handShake(URI uri) throws IOException {
-        Socket s = new Socket(uri.getHost(), uri.getPort());
-        String path = uri.getRawPath();
-        String request = "GET " + (path.isEmpty() ? "/" : path) + " HTTP/1.1\r\n" +
-                "Host: " + uri.getHost() + (uri.getPort() != 80 ? ":" + uri.getPort() : "") + "\r\n" +
-                "Upgrade: websocket\r\n" +
-                "Connection: Upgrade\r\n" +
-                "Sec-WebSocket-Key: x3JJHMbDL1EzLkh9GBhXDw==\r\n" +
-//                "Sec-WebSocket-Protocol: chat, superchat\r\n" +
-                "Sec-WebSocket-Version: 13\r\n" +
-                "Origin: http://" + uri.getHost() + (uri.getPort() != 80 ? ":" + uri.getPort() : "") + "\r\n\r\n";
-        System.out.println(request);
+    public SimpleWebSocketClient(Request request) throws URISyntaxException, IOException {
+        handShake(request);
+    }
 
+    public SimpleWebSocketClient(String url) throws URISyntaxException, IOException {
+        handShake(new Request(url));
+    }
+
+    private void handShake(Request request) throws IOException {
+        Socket s = new Socket(request.host(), request.port());
         in = s.getInputStream();
         out = s.getOutputStream();
 
-        out.write(request.getBytes());
+        out.write(request.build().getBytes());
         out.flush();
 
         BoyerMoore boyerMoore = new BoyerMoore("\r\n\r\n");
