@@ -35,6 +35,7 @@ public class Response {
 
     private byte[][] headers = new byte[20][];
     private int headersCount = 0;
+    private boolean hasBody = true;
 
     protected static final StringBuilderThreadLocalHolder stringBuilder = new StringBuilderThreadLocalHolder();
 
@@ -67,6 +68,11 @@ public class Response {
     public Response setBody(ReadableData body) {
         this.body = body;
         setHeader(Header.KEY_CONTENT_LENGTH, String.valueOf(body.length()));
+        return this;
+    }
+
+    public Response setHasBody(boolean hasBody) {
+        this.hasBody = hasBody;
         return this;
     }
 
@@ -253,7 +259,7 @@ public class Response {
         }
 
         builder.append(LINE_SEPARATOR);
-        if (body != null)
+        if (body != null && hasBody)
             builder.append(body);
         return builder;
     }

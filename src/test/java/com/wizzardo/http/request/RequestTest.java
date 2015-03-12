@@ -307,6 +307,18 @@ public class RequestTest extends ServerTest {
     }
 
     @Test
+    public void testHead() throws IOException {
+        handler = (request, response) -> response.setBody("response");
+
+        com.wizzardo.tools.http.Response response = makeRequest("/").setMethod(ConnectionMethod.HEAD).execute();
+        Assert.assertEquals(200, response.getResponseCode());
+        Assert.assertEquals("8", response.header("Content-Length"));
+        Assert.assertEquals("", response.asString());
+
+        Assert.assertEquals("response", makeRequest("/").get().asString());
+    }
+
+    @Test
     public void testRange() throws IOException {
         byte[] data = new byte[1000];
         new Random().nextBytes(data);

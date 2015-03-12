@@ -132,6 +132,8 @@ public class HttpConnection<H extends AbstractHttpServer, Q extends Request, S e
         request = createRequest();
         response = createResponse();
         requestReader.fillRequest(request);
+        if (request.method() == Request.Method.HEAD)
+            response.setHasBody(false);
         keepAlive = prepareKeepAlive();
         ready = true;
         return checkData(bb);
