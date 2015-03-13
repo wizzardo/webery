@@ -13,7 +13,7 @@ version = '0.1'
 mainClassName = "com.wizzardo.http.HttpServer"
 
 dependencies {
-    compile 'com.wizzardo.tools:tools:0.11'
+    compile 'com.wizzardo.tools:tools:0.12'
     compile files(
             '../epollserver/build/libs/epoll-0.1.jar'
     )
@@ -24,7 +24,7 @@ dependencies {
 task fatJar(type: Jar) {
     manifest {
         attributes(
-                "Main-Class": 'com.wizzardo.http.HttpServer'
+                "Main-Class": mainClassName
         )
     }
     baseName = project.name + '-all'
