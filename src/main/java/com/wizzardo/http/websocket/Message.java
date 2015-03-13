@@ -33,9 +33,7 @@ public class Message {
     }
 
     public Message append(byte[] bytes, int offset, int length) {
-        Frame frame = new Frame();
-        frame.setData(bytes, offset, length);
-        add(frame);
+        add(new Frame(bytes, offset, length));
         return this;
     }
 

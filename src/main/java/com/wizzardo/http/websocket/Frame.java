@@ -10,6 +10,8 @@ import java.util.Random;
  * Date: 06.10.14
  */
 class Frame {
+    static final int MAX_HEADER_LENGTH = 14;
+
     static final int FINAL_FRAME = 1 << 7;
     static final int MASKED = 1 << 7;
     static final int RSV1 = 1 << 6;
@@ -18,6 +20,7 @@ class Frame {
     static final int OPCODE = 0x0f;
     static final byte OPCODE_CONTINUATION_FRAME = 0;
     static final byte OPCODE_TEXT_FRAME = 1;
+    static final byte OPCODE_BINARY_FRAME = 2;
     static final byte OPCODE_CONNECTION_CLOSE = 8;
     static final byte OPCODE_PING = 9;
     static final byte OPCODE_PONG = 10;
@@ -37,6 +40,21 @@ class Frame {
     private int read;
     private boolean readHeaders = false;
 
+    public Frame(byte[] data, int offset, int length) {
+        byte[] bytes = new byte[MAX_HEADER_LENGTH + length];
+        System.arraycopy(data, offset, bytes, MAX_HEADER_LENGTH, length);
+        this.data = bytes;
+        this.offset = MAX_HEADER_LENGTH;
+        this.length = length;
+    }
+
+    public Frame(byte opCode) {
+        this.opcode = opCode;
+    }
+
+    public Frame() {
+    }
+
     @Override
     public String toString() {
         return new String(data, offset, length);
@@ -44,16 +62,6 @@ class Frame {
 
     public byte[] getData() {
         return data;
-    }
-
-    public void setData(byte[] data, int offset, int length) {
-        this.data = data;
-        this.offset = offset;
-        this.length = length;
-    }
-
-    public void setData(byte[] bytes) {
-        setData(bytes, 0, bytes.length);
     }
 
     public int getOffset() {
@@ -65,8 +73,8 @@ class Frame {
     }
 
     public void write(OutputStream out) throws IOException {
-        out.write(getHeader());
-        out.write(data, offset, length);
+        int headerOffset = getHeader(data);
+        out.write(data, headerOffset, length + MAX_HEADER_LENGTH - headerOffset);
     }
 
     private void mask(byte[] data, byte[] mask, int offset, int length) {
@@ -75,16 +83,24 @@ class Frame {
         }
     }
 
-    public void unmask() {
+    public Frame unmask() {
+        if (!masked)
+            return this;
+
         masked = false;
         mask(data, maskingKey, offset, length);
+        return this;
     }
 
-    public void mask() {
+    public Frame mask() {
+        if (masked)
+            return this;
+
         masked = true;
         if (maskingKey == null)
             maskingKey = intToBytes(RANDOM.nextInt());
         mask(data, maskingKey, offset, length);
+        return this;
     }
 
     private byte[] intToBytes(int i) {
@@ -120,7 +136,7 @@ class Frame {
 
         if (readHeaders) {
             int r = Math.min(this.length - read, length);
-            System.arraycopy(bytes, offset, data, read, r);
+            System.arraycopy(bytes, offset, data, read + this.offset, r);
             read += r;
             if (this.length == read)
                 complete = true;
@@ -160,10 +176,10 @@ class Frame {
 
             complete = length - r >= this.length;
 
-            data = new byte[this.length];
+            data = new byte[MAX_HEADER_LENGTH + this.length];
             read = Math.min(length - r, this.length);
-            System.arraycopy(bytes, r, data, 0, read);
-            this.offset = 0;
+            System.arraycopy(bytes, r, data, MAX_HEADER_LENGTH, read);
+            this.offset = MAX_HEADER_LENGTH;
             readHeaders = true;
             return read + r;
         }
@@ -188,52 +204,53 @@ class Frame {
         return false;
     }
 
-    public byte[] getHeader() {
-        byte[] header;
-        if (length <= 125)
-            header = new byte[2 + (masked ? 4 : 0)];
-        else if (length < 65536)
-            header = new byte[6 + (masked ? 4 : 0)];
+    private int calculateHeadersSize(int dataLength, boolean masked) {
+        if (dataLength <= 125)
+            return 2 + (masked ? 4 : 0);
+        else if (dataLength < 65536)
+            return 6 + (masked ? 4 : 0);
         else
-            header = new byte[10 + (masked ? 4 : 0)];
+            return 10 + (masked ? 4 : 0);
+    }
 
-
+    public int getHeader(byte[] header) {
+        int headerOffset = MAX_HEADER_LENGTH - calculateHeadersSize(length, masked);
         int value = opcode;
         if (finalFrame)
             value |= FINAL_FRAME;
-        header[0] = (byte) value;
+        header[headerOffset] = (byte) value;
 
         value = length;
         if (value <= 125) {
             if (masked)
                 value |= MASKED;
-            header[1] = (byte) value;
+            header[headerOffset + 1] = (byte) value;
         } else if (value < 65536) {
             value = 126;
             if (masked)
                 value |= MASKED;
-            header[1] = (byte) value;
-            header[2] = (byte) (length >> 8);
-            header[3] = (byte) length;
+            header[headerOffset + 1] = (byte) value;
+            header[headerOffset + 2] = (byte) (length >> 8);
+            header[headerOffset + 3] = (byte) length;
         } else {
             value = 127;
             if (masked)
                 value |= MASKED;
-            header[1] = (byte) value;
-            header[6] = (byte) (length >> 24);
-            header[7] = (byte) (length >> 16);
-            header[8] = (byte) (length >> 8);
-            header[9] = (byte) length;
+            header[headerOffset + 1] = (byte) value;
+            header[headerOffset + 6] = (byte) (length >> 24);
+            header[headerOffset + 7] = (byte) (length >> 16);
+            header[headerOffset + 8] = (byte) (length >> 8);
+            header[headerOffset + 9] = (byte) length;
         }
 
         if (masked) {
-            header[header.length - 4] = maskingKey[0];
-            header[header.length - 3] = maskingKey[1];
-            header[header.length - 2] = maskingKey[2];
-            header[header.length - 1] = maskingKey[3];
+            header[MAX_HEADER_LENGTH - 4] = maskingKey[0];
+            header[MAX_HEADER_LENGTH - 3] = maskingKey[1];
+            header[MAX_HEADER_LENGTH - 2] = maskingKey[2];
+            header[MAX_HEADER_LENGTH - 1] = maskingKey[3];
         }
 
-        return header;
+        return headerOffset;
     }
 
     public boolean isPing() {
@@ -254,5 +271,22 @@ class Frame {
 
     public boolean isClose() {
         return opcode == OPCODE_CONNECTION_CLOSE;
+    }
+
+    public byte[] getFrameBytes() {
+        if (data == null)
+            data = new byte[MAX_HEADER_LENGTH];
+
+        getHeader(data);
+
+        return data;
+    }
+
+    public int getFrameOffset() {
+        return MAX_HEADER_LENGTH - calculateHeadersSize(length, masked);
+    }
+
+    public int getFrameLength() {
+        return calculateHeadersSize(length, masked) + length;
     }
 }

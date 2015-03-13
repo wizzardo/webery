@@ -170,8 +170,7 @@ public class SimpleWebSocketClient extends Thread {
 
     public void send(Message message) throws IOException {
         for (Frame frame : message.getFrames()) {
-            frame.mask();
-            frame.write(out);
+            frame.mask().write(out);
         }
     }
 
@@ -184,10 +183,7 @@ public class SimpleWebSocketClient extends Thread {
     }
 
     public void send(byte[] data, int offset, int length) throws IOException {
-        Frame frame = new Frame();
-        frame.setData(data, offset, length);
-        frame.mask();
-        frame.write(out);
+        new Frame(data, offset, length).mask().write(out);
     }
 
     public static void main(String[] args) throws URISyntaxException, IOException {
