@@ -1,6 +1,6 @@
 package com.wizzardo.http.websocket;
 
-import com.wizzardo.tools.misc.BoyerMoore;
+import com.wizzardo.tools.io.BoyerMoore;
 import com.wizzardo.tools.misc.UncheckedThrow;
 
 import java.io.IOException;

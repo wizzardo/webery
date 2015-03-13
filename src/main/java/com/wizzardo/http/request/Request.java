@@ -4,8 +4,8 @@ import com.wizzardo.http.*;
 import com.wizzardo.http.response.CookieBuilder;
 import com.wizzardo.http.response.Response;
 import com.wizzardo.tools.io.BlockInputStream;
+import com.wizzardo.tools.io.BoyerMoore;
 import com.wizzardo.tools.io.ProgressListener;
-import com.wizzardo.tools.misc.BoyerMoore;
 import com.wizzardo.tools.misc.UncheckedThrow;
 
 import java.io.ByteArrayOutputStream;
