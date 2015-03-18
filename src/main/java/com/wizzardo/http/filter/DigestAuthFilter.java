@@ -7,7 +7,6 @@ import com.wizzardo.http.response.Response;
 import com.wizzardo.http.response.Status;
 import com.wizzardo.tools.reflection.StringReflection;
 import com.wizzardo.tools.security.MD5;
-import sun.plugin.dom.exception.InvalidStateException;
 
 import java.math.BigInteger;
 import java.util.HashMap;
@@ -23,11 +22,18 @@ public class DigestAuthFilter implements Filter {
     protected Random random = new Random();
     protected String realm = "simple http server";
 
+    public DigestAuthFilter() {
+    }
+
+    public DigestAuthFilter(String realm) {
+        this.realm = realm;
+    }
+
     @Override
     public boolean filter(Request request, Response response) {
         String auth = request.header(Header.KEY_AUTHORIZATION);
 
-        if (!auth.startsWith("Digest "))
+        if (auth == null || !auth.startsWith("Digest "))
             return returnNotAuthorized(response);
 
         DigestAuthData authData = new DigestAuthData(auth);
@@ -43,6 +49,10 @@ public class DigestAuthFilter implements Filter {
             resp = MD5.getMD5AsString(ha1 + ":" + authData.nonce + ":" + authData.nc + ":" + authData.cnonce + ":" + authData.qop + ":" + ha2);
         else
             resp = MD5.getMD5AsString(ha1 + ":" + authData.nonce + ":" + ha2);
+
+        System.out.println("h1: " + ha1);
+        System.out.println("h2: " + ha2);
+        System.out.println("response: " + resp);
 
         if (!resp.equals(authData.response))
             return returnNotAuthorized(response);
@@ -61,7 +71,7 @@ public class DigestAuthFilter implements Filter {
         return this;
     }
 
-    private String nonce() {
+    protected String nonce() {
         return bytesToHex(randomBytes(16));
     }
 
@@ -102,19 +112,18 @@ public class DigestAuthFilter implements Filter {
                 int nameStart = skipSpaces(chars, i);
                 int nameEnd = find(chars, i, length, '=');
                 if (nameEnd == -1)
-                    throw new InvalidStateException("can't parse key from string '" + auth + "'");
+                    throw new IllegalStateException("can't parse key from string '" + auth + "'");
 
                 int valueStart = nameEnd + 1;
                 int valueEnd;
                 String value;
                 if (chars[valueStart] == '"') {
-                    valueEnd = find(chars, valueStart, length, '"');
+                    valueEnd = find(chars, valueStart + 1, length, '"');
                     valueStart++;
                     if (valueEnd == -1)
-                        throw new InvalidStateException("can't parse value for key '" + new String(chars, valueStart, valueEnd - valueStart) + "', from string '" + auth + "'");
-                    valueEnd--;
+                        throw new IllegalStateException("can't parse value for key '" + new String(chars, valueStart, valueEnd - valueStart) + "', from string '" + auth + "'");
                     value = new String(chars, valueStart, valueEnd - valueStart);
-                    i = valueEnd + 2;
+                    i = valueEnd + 1;
                 } else {
                     valueEnd = find(chars, valueStart, length, ',');
                     if (valueEnd == -1)
@@ -126,7 +135,7 @@ public class DigestAuthFilter implements Filter {
                 setValue(chars, nameStart, nameEnd, value);
 
                 if (i != length && chars[i] != ',')
-                    throw new InvalidStateException("can't parse string '" + auth + "'");
+                    throw new IllegalStateException("can't parse string '" + auth + "'");
                 i++;
             }
         }
@@ -148,7 +157,7 @@ public class DigestAuthFilter implements Filter {
                 nonce = value;
             } else if (l == 6 && chars[i] == 'c' && chars[i + 1] == 'n' && chars[i + 2] == 'o' && chars[i + 3] == 'n' && chars[i + 4] == 'c' && chars[i + 5] == 'e') {
                 cnonce = value;
-            } else if (l == 8 && chars[i] == 'r' && chars[i + 1] == 'e' && chars[i + 2] == 's' && chars[i + 3] == 'p' && chars[i + 4] == 'o' && chars[i + 5] == 'n' && chars[i + 6] == 's' && chars[i + 6] == 'e') {
+            } else if (l == 8 && chars[i] == 'r' && chars[i + 1] == 'e' && chars[i + 2] == 's' && chars[i + 3] == 'p' && chars[i + 4] == 'o' && chars[i + 5] == 'n' && chars[i + 6] == 's' && chars[i + 7] == 'e') {
                 response = value;
             } else if (l == 6 && chars[i] == 'o' && chars[i + 1] == 'p' && chars[i + 2] == 'a' && chars[i + 3] == 'q' && chars[i + 4] == 'u' && chars[i + 5] == 'e') {
                 opaque = value;
