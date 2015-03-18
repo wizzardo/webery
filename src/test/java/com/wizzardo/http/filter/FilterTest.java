@@ -24,6 +24,22 @@ public class FilterTest extends ServerTest {
     }
 
     @Test
+    public void testDigestAuth() throws IOException {
+        handler = (request, response) -> response.setBody("ok");
+        String user = "Mufasa";
+        String password = "Circle Of Life";
+        server.getFiltersMapping().addBefore("/*", new DigestAuthFilter("testrealm@host.com") {
+            @Override
+            protected String nonce() {
+                return "dcd98b7102dd2f0e8b11d0f600bfb0c093";
+            }
+        }.allow(user, password));
+
+        Assert.assertEquals(401, makeRequest("").get().getResponseCode());
+        Assert.assertEquals("ok", makeRequest("/dir/index.html").header("Authorization", "Digest username=\"Mufasa\", realm=\"testrealm@host.com\", nonce=\"dcd98b7102dd2f0e8b11d0f600bfb0c093\", uri=\"/dir/index.html\", qop=auth, nc=00000001, cnonce=\"0a4f113b\", response=\"6629fae49393a05397450978507c4ef1\"").get().asString());
+    }
+
+    @Test
     public void testBasicAuthToken() throws IOException {
         BaseAuthTokenFilter tokenFilter = new BaseAuthTokenFilter();
 
