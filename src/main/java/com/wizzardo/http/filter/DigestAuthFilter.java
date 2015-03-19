@@ -49,10 +49,6 @@ public class DigestAuthFilter implements AuthFilter {
         else
             resp = MD5.getMD5AsString(ha1 + ":" + authData.nonce + ":" + ha2);
 
-        System.out.println("h1: " + ha1);
-        System.out.println("h2: " + ha2);
-        System.out.println("response: " + resp);
-
         if (!resp.equals(authData.response))
             return returnNotAuthorized(response);
 
