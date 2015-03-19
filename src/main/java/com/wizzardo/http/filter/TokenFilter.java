@@ -11,7 +11,7 @@ import java.util.Map;
 /**
  * Created by wizzardo on 23.02.15.
  */
-public class BaseAuthTokenFilter implements AuthFilter {
+public class TokenFilter implements AuthFilter {
 
     protected final long HOUR = 60l * 60 * 1000;
 
@@ -23,7 +23,7 @@ public class BaseAuthTokenFilter implements AuthFilter {
     protected Map<String, String> hashes = new HashMap<>();
     protected AuthFilter authFilter;
 
-    public BaseAuthTokenFilter(AuthFilter authFilter) {
+    public TokenFilter(AuthFilter authFilter) {
         this.authFilter = authFilter;
     }
 
@@ -65,7 +65,7 @@ public class BaseAuthTokenFilter implements AuthFilter {
     }
 
     @Override
-    public BaseAuthTokenFilter allow(String user, String password) {
+    public TokenFilter allow(String user, String password) {
         authFilter.allow(user, password);
         hashes.put(MD5.getMD5AsString(user), MD5.getMD5AsString(user + ":" + password));
 

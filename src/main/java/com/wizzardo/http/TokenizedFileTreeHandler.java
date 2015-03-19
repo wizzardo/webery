@@ -1,6 +1,6 @@
 package com.wizzardo.http;
 
-import com.wizzardo.http.filter.BaseAuthTokenFilter;
+import com.wizzardo.http.filter.TokenFilter;
 import com.wizzardo.http.request.Request;
 
 import java.io.File;
@@ -9,14 +9,14 @@ import java.io.File;
  * Created by wizzardo on 23.02.15.
  */
 public class TokenizedFileTreeHandler<T extends TokenizedFileTreeHandler.HandlerContextWithToken> extends FileTreeHandler<T> {
-    protected BaseAuthTokenFilter tokenFilter;
+    protected TokenFilter tokenFilter;
 
-    public TokenizedFileTreeHandler(File workDir, String prefix, BaseAuthTokenFilter tokenFilter) {
+    public TokenizedFileTreeHandler(File workDir, String prefix, TokenFilter tokenFilter) {
         super(workDir, prefix);
         this.tokenFilter = tokenFilter;
     }
 
-    public TokenizedFileTreeHandler(String workDir, String prefix, BaseAuthTokenFilter tokenFilter) {
+    public TokenizedFileTreeHandler(String workDir, String prefix, TokenFilter tokenFilter) {
         super(workDir, prefix);
         this.tokenFilter = tokenFilter;
     }
