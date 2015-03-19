@@ -41,7 +41,7 @@ public class FilterTest extends ServerTest {
 
     @Test
     public void testBasicAuthToken() throws IOException {
-        BaseAuthTokenFilter tokenFilter = new BaseAuthTokenFilter();
+        BaseAuthTokenFilter tokenFilter = new BaseAuthTokenFilter(new BasicAuthFilter());
 
         handler = (request, response) -> {
             if (request.param("token") != null)

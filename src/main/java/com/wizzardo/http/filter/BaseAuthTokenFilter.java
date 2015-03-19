@@ -3,7 +3,6 @@ package com.wizzardo.http.filter;
 import com.wizzardo.http.request.Header;
 import com.wizzardo.http.request.Request;
 import com.wizzardo.http.response.Response;
-import com.wizzardo.tools.security.Base64;
 import com.wizzardo.tools.security.MD5;
 
 import java.util.HashMap;
@@ -12,35 +11,39 @@ import java.util.Map;
 /**
  * Created by wizzardo on 23.02.15.
  */
-public class BaseAuthTokenFilter extends BasicAuthFilter {
+public class BaseAuthTokenFilter implements AuthFilter {
 
     protected final long HOUR = 60l * 60 * 1000;
 
-    //innerHash = md5("Basic " + baseAuth)
-    //token = base64(md5("md5: " + innerHash) + md5(timestamp + innerHash) + timestamp)
-    protected Map<String, String> hashesOuter = new HashMap<>();
-    protected Map<String, String> hashesInner = new HashMap<>();
+    //secret = md5(user:password)
+    //key = md5(user)
+    //token = key + md5(timestamp + secret) + timestamp
+
+    //hashes - key:secret
+    protected Map<String, String> hashes = new HashMap<>();
+    protected AuthFilter authFilter;
+
+    public BaseAuthTokenFilter(AuthFilter authFilter) {
+        this.authFilter = authFilter;
+    }
 
     @Override
     public boolean filter(Request request, Response response) {
         String token;
         if ((token = request.param("token")) == null)
-            return super.filter(request, response);
+            return authFilter.filter(request, response);
 
         if (token.length() <= 64)
             return returnNotAuthorized(response);
 
-        String decoded = new String(Base64.decode(token));
-        String authHash = decoded.substring(0, 32);
-
-        String innerHash = hashesOuter.get(authHash);
-        if (innerHash == null)
+        String secret = hashes.get(token.substring(0, 32));
+        if (secret == null)
             return returnNotAuthorized(response);
 
-        String sign = decoded.substring(32, 64);
-        String timestamp = decoded.substring(64);
+        String sign = token.substring(32, 64);
+        String timestamp = token.substring(64);
 
-        if (!sign.equals(MD5.getMD5AsString((timestamp + innerHash).getBytes())))
+        if (!sign.equals(sign(timestamp, secret)))
             return returnNotAuthorized(response);
 
         long time;
@@ -57,14 +60,21 @@ public class BaseAuthTokenFilter extends BasicAuthFilter {
     }
 
     @Override
-    public BasicAuthFilter allow(String user, String password) {
-        super.allow(user, password);
-        String inner = MD5.getMD5AsString(headerValue(user, password));
-        String outer = MD5.getMD5AsString("md5: " + inner);
-        hashesOuter.put(outer, inner);
-        hashesInner.put(inner, outer);
+    public boolean returnNotAuthorized(Response response) {
+        return authFilter.returnNotAuthorized(response);
+    }
+
+    @Override
+    public BaseAuthTokenFilter allow(String user, String password) {
+        authFilter.allow(user, password);
+        hashes.put(MD5.getMD5AsString(user), MD5.getMD5AsString(user + ":" + password));
 
         return this;
+    }
+
+    @Override
+    public String getUser(Request request) {
+        return authFilter.getUser(request);
     }
 
     public String generateToken(Request request) {
@@ -72,12 +82,18 @@ public class BaseAuthTokenFilter extends BasicAuthFilter {
         if (auth == null)
             return "";
 
-        String innerHash = MD5.getMD5AsString(auth);
-        String outerHash = hashesInner.get(innerHash);
+        String key = MD5.getMD5AsString(getUser(request));
+        String secret = hashes.get(key);
 
         long timestamp = System.currentTimeMillis() + HOUR * 12;
-        String sign = MD5.getMD5AsString((timestamp + innerHash).getBytes());
+        return key + sign(timestamp, secret) + timestamp;
+    }
 
-        return Base64.encodeToString((outerHash + sign + timestamp).getBytes());
+    private String sign(String timestamp, String secret) {
+        return MD5.getMD5AsString(timestamp + secret);
+    }
+
+    private String sign(long timestamp, String secret) {
+        return sign(String.valueOf(timestamp), secret);
     }
 }
