@@ -1,6 +1,5 @@
 package com.wizzardo.http.filter;
 
-import com.wizzardo.http.Filter;
 import com.wizzardo.http.request.Header;
 import com.wizzardo.http.request.Request;
 import com.wizzardo.http.response.Response;
@@ -17,7 +16,7 @@ import java.util.Random;
  * @author: wizzardo
  * Date: 29.11.14
  */
-public class DigestAuthFilter implements Filter {
+public class DigestAuthFilter implements AuthFilter {
     protected Map<String, String> userPasswords = new HashMap<>();
     protected Random random = new Random();
     protected String realm = "simple http server";
@@ -60,7 +59,7 @@ public class DigestAuthFilter implements Filter {
         return true;
     }
 
-    protected boolean returnNotAuthorized(Response response) {
+    public boolean returnNotAuthorized(Response response) {
         response.setStatus(Status._401);
         response.header(Header.KEY_WWW_AUTHENTICATE, "Digest realm=\"" + realm + "\", qop=\"auth\", nonce:\"" + nonce() + "\"");
         return false;
@@ -69,6 +68,15 @@ public class DigestAuthFilter implements Filter {
     public DigestAuthFilter allow(String user, String password) {
         userPasswords.put(user, password);
         return this;
+    }
+
+    @Override
+    public String getUser(Request request) {
+        String auth = request.header(Header.KEY_AUTHORIZATION);
+        if (auth == null)
+            return null;
+
+        return new DigestAuthData(auth).username;
     }
 
     protected String nonce() {
