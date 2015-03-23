@@ -25,8 +25,12 @@ public class EpollOutputStream extends OutputStream {
     public void write(byte[] b, int off, int len) throws IOException {
         flush();
         waiting = true;
-        connection.write(b, off, len, (ByteBufferProvider) Thread.currentThread());
+        connection.write(b, off, len, getByteBufferProvider());
         waitFor();
+    }
+
+    protected ByteBufferProvider getByteBufferProvider() {
+        return (ByteBufferProvider) Thread.currentThread();
     }
 
     @Override
