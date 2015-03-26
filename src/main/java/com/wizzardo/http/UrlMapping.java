@@ -16,7 +16,7 @@ public class UrlMapping<T> {
     public static final ByteTree SEGMENT_CACHE = new ByteTree();
 
     private static final Pattern VARIABLES = Pattern.compile("\\$\\{?([a-zA-Z_]+[\\w]*)\\}?");
-    private static final String OPTIONAL = "([^/]+)?";
+    private static final String OPTIONAL = "(.+)?";
     protected static final Pattern END = Pattern.compile("\\*([a-zA-Z_0-9\\.]+)");
 
     protected Map<String, UrlMapping<T>> mapping = new HashMap<>();
@@ -99,7 +99,7 @@ public class UrlMapping<T> {
             while (m.find()) {
                 vars.add(m.group(1));
             }
-            part = part.replaceAll(VARIABLES.pattern(), "([^/]+)").replace("/([^/]+)?", "/?([^/]+)?");
+            part = convertRegexpVariables(part);
 
             pattern = Pattern.compile(part);
             variables = vars.toArray(new String[vars.size()]);
@@ -316,6 +316,6 @@ public class UrlMapping<T> {
     }
 
     protected String convertRegexpVariables(String s) {
-        return s.replaceAll(VARIABLES.pattern(), "([^/]+)").replace("/([^/]+)?", "/?([^/]+)?");
+        return s.replaceAll(VARIABLES.pattern(), "(.+)");
     }
 }
