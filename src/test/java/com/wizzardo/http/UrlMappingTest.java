@@ -21,6 +21,8 @@ public class UrlMappingTest extends ServerTest {
                 .append("/3/$action?/${id}?", (request, response) ->
                         response.setBody(request.paramWithDefault("action", "action2") + "+" + request.paramWithDefault("id", "action3")))
                 .append("/any/*", (request, response) -> response.setBody("any"))
+                .append("/pattern/${foo}-${bar}", (request, response) ->
+                        response.setBody(request.param("foo") + "-" + request.param("bar")))
         ;
 
         Assert.assertEquals("action1", makeRequest("/action1").get().asString());
@@ -34,6 +36,8 @@ public class UrlMappingTest extends ServerTest {
         Assert.assertEquals("any", makeRequest("/any").get().asString());
         Assert.assertEquals("any", makeRequest("/any/foo").get().asString());
         Assert.assertEquals("any", makeRequest("/any/foo/bar").get().asString());
+
+        Assert.assertEquals("foo-bar", makeRequest("/pattern/foo-bar").get().asString());
     }
 
     @Test
