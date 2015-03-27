@@ -2,10 +2,8 @@ package com.wizzardo.http.mapping;
 
 import com.wizzardo.http.request.ByteTree;
 import com.wizzardo.http.request.Request;
-import com.wizzardo.tools.misc.CharTree;
 
 import java.util.*;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
@@ -15,8 +13,8 @@ import java.util.regex.Pattern;
 public class UrlMapping<T> {
     public static final ByteTree SEGMENT_CACHE = new ByteTree();
 
-    private static final Pattern VARIABLES = Pattern.compile("\\$\\{?([a-zA-Z_]+[\\w]*)\\}?");
-    private static final String OPTIONAL = "(.+)?";
+    static final Pattern VARIABLES = Pattern.compile("\\$\\{?([a-zA-Z_]+[\\w]*)\\}?");
+    static final String OPTIONAL = "(.+)?";
     protected static final Pattern END = Pattern.compile("\\*([a-zA-Z_0-9\\.]+)");
 
     protected Map<String, UrlMapping<T>> mapping = new HashMap<>();
@@ -34,169 +32,6 @@ public class UrlMapping<T> {
 
     protected boolean checkNextPart() {
         return true;
-    }
-
-    protected static abstract class UrlMappingMatcher<T> extends UrlMapping<T> {
-        protected UrlMappingMatcher(UrlMapping parent) {
-            super(parent);
-        }
-
-        protected abstract boolean matches(String urlPart);
-    }
-
-    private static class UrlMappingMatcherAny<T> extends UrlMappingMatcher<T> {
-        protected UrlMappingMatcherAny(UrlMapping parent) {
-            super(parent);
-        }
-
-        @Override
-        protected boolean matches(String urlPart) {
-            return true;
-        }
-
-        @Override
-        protected boolean checkNextPart() {
-            return false;
-        }
-
-        @Override
-        protected void setValue(T t) {
-            super.setValue(t);
-            if (parent != null)
-                parent.setValue(t);
-        }
-    }
-
-    private static class UrlMappingMatcherPattern<T> extends UrlMappingMatcher<T> {
-        Pattern pattern;
-
-        protected UrlMappingMatcherPattern(UrlMapping parent, String pattern) {
-            super(parent);
-            this.pattern = Pattern.compile(pattern);
-        }
-
-        @Override
-        protected boolean matches(String urlPart) {
-            return pattern.matcher(urlPart).matches();
-        }
-
-        @Override
-        protected boolean checkNextPart() {
-            return false;
-        }
-    }
-
-    private static class UrlMappingWithVariables<T> extends UrlMappingMatcher<T> {
-        String[] variables;
-        Pattern pattern;
-        int partNumber;
-
-        UrlMappingWithVariables(UrlMapping parent, String part, int partNumber) {
-            super(parent);
-            this.partNumber = partNumber;
-            Matcher m = VARIABLES.matcher(part);
-            final List<String> vars = new ArrayList<>();
-            while (m.find()) {
-                vars.add(m.group(1));
-            }
-            part = convertRegexpVariables(part);
-
-            pattern = Pattern.compile(part);
-            variables = vars.toArray(new String[vars.size()]);
-        }
-
-        @Override
-        protected void prepare(Request request) {
-            super.prepare(request);
-            if (request == null)
-                return;
-
-            String part = request.path().getPart(partNumber);
-            if (part == null)
-                return;
-            Matcher matcher = pattern.matcher(part);
-            if (matcher.find()) {
-                for (int i = 1; i <= variables.length; i++) {
-                    request.param(variables[i - 1], matcher.group(i));
-                }
-            }
-        }
-
-        @Override
-        protected boolean matches(String urlPart) {
-            return pattern.matcher(urlPart).matches();
-        }
-
-        @Override
-        protected void setValue(T t) {
-            super.setValue(t);
-            if (parent != null && pattern.pattern().equals(OPTIONAL))
-                parent.setValue(t);
-        }
-    }
-
-    private static class UrlMappingMatcherAnyVariable<T> extends UrlMappingWithVariables<T> {
-        protected String variable;
-
-        protected UrlMappingMatcherAnyVariable(UrlMapping parent, String part, int partNumber) {
-            super(parent, part, partNumber);
-            variable = variables[0];
-        }
-
-        @Override
-        protected boolean matches(String urlPart) {
-            return true;
-        }
-
-        @Override
-        protected void prepare(Request request) {
-            if (request == null)
-                return;
-
-            if (parent != null)
-                parent.prepare(request);
-
-            String part = request.path().getPart(partNumber);
-
-            if (part != null)
-                request.param(variable, part);
-        }
-    }
-
-    protected static class UrlMappingEndsWith<T> extends UrlMapping<T> {
-        protected CharTree<UrlMapping<T>> endsWith = new CharTree<>();
-
-        protected UrlMappingEndsWith(UrlMapping parent) {
-            super(parent);
-        }
-
-        UrlMapping<T> append(String pattern) {
-            UrlMappingHolder<T> mapping = new UrlMappingHolder<>(this);
-            pattern = pattern.substring(1);
-            endsWith.appendReverse(pattern, mapping);
-            return mapping;
-        }
-
-        @Override
-        protected UrlMapping<T> find(String part, List<String> parts) {
-            return endsWith.findEnds(parts.get(parts.size() - 1));
-        }
-
-        @Override
-        protected UrlMapping<T> find(String part, String[] parts) {
-            return endsWith.findEnds(parts[parts.length - 1]);
-        }
-    }
-
-    protected static class UrlMappingHolder<T> extends UrlMapping<T> {
-        protected UrlMappingHolder(UrlMapping parent) {
-            super(parent);
-        }
-
-        @Override
-        protected boolean checkNextPart() {
-            return false;
-        }
     }
 
     protected void prepare(Request request) {
