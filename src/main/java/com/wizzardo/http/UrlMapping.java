@@ -135,6 +135,34 @@ public class UrlMapping<T> {
         }
     }
 
+    private static class UrlMappingMatcherAnyVariable<T> extends UrlMappingWithVariables<T> {
+        protected String variable;
+
+        protected UrlMappingMatcherAnyVariable(UrlMapping parent, String part, int partNumber) {
+            super(parent, part, partNumber);
+            variable = variables[0];
+        }
+
+        @Override
+        protected boolean matches(String urlPart) {
+            return true;
+        }
+
+        @Override
+        protected void prepare(Request request) {
+            if (request == null)
+                return;
+
+            if (parent != null)
+                parent.prepare(request);
+
+            String part = request.path().getPart(partNumber);
+
+            if (part != null)
+                request.param(variable, part);
+        }
+    }
+
     protected static class UrlMappingEndsWith<T> extends UrlMapping<T> {
         protected CharTree<UrlMapping<T>> endsWith = new CharTree<>();
 
@@ -290,7 +318,11 @@ public class UrlMapping<T> {
                 String pattern = convertRegexpVariables(part);
                 next = tree.regexpMapping.get(pattern);
                 if (next == null) {
-                    UrlMappingWithVariables<T> t = new UrlMappingWithVariables<>(tree, part, counter);
+                    UrlMappingWithVariables<T> t;
+                    if (pattern.equals("(.+)") || pattern.equals("(.+)?"))
+                        t = new UrlMappingMatcherAnyVariable<>(tree, part, counter);
+                    else
+                        t = new UrlMappingWithVariables<>(tree, part, counter);
                     tree.regexpMapping.put(pattern, t);
                     next = t;
                 }
