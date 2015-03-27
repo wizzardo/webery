@@ -1,6 +1,7 @@
 package com.wizzardo.http.request;
 
 import com.wizzardo.http.*;
+import com.wizzardo.http.mapping.Path;
 import com.wizzardo.http.response.CookieBuilder;
 import com.wizzardo.http.response.Response;
 import com.wizzardo.tools.io.BlockInputStream;

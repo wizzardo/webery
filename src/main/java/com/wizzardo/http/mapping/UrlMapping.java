@@ -1,4 +1,4 @@
-package com.wizzardo.http;
+package com.wizzardo.http.mapping;
 
 import com.wizzardo.http.request.ByteTree;
 import com.wizzardo.http.request.Request;

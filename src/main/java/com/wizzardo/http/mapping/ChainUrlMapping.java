@@ -1,4 +1,4 @@
-package com.wizzardo.http;
+package com.wizzardo.http.mapping;
 
 import java.util.*;
 import java.util.regex.Pattern;

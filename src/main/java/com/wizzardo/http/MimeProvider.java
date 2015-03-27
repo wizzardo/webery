@@ -1,5 +1,6 @@
 package com.wizzardo.http;
 
+import com.wizzardo.http.mapping.UrlMapping;
 import com.wizzardo.http.request.Header;
 import com.wizzardo.http.response.Response;
 import com.wizzardo.tools.http.HttpClient;

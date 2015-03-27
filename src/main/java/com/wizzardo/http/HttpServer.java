@@ -1,6 +1,7 @@
 package com.wizzardo.http;
 
 import com.wizzardo.epoll.readable.ReadableByteBuffer;
+import com.wizzardo.http.mapping.UrlMapping;
 import com.wizzardo.http.request.Header;
 import com.wizzardo.http.request.Request;
 import com.wizzardo.http.response.Response;

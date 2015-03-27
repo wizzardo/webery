@@ -1,5 +1,6 @@
 package com.wizzardo.http;
 
+import com.wizzardo.http.mapping.Path;
 import org.junit.Assert;
 import org.junit.Test;
 

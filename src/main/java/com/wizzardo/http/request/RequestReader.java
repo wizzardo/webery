@@ -2,8 +2,8 @@ package com.wizzardo.http.request;
 
 import com.wizzardo.http.HttpConnection;
 import com.wizzardo.http.MultiValue;
-import com.wizzardo.http.Path;
-import com.wizzardo.http.UrlMapping;
+import com.wizzardo.http.mapping.Path;
+import com.wizzardo.http.mapping.UrlMapping;
 import com.wizzardo.http.utils.AsciiReader;
 
 import java.io.UnsupportedEncodingException;

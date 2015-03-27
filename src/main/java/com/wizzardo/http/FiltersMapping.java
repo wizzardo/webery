@@ -4,6 +4,7 @@
  */
 package com.wizzardo.http;
 
+import com.wizzardo.http.mapping.ChainUrlMapping;
 import com.wizzardo.http.request.Request;
 import com.wizzardo.http.response.Response;
 
