@@ -19,8 +19,10 @@ public class HttpServer<T extends HttpConnection> extends AbstractHttpServer<T> 
             .setBody("It's alive!".getBytes())
             .buildStaticResponse();
 
+    private byte[] serverName = "wizzardo-http/0.1".getBytes();
     protected FiltersMapping filtersMapping = new FiltersMapping();
     protected UrlMapping<Handler> urlMapping = new UrlMapping<>();
+    protected ServerDate serverDate = new ServerDate();
 
     public HttpServer(int port) {
         this(null, port);
@@ -48,6 +50,9 @@ public class HttpServer<T extends HttpConnection> extends AbstractHttpServer<T> 
     protected void handle(T connection) throws Exception {
         Request request = connection.getRequest();
         Response response = connection.getResponse();
+
+        response.appendHeader(Header.KEY_DATE.bytes, serverDate.getDateAsBytes());
+        response.appendHeader(Header.KEY_SERVER.bytes, serverName);
 
 //            System.out.println(request.method() + " " + request.path() + " " + request.protocol());
 //            System.out.println(request.headers());
