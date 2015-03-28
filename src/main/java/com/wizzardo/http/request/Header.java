@@ -17,6 +17,7 @@ public enum Header {
     KEY_CONTENT_RANGE("Content-Range"),
     KEY_CONTENT_TYPE("Content-Type"),
     KEY_COOKIE("Cookie"),
+    KEY_DATE("Date"),
     KEY_ETAG("ETag"),
     KEY_IF_MODIFIED_SINCE("If-Modified-Since"),
     KEY_IF_NONE_MATCH("If-None-Match"),
