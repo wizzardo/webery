@@ -14,12 +14,12 @@ import java.io.IOException;
  */
 public class HttpServer<T extends HttpConnection> extends AbstractHttpServer<T> {
     private ReadableByteBuffer staticResponse = new Response()
-            .appendHeader(Header.KEY_CONNECTION, Header.VALUE_CONNECTION_KEEP_ALIVE)
-            .appendHeader(Header.KEY_CONTENT_TYPE, Header.VALUE_CONTENT_TYPE_HTML_UTF8)
+            .appendHeader(Header.KEY_CONNECTION, Header.VALUE_KEEP_ALIVE)
+            .appendHeader(Header.KEY_CONTENT_TYPE, Header.VALUE_HTML_UTF8)
             .setBody("It's alive!".getBytes())
             .buildStaticResponse();
 
-    private byte[] serverName = "wizzardo-http/0.1".getBytes();
+    private byte[] serverName = "Server: wizzardo-http/0.1\r\n".getBytes();
     protected FiltersMapping filtersMapping = new FiltersMapping();
     protected UrlMapping<Handler> urlMapping = new UrlMapping<>();
     protected ServerDate serverDate = new ServerDate();
@@ -51,8 +51,8 @@ public class HttpServer<T extends HttpConnection> extends AbstractHttpServer<T> 
         Request request = connection.getRequest();
         Response response = connection.getResponse();
 
-        response.appendHeader(Header.KEY_DATE.bytes, serverDate.getDateAsBytes());
-        response.appendHeader(Header.KEY_SERVER.bytes, serverName);
+        response.appendHeader(serverDate.getDateAsBytes());
+        response.appendHeader(serverName);
 
 //            System.out.println(request.method() + " " + request.path() + " " + request.protocol());
 //            System.out.println(request.headers());
@@ -78,8 +78,8 @@ public class HttpServer<T extends HttpConnection> extends AbstractHttpServer<T> 
         HttpServer server = new HttpServer(null, 8084, args.length > 0 ? Integer.parseInt(args[0]) : 0);
         server.setIoThreadsCount(args.length > 1 ? Integer.parseInt(args[1]) : 1);
         ReadableByteBuffer staticResponse = new Response()
-                .appendHeader(Header.KEY_CONNECTION, Header.VALUE_CONNECTION_KEEP_ALIVE)
-                .appendHeader(Header.KEY_CONTENT_TYPE, Header.VALUE_CONTENT_TYPE_HTML_UTF8)
+                .appendHeader(Header.KEY_CONNECTION, Header.VALUE_KEEP_ALIVE)
+                .appendHeader(Header.KEY_CONTENT_TYPE, Header.VALUE_HTML_UTF8)
                 .setBody("ololo".getBytes())
                 .buildStaticResponse();
 

@@ -33,7 +33,7 @@ public class ServerDate {
         final long validUntil;
 
         public DateHolder(long time) {
-            text = HttpDateFormatterHolder.get().format(new Date(time));
+            text = "Date: " + HttpDateFormatterHolder.get().format(new Date(time)) + "\r\n";
             bytes = text.getBytes();
             validUntil = (time / 1000 + 1) * 1000;
         }
