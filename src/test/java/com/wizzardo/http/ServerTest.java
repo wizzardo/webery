@@ -32,7 +32,7 @@ public class ServerTest {
         server = new HttpServer(null, port, workers) {
             @Override
             protected Response handle(Request request, Response response) throws IOException {
-                response.setHeader(Header.KEY_CONNECTION, Header.VALUE_CONNECTION_CLOSE);
+                response.setHeader(Header.KEY_CONNECTION, Header.VALUE_CLOSE);
                 return handler.handle(request, response);
             }
 

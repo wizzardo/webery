@@ -86,7 +86,7 @@ public class RangeResponseHelper {
                 response.appendHeader(Header.KEY_ETAG, fileHolder.md5);
             response.appendHeader(Header.KEY_LAST_MODIFIED, HttpDateFormatterHolder.get().format(new Date(file.lastModified())));
         }
-        response.appendHeader(Header.KEY_CONNECTION, Header.VALUE_CONNECTION_KEEP_ALIVE);
+        response.appendHeader(Header.KEY_CONNECTION, Header.VALUE_KEEP_ALIVE);
 
         request.connection().getServer().getMimeProvider().provideContentType(response, file);
 

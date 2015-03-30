@@ -141,9 +141,9 @@ public class HttpConnection<H extends AbstractHttpServer, Q extends Request, S e
 
     protected boolean prepareKeepAlive() {
         String connection = request.header(Header.KEY_CONNECTION);
-        boolean keepAlive = (request.protocol().equals(HttpConnection.HTTP_1_1) && connection == null) || Header.VALUE_CONNECTION_KEEP_ALIVE.value.equalsIgnoreCase(connection);
+        boolean keepAlive = (request.protocol().equals(HttpConnection.HTTP_1_1) && connection == null) || Header.VALUE_KEEP_ALIVE.value.equalsIgnoreCase(connection);
         if (keepAlive && request.protocol().equals(HttpConnection.HTTP_1_0))
-            response.setHeader(Header.KEY_CONNECTION, Header.VALUE_CONNECTION_KEEP_ALIVE);
+            response.setHeader(Header.KEY_CONNECTION, Header.VALUE_KEEP_ALIVE);
 
         return keepAlive;
     }

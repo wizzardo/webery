@@ -135,7 +135,7 @@ public class RequestTest extends ServerTest {
         Assert.assertEquals("ok", makeRequest("/").get().asString());
 
         handler = (request, response) -> {
-            response.setHeader(Header.KEY_CONNECTION, Header.VALUE_CONNECTION_KEEP_ALIVE);
+            response.setHeader(Header.KEY_CONNECTION, Header.VALUE_KEEP_ALIVE);
             response.setHeader(Header.KEY_CONTENT_LENGTH, 2);
             try {
                 response.getOutputStream(request.connection()).write("ok".getBytes());

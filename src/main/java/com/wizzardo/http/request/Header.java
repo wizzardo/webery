@@ -38,21 +38,33 @@ public enum Header {
     KEY_WWW_AUTHENTICATE("WWW-Authenticate"),
 
     VALUE_BYTES("bytes"),
-    VALUE_CONNECTION_CLOSE("Close"),
-    VALUE_CONNECTION_KEEP_ALIVE("Keep-Alive"),
-    VALUE_CONTENT_TYPE_APPLICATION_JSON("application/json"),
-    VALUE_CONTENT_TYPE_TEXT_XML("text/xml"),
-    VALUE_CONTENT_TYPE_HTML_UTF8("text/html;charset=UTF-8"),
+    VALUE_CLOSE("Close"),
+    VALUE_KEEP_ALIVE("Keep-Alive"),
+    VALUE_APPLICATION_JSON("application/json"),
+    VALUE_HTML_UTF8("text/html;charset=UTF-8"),
+    VALUE_TEXT_XML("text/xml"),
     VALUE_FORM_URLENCODED("application/x-www-form-urlencoded"),
     VALUE_NO_CACHE("no-cache"),
     VALUE_UPGRADE("Upgrade"),
-    VALUE_WEBSOCKET("websocket");
+    VALUE_WEBSOCKET("websocket"),
+
+    KV_CONNECTION_CLOSE("Connection: Close\r\n", true),
+    KV_CONNECTION_KEEP_ALIVE("Connection: Keep-Alive\r\n", true),
+    KV_CONTENT_TYPE_APPLICATION_JSON("Content-Type: application/json\r\n", true),
+    KV_CONTENT_TYPE_HTML_UTF8("Content-Type: text/html;charset=UTF-8\r\n", true),
+    KV_CONTENT_TYPE_TEXT_XML("Content-Type: text/xml\r\n", true);
 
     public final String value;
     public final byte[] bytes;
+    public final boolean complete;
 
-    private Header(String value) {
+    Header(String value) {
+        this(value, false);
+    }
+
+    Header(String value, boolean complete) {
         this.value = value;
+        this.complete = complete;
         bytes = value.getBytes();
     }
 }

@@ -27,6 +27,7 @@ import java.util.*;
 public class Response {
     protected static final byte[] LINE_SEPARATOR = "\r\n".getBytes();
     protected static final byte[] HEADER_SEPARATOR = ": ".getBytes();
+    protected static final byte[] EMPTY = new byte[0];
 
     protected boolean committed = false;
     protected Status status = Status._200;
@@ -175,6 +176,25 @@ public class Response {
         return this;
     }
 
+    /**
+     * @param header must be a header string 'key: value\r\n'
+     */
+    public Response appendHeader(byte[] header) {
+        appendHeader(header, EMPTY);
+        return this;
+    }
+
+    /**
+     * @param header must be one of KV_ values of {@link Header}
+     */
+    public Response appendHeader(Header header) {
+        if (!header.complete)
+            throw new IllegalStateException("header must be one of KV_ values of Header");
+
+        appendHeader(header.bytes);
+        return this;
+    }
+
     public String header(String key) {
         return header(key.getBytes());
     }
@@ -252,10 +272,13 @@ public class Response {
     protected ReadableBuilder buildResponse() {
         ReadableBuilder builder = new ReadableBuilder(statusToBytes());
         for (int i = 0; i < headersCount; i += 2) {
-            builder.append(headers[i])
-                    .append(HEADER_SEPARATOR)
-                    .append(headers[i + 1])
-                    .append(LINE_SEPARATOR);
+            if (headers[i + 1] == EMPTY)
+                builder.append(headers[i]);
+            else
+                builder.append(headers[i])
+                        .append(HEADER_SEPARATOR)
+                        .append(headers[i + 1])
+                        .append(LINE_SEPARATOR);
         }
 
         builder.append(LINE_SEPARATOR);
