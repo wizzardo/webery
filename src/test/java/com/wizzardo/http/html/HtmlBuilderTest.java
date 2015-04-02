@@ -24,7 +24,7 @@ public class HtmlBuilderTest {
     }
 
     @Test
-    public void atts() {
+    public void attrs() {
         Tag tag = new Tag("a").attr("href", "http://example.com").attr("class", "example_link");
 
         StringBuilder sb = new StringBuilder();
