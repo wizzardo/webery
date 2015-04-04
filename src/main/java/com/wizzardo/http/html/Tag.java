@@ -66,6 +66,18 @@ public class Tag {
         return this;
     }
 
+    public Tag id(String id) {
+        return attr("id", id);
+    }
+
+    public Tag clazz(String clazz) {
+        return attr("class", clazz);
+    }
+
+    public Tag style(String style) {
+        return attr("style", style);
+    }
+
     public Tag text(String text) {
         return add(new Tag.Text(text));
     }

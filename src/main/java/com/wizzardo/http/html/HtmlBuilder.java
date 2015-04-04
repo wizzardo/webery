@@ -33,12 +33,20 @@ public class HtmlBuilder extends Tag {
         return new Tag("header");
     }
 
+    public static Tag head() {
+        return new Tag("head");
+    }
+
     public static Tag body() {
         return new Tag("body");
     }
 
     public static Tag p() {
         return new Tag("p");
+    }
+
+    public static Tag div() {
+        return new Tag("div");
     }
 
     public static Tag meta() {
