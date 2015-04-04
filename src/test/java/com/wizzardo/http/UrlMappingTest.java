@@ -44,6 +44,7 @@ public class UrlMappingTest extends ServerTest {
     public void testEndsWith() throws IOException {
         handler = new UrlHandler()
                 .append("*.html", (request, response) -> response.setBody("html"))
+                .append("*.xhtml", (request, response) -> response.setBody("xhtml"))
                 .append("/special/*.html", (request, response) -> response.setBody("special"));
 
 
@@ -54,5 +55,9 @@ public class UrlMappingTest extends ServerTest {
         Assert.assertEquals("special", makeRequest("/special/foo.html").get().asString());
         Assert.assertEquals("special", makeRequest("/special/foo/bar.html").get().asString());
         Assert.assertEquals("special", makeRequest("/special/foo/bar/qwerty.html").get().asString());
+
+        Assert.assertEquals("xhtml", makeRequest("/foo.xhtml").get().asString());
+        Assert.assertEquals("xhtml", makeRequest("/foo/bar.xhtml").get().asString());
+        Assert.assertEquals("xhtml", makeRequest("/foo/bar/qwerty.xhtml").get().asString());
     }
 }

@@ -16,7 +16,6 @@ class UrlMappingEndsWith<T> extends UrlMapping<T> {
 
     UrlMapping<T> append(String pattern) {
         UrlMappingHolder<T> mapping = new UrlMappingHolder<>(this);
-        pattern = pattern.substring(1);
         endsWith.appendReverse(pattern, mapping);
         return mapping;
     }
