@@ -134,4 +134,36 @@ public class Tag {
             return this;
         }
     }
+
+    public static class Script extends Tag {
+        public Script() {
+            this("text/javascript");
+        }
+
+        public Script(String type) {
+            super("script");
+            attr("type", type);
+        }
+
+        public Script src(String url) {
+            attr("src", url);
+            return this;
+        }
+    }
+
+    public static class Link extends Tag {
+        public Link() {
+            this("stylesheet");
+        }
+
+        public Link(String rel) {
+            super("link");
+            attr("rel", rel);
+        }
+
+        public Link href(String url) {
+            attr("href", url);
+            return this;
+        }
+    }
 }

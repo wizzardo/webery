@@ -49,6 +49,18 @@ public class HtmlBuilder extends Tag {
         return new Tag("div");
     }
 
+    public static Tag br() {
+        return new Tag("br");
+    }
+
+    public static Tag.Script script() {
+        return new Tag.Script();
+    }
+
+    public static Tag.Link link() {
+        return new Tag.Link();
+    }
+
     public static Tag meta() {
         return new Tag("meta");
     }
