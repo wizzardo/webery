@@ -103,7 +103,7 @@ public class Tag {
         }
     }
 
-    static class Text extends Tag {
+    public static class Text extends Tag {
         public Text(String text) {
             super(text);
         }
