@@ -142,6 +142,7 @@ public class Tag {
 
         public Script(String type) {
             super("script");
+            body = new Body();
             attr("type", type);
         }
 
