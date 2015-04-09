@@ -167,4 +167,23 @@ public class Tag {
             return this;
         }
     }
+
+    public static class Select extends Tag {
+        public Select(List list) {
+            super("select");
+            for (Object o : list) {
+                String s = String.valueOf(o);
+                add(new Tag("option").attr("value", s).text(s));
+            }
+        }
+
+        public Select(Map<?, ?> map) {
+            super("select");
+            for (Map.Entry e : map.entrySet()) {
+                String key = String.valueOf(e.getKey());
+                String value = String.valueOf(e.getValue());
+                add(new Tag("option").attr("value", key).text(value));
+            }
+        }
+    }
 }
