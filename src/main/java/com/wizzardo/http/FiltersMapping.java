@@ -51,4 +51,9 @@ public class FiltersMapping {
         }
         return true;
     }
+
+    public void setContext(String context) {
+        before.setContext(context);
+        after.setContext(context);
+    }
 }

@@ -27,4 +27,8 @@ public class UrlHandler implements Handler {
         mapping.append(url, handler);
         return this;
     }
+
+    public void setContext(String context) {
+        mapping.setContext(context);
+    }
 }

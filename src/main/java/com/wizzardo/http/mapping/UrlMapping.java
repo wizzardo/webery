@@ -22,6 +22,7 @@ public class UrlMapping<T> {
     protected T value;
     protected UrlMapping<T> parent;
     protected UrlMappingEndsWith<T> endsWithMapping;
+    protected String context;
 
     public UrlMapping() {
     }
@@ -39,6 +40,14 @@ public class UrlMapping<T> {
             parent.prepare(request);
     }
 
+    public void setContext(String context) {
+        this.context = context;
+    }
+
+    public String getContext() {
+        return context;
+    }
+
     public T get(Request request) {
         return get(request, request.path());
     }
@@ -49,6 +58,13 @@ public class UrlMapping<T> {
     }
 
     public T get(Request request, Path path) {
+        if (context != null) {
+            if (path.length() == 0 || !path.getPart(0).equals(context))
+                return null;
+
+            path = path.subPath(1);
+        }
+
         UrlMapping<T> last = find(path);
         if (last != null && last.value != null)
             last.prepare(request);

@@ -60,4 +60,20 @@ public class UrlMappingTest extends ServerTest {
         Assert.assertEquals("xhtml", makeRequest("/foo/bar.xhtml").get().asString());
         Assert.assertEquals("xhtml", makeRequest("/foo/bar/qwerty.xhtml").get().asString());
     }
+
+    @Test
+    public void testContext() throws IOException {
+        server.setContext("context");
+
+        handler = new UrlHandler()
+                .append("/action1", (request, response) -> response.setBody("action1"))
+                .append("/", (request, response) -> response.setBody("action2"))
+        ;
+        ((UrlHandler)handler).setContext("context");
+
+
+        Assert.assertEquals("action1", makeRequest("/context/action1").get().asString());
+        Assert.assertEquals("action2", makeRequest("/context/").get().asString());
+        Assert.assertEquals("/ not found", makeRequest("/").get().asString());
+    }
 }

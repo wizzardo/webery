@@ -74,6 +74,11 @@ public class HttpServer<T extends HttpConnection> extends AbstractHttpServer<T> 
         return response;
     }
 
+    public void setContext(String context) {
+        urlMapping.setContext(context);
+        filtersMapping.setContext(context);
+    }
+
     public static void main(String[] args) {
         HttpServer server = new HttpServer(null, 8084, args.length > 0 ? Integer.parseInt(args[0]) : 0);
         server.setIoThreadsCount(args.length > 1 ? Integer.parseInt(args[1]) : 1);
