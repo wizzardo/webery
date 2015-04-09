@@ -1,5 +1,8 @@
 package com.wizzardo.http.html;
 
+import java.util.List;
+import java.util.Map;
+
 /**
  * Created by wizzardo on 08.01.15.
  */
@@ -87,6 +90,22 @@ public class HtmlBuilder extends Tag {
 
     public static Tag span() {
         return new Tag("span");
+    }
+
+    public static Select select(List list) {
+        return new Select(list);
+    }
+
+    public static Select select(Map<?, ?> map) {
+        return new Select(map);
+    }
+
+    public static Input input() {
+        return new Input();
+    }
+
+    public static Form form() {
+        return new Form();
     }
 
     public static Tag title(String title) {

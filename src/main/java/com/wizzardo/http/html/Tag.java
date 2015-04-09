@@ -168,6 +168,27 @@ public class Tag {
         }
     }
 
+    public static class Form extends Tag {
+        public Form() {
+            super("form");
+        }
+
+        public Form method(String method) {
+            attr("method", method);
+            return this;
+        }
+
+        public Form action(String action) {
+            attr("action", action);
+            return this;
+        }
+
+        public Form enctype(String enctype) {
+            attr("enctype", enctype);
+            return this;
+        }
+    }
+
     public static class Select extends Tag {
         public Select(List list) {
             super("select");
@@ -184,6 +205,32 @@ public class Tag {
                 String value = String.valueOf(e.getValue());
                 add(new Tag("option").attr("value", key).text(value));
             }
+        }
+    }
+
+    public static class Input extends Tag {
+        public Input() {
+            super("input");
+        }
+
+        public Input type(String type) {
+            attr("type", type);
+            return this;
+        }
+
+        public Input name(String name) {
+            attr("name", name);
+            return this;
+        }
+
+        public Input value(String value) {
+            attr("value", value);
+            return this;
+        }
+
+        public Input placeholder(String placeholder) {
+            attr("placeholder", placeholder);
+            return this;
         }
     }
 }
