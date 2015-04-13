@@ -113,6 +113,7 @@ public class WebSocketHandler implements Handler {
                 e.printStackTrace();
                 try {
                     connection.close();
+                    webSocketHandler.onDisconnect(this);
                 } catch (IOException e1) {
                     e1.printStackTrace();
                 }
@@ -134,6 +135,7 @@ public class WebSocketHandler implements Handler {
                 connection.setCloseOnFinishWriting(true);
                 sendFrame(tempFrame);
                 tempFrame = null;
+                webSocketHandler.onDisconnect(this);
                 return true;
             }
             return false;
@@ -164,6 +166,9 @@ public class WebSocketHandler implements Handler {
     }
 
     public void onConnect(WebSocketListener listener) {
+    }
+
+    public void onDisconnect(WebSocketListener listener) {
     }
 
     public void onMessage(WebSocketListener listener, Message message) {
