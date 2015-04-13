@@ -6,7 +6,7 @@ import com.wizzardo.http.HttpDateFormatterHolder;
 import com.wizzardo.http.request.Header;
 import com.wizzardo.http.request.Request;
 import com.wizzardo.tools.cache.MemoryLimitedCache;
-import com.wizzardo.tools.misc.UncheckedThrow;
+import com.wizzardo.tools.misc.Unchecked;
 import com.wizzardo.tools.security.MD5;
 
 import java.io.File;
@@ -31,9 +31,9 @@ public class RangeResponseHelper {
             FileChannel inChannel = aFile.getChannel();
             ByteBuffer buffer = ByteBuffer.allocateDirect((int) inChannel.size());
             inChannel.read(buffer);
-            return new FileHolder(new ReadableByteBuffer(buffer), MD5.getMD5AsString(s));
+            return new FileHolder(new ReadableByteBuffer(buffer), MD5.create().update(s).asString());
         } catch (IOException e) {
-            throw UncheckedThrow.rethrow(e);
+            throw Unchecked.rethrow(e);
         }
     });
 
@@ -96,7 +96,7 @@ public class RangeResponseHelper {
             else
                 response.setBody(new ReadableFile(file, range.from, range.length()));
         } catch (IOException e) {
-            throw UncheckedThrow.rethrow(e);
+            throw Unchecked.rethrow(e);
         }
         return response;
     }

@@ -41,7 +41,7 @@ public class WebSocketHandler implements Handler {
             return response.status(Status._400);
 
         key += "258EAFA5-E914-47DA-95CA-C5AB0DC85B11"; // websocket magic
-        key = Base64.encodeToString(SHA1.getSHA1(key.getBytes()));
+        key = Base64.encodeToString(SHA1.create().update(key.getBytes()).asBytes());
 
         request.connection().upgrade(new WebSocketListener(request.connection(), this));
 

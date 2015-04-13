@@ -13,9 +13,10 @@ version = '0.1'
 mainClassName = "com.wizzardo.http.HttpServer"
 
 dependencies {
-    compile 'com.wizzardo.tools:tools:0.12'
+//    compile 'com.wizzardo.tools:tools:0.12'
     compile files(
-            '../epollserver/build/libs/epoll-0.1.jar'
+            '../epollserver/build/libs/epoll-0.1.jar',
+            '../Utils/build/libs/tools-all-0.13-SNAPSHOT.jar'
     )
     testCompile 'junit:junit:4.+'
 }

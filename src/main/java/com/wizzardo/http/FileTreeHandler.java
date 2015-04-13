@@ -7,11 +7,10 @@ import com.wizzardo.http.response.RangeResponseHelper;
 import com.wizzardo.http.response.Response;
 import com.wizzardo.http.response.Status;
 import com.wizzardo.tools.misc.DateIso8601;
-import com.wizzardo.tools.misc.UncheckedThrow;
+import com.wizzardo.tools.misc.Unchecked;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.util.Arrays;
@@ -75,7 +74,7 @@ public class FileTreeHandler<T extends FileTreeHandler.HandlerContext> implement
         try {
             return file.getCanonicalPath();
         } catch (IOException e) {
-            throw UncheckedThrow.rethrow(e);
+            throw Unchecked.rethrow(e);
         }
     }
 
@@ -180,19 +179,11 @@ public class FileTreeHandler<T extends FileTreeHandler.HandlerContext> implement
     }
 
     private String encodeName(String name) {
-        try {
-            return URLEncoder.encode(name, "utf-8").replace("+", "%20");
-        } catch (UnsupportedEncodingException e) {
-            throw UncheckedThrow.rethrow(e);
-        }
+        return Unchecked.call(() -> URLEncoder.encode(name, "utf-8").replace("+", "%20"));
     }
 
     private String decodePath(String path) {
-        try {
-            return URLDecoder.decode(path, "utf-8");
-        } catch (UnsupportedEncodingException e) {
-            throw UncheckedThrow.rethrow(e);
-        }
+        return Unchecked.call(() -> URLDecoder.decode(path, "utf-8"));
     }
 
     protected static class HandlerContext {

@@ -67,7 +67,7 @@ public class TokenFilter implements AuthFilter {
     @Override
     public TokenFilter allow(String user, String password) {
         authFilter.allow(user, password);
-        hashes.put(MD5.getMD5AsString(user), MD5.getMD5AsString(user + ":" + password));
+        hashes.put(MD5.create().update(user).asString(), MD5.create().update(user + ":" + password).asString());
 
         return this;
     }
@@ -82,7 +82,7 @@ public class TokenFilter implements AuthFilter {
         if (auth == null)
             return "";
 
-        String key = MD5.getMD5AsString(getUser(request));
+        String key = MD5.create().update(getUser(request)).asString();
         String secret = hashes.get(key);
 
         long timestamp = System.currentTimeMillis() + HOUR * 12;
@@ -90,7 +90,7 @@ public class TokenFilter implements AuthFilter {
     }
 
     private String sign(String timestamp, String secret) {
-        return MD5.getMD5AsString(timestamp + secret);
+        return MD5.create().update(timestamp + secret).asString();
     }
 
     private String sign(long timestamp, String secret) {

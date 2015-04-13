@@ -40,14 +40,14 @@ public class DigestAuthFilter implements AuthFilter {
         if (password == null)
             return returnNotAuthorized(response);
 
-        String ha1 = MD5.getMD5AsString(authData.username + ":" + realm + ":" + password);
-        String ha2 = MD5.getMD5AsString(request.method().name() + ":" + request.path().toString());
+        String ha1 = MD5.create().update(authData.username + ":" + realm + ":" + password).asString();
+        String ha2 = MD5.create().update(request.method().name() + ":" + request.path().toString()).asString();
 
         String resp;
         if ("auth".equals(authData.qop))
-            resp = MD5.getMD5AsString(ha1 + ":" + authData.nonce + ":" + authData.nc + ":" + authData.cnonce + ":" + authData.qop + ":" + ha2);
+            resp = MD5.create().update(ha1 + ":" + authData.nonce + ":" + authData.nc + ":" + authData.cnonce + ":" + authData.qop + ":" + ha2).asString();
         else
-            resp = MD5.getMD5AsString(ha1 + ":" + authData.nonce + ":" + ha2);
+            resp = MD5.create().update(ha1 + ":" + authData.nonce + ":" + ha2).asString();
 
         if (!resp.equals(authData.response))
             return returnNotAuthorized(response);

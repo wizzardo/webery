@@ -36,7 +36,7 @@ public class Session extends ConcurrentHashMap {
         Session session = new Session();
         String id;
         do {
-            id = MD5.getMD5AsString(String.valueOf(random.nextInt(Integer.MAX_VALUE)));
+            id = MD5.create().update(String.valueOf(random.nextInt(Integer.MAX_VALUE))).asString();
         } while (!cache.putIfAbsent(id, session));
 
         session.id = id;

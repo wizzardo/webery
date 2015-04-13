@@ -1,19 +1,21 @@
 package com.wizzardo.http.request;
 
-import com.wizzardo.http.*;
+import com.wizzardo.http.HttpConnection;
+import com.wizzardo.http.HttpDateFormatterHolder;
+import com.wizzardo.http.MultiValue;
+import com.wizzardo.http.Session;
 import com.wizzardo.http.mapping.Path;
 import com.wizzardo.http.response.CookieBuilder;
 import com.wizzardo.http.response.Response;
 import com.wizzardo.tools.io.BlockInputStream;
 import com.wizzardo.tools.io.BoyerMoore;
 import com.wizzardo.tools.io.ProgressListener;
-import com.wizzardo.tools.misc.UncheckedThrow;
+import com.wizzardo.tools.misc.Unchecked;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.text.ParseException;
 import java.util.*;
 
 /**
@@ -105,11 +107,8 @@ public class Request<C extends HttpConnection> {
         String s = header(header);
         if (s == null)
             return null;
-        try {
-            return HttpDateFormatterHolder.get().parse(s);
-        } catch (ParseException e) {
-            throw UncheckedThrow.rethrow(e);
-        }
+
+        return Unchecked.call(() -> HttpDateFormatterHolder.get().parse(s));
     }
 
     public String header(String key) {

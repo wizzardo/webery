@@ -1,7 +1,7 @@
 package com.wizzardo.http.websocket;
 
 import com.wizzardo.tools.io.BoyerMoore;
-import com.wizzardo.tools.misc.UncheckedThrow;
+import com.wizzardo.tools.misc.Unchecked;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -44,7 +44,7 @@ public class SimpleWebSocketClient extends Thread {
             try {
                 params.put(URLEncoder.encode(key, "utf-8"), URLEncoder.encode(value, "utf-8"));
             } catch (UnsupportedEncodingException e) {
-                throw UncheckedThrow.rethrow(e);
+                throw Unchecked.rethrow(e);
             }
             return this;
         }
