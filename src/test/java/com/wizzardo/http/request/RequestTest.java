@@ -151,7 +151,7 @@ public class RequestTest extends ServerTest {
 
         byte[] big = new byte[50 * 1024 * 1024];
         new Random().nextBytes(big);
-        String md5 = MD5.getMD5AsString(big);
+        String md5 = MD5.create().update(big).asString();
 
         handler = (request, response) -> {
             response.setHeader(Header.KEY_CONTENT_LENGTH, big.length);
@@ -164,10 +164,10 @@ public class RequestTest extends ServerTest {
             return response;
         };
 
-        Assert.assertEquals(md5, MD5.getMD5AsString(makeRequest("/").get().asStream()));
-        Assert.assertEquals(md5, MD5.getMD5AsString(makeRequest("/").get().asStream()));
-        Assert.assertEquals(md5, MD5.getMD5AsString(makeRequest("/").get().asStream()));
-        Assert.assertEquals(md5, MD5.getMD5AsString(makeRequest("/").get().asStream()));
+        Assert.assertEquals(md5, MD5.create().update(makeRequest("/").get().asStream()).asString());
+        Assert.assertEquals(md5, MD5.create().update(makeRequest("/").get().asStream()).asString());
+        Assert.assertEquals(md5, MD5.create().update(makeRequest("/").get().asStream()).asString());
+        Assert.assertEquals(md5, MD5.create().update(makeRequest("/").get().asStream()).asString());
 
 
         handler = (request, response) -> {
@@ -185,7 +185,7 @@ public class RequestTest extends ServerTest {
             return response;
         };
 
-        Assert.assertEquals(md5, MD5.getMD5AsString(makeRequest("/").get().asStream()));
+        Assert.assertEquals(md5, MD5.create().update(makeRequest("/").get().asStream()).asString());
     }
 
     @Test
@@ -219,13 +219,13 @@ public class RequestTest extends ServerTest {
 
         byte[] data = new byte[10 * 1024 * 1024];
         new Random().nextBytes(data);
-        final String md5 = MD5.getMD5AsString(data);
+        final String md5 = MD5.create().update(data).asString();
 
         handler = (request, response) -> {
             Assert.assertEquals(null, request.data());
             Assert.assertEquals(false, request.isMultipart());
             try {
-                return response.setBody(MD5.getMD5AsString(request.getInputStream()));
+                return response.setBody(MD5.create().update(request.getInputStream()).asString());
             } catch (IOException e) {
                 e.printStackTrace();
                 return response.setBody(e.getMessage());
@@ -246,7 +246,7 @@ public class RequestTest extends ServerTest {
                 while (l-- > 0)
                     out.write(in.read());
 
-                return response.setBody(MD5.getMD5AsString(out.toByteArray()));
+                return response.setBody(MD5.create().update(out.toByteArray()).asString());
             } catch (IOException e) {
                 e.printStackTrace();
                 return response.setBody(e.getMessage());

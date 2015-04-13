@@ -327,9 +327,9 @@ public class HeadersTest {
             sb.append("Connection: Keep-Alive\r\n");
             sb.append("Host: localhost\r\n");
             for (int j = 0; j < 50; j++) {
-                sb.append(MD5.getMD5AsString(String.valueOf(random.nextInt())));
+                sb.append(MD5.create().update(String.valueOf(random.nextInt())).asString());
                 sb.append(": ");
-                sb.append(MD5.getMD5AsString(String.valueOf(random.nextInt())));
+                sb.append(MD5.create().update(String.valueOf(random.nextInt())).asString());
                 sb.append("\r\n");
             }
             sb.append("\r\n");
