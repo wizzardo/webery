@@ -1,8 +1,10 @@
 package com.wizzardo.http.html;
 
 import com.wizzardo.tools.collections.CollectionTools;
+import com.wizzardo.tools.misc.Unchecked;
 
 import java.util.*;
+import java.util.concurrent.Callable;
 
 /**
  * Created by wizzardo on 08.01.15.
@@ -49,6 +51,18 @@ public class Tag {
             for (T t : collection) {
                 add(closure.execute(t));
             }
+        return this;
+    }
+
+    public Tag addIf(boolean check, Callable<Tag> closure) {
+        if (check)
+            add(Unchecked.call(closure));
+        return this;
+    }
+
+    public Tag addIf(boolean check, Tag tag) {
+        if (check)
+            add(tag);
         return this;
     }
 
