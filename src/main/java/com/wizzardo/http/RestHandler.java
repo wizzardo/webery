@@ -71,6 +71,22 @@ public class RestHandler implements Handler {
         return this;
     }
 
+    public RestHandler get(Handler get) {
+        return setGetHandler(get);
+    }
+
+    public RestHandler post(Handler post) {
+        return setPostHandler(post);
+    }
+
+    public RestHandler put(Handler put) {
+        return setPutHandler(put);
+    }
+
+    public RestHandler delete(Handler delete) {
+        return setDeleteHandler(delete);
+    }
+
     private void generateAllowHeader() {
         StringBuilder sb = new StringBuilder("Allow: ");
         boolean comma;
