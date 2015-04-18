@@ -6,35 +6,36 @@ import java.util.HashMap;
  * Created by wizzardo on 16.04.15.
  */
 public class TemplatesHolder<K> {
-    HashMap<K, UrlTemplate> templates = new HashMap<>();
-    private String base;
+    protected HashMap<K, UrlTemplate> templates = new HashMap<>();
+    protected String base;
+    protected String context;
 
-    private TemplatesHolder(String host, int port) {
+    public TemplatesHolder(String host, int port) {
         this(host, port, null);
     }
 
-    private TemplatesHolder(String host, int port, String context) {
-        if (!host.startsWith("http")) {
+    public TemplatesHolder(String host, int port, String context) {
+        if (!host.startsWith("http"))
             host = "http://" + host;
-        }
-        if (port != 80) {
+
+        if (port != 80)
             host += ":" + port;
-        }
-        if (context != null) {
-            host += "/" + context;
-        }
+
+
+        this.context = context;
         base = host;
     }
 
-    private TemplatesHolder(String base) {
+    public TemplatesHolder(String base) {
         this.base = base;
     }
 
-    public void add(K key, String url) {
+    public TemplatesHolder<K> append(K key, String url) {
         if (key == null)
-            return;
+            return this;
 
-        templates.put(key, new UrlTemplate(base, url));
+        templates.put(key, new UrlTemplate(base, context, url));
+        return this;
     }
 
     public UrlTemplate getTemplate(K key) {

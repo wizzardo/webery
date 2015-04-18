@@ -9,11 +9,13 @@ import java.util.regex.Pattern;
  */
 public class UrlTemplate {
     private String host;
+    private String context;
     private List<TemplateHolder> holders = new ArrayList<TemplateHolder>();
     private static Pattern variables = Pattern.compile("(/)?\\$\\{?([a-zA-Z_]+[\\w]*)\\}?\\??");
 
-    public UrlTemplate(String host, String url) {
+    public UrlTemplate(String host, String context, String url) {
         this.host = host;
+        this.context = context;
 
         Matcher m = variables.matcher(url);
         if (!m.find()) {
@@ -44,9 +46,17 @@ public class UrlTemplate {
         return getRelativeUrl(params, sb);
     }
 
+    public String getAbsoluteUrl() {
+        return getAbsoluteUrl(null);
+    }
+
     public String getAbsoluteUrl(Map<String, Object> params) {
         StringBuilder sb = new StringBuilder(host);
         return getRelativeUrl(params, sb);
+    }
+
+    public String getRelativeUrl() {
+        return getRelativeUrl(null);
     }
 
     public String getRelativeUrl(Map params) {
@@ -55,6 +65,9 @@ public class UrlTemplate {
     }
 
     private String getRelativeUrl(Map<?, ?> paramsSrc, StringBuilder sb) {
+        if(context!=null)
+            sb.append('/').append(context);
+
         Map<Object, Object> params;
 
         if (paramsSrc != null)
