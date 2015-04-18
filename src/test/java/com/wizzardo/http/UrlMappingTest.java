@@ -1,9 +1,11 @@
 package com.wizzardo.http;
 
+import com.wizzardo.http.mapping.TemplatesHolder;
 import org.junit.Assert;
 import org.junit.Test;
 
 import java.io.IOException;
+import java.util.HashMap;
 
 /**
  * @author: wizzardo
@@ -69,11 +71,47 @@ public class UrlMappingTest extends ServerTest {
                 .append("/action1", (request, response) -> response.setBody("action1"))
                 .append("/", (request, response) -> response.setBody("action2"))
         ;
-        ((UrlHandler)handler).setContext("context");
+        ((UrlHandler) handler).setContext("context");
 
 
         Assert.assertEquals("action1", makeRequest("/context/action1").get().asString());
         Assert.assertEquals("action2", makeRequest("/context/").get().asString());
         Assert.assertEquals("/ not found", makeRequest("/").get().asString());
+    }
+
+    @Test
+    public void testUrlTemplates() throws IOException {
+        TemplatesHolder<String> templates = new TemplatesHolder<>("localhost", 8080, "context");
+        templates
+                .append("action1", "/action1")
+                .append("action2", "/action2")
+                .append("action3", "/3/$action?/${id}?")
+                .append("action4", "/pattern/${foo}-${bar}")
+                .append("action5", "/$action/1")
+                .append("action6", "/2/$action?")
+        ;
+
+        Assert.assertEquals("/context/action1", templates.getTemplate("action1").getRelativeUrl());
+        Assert.assertEquals("/context/action2", templates.getTemplate("action2").getRelativeUrl());
+        Assert.assertEquals("http://localhost:8080/context/action2", templates.getTemplate("action2").getAbsoluteUrl());
+        Assert.assertEquals("/context/3/foo/123", templates.getTemplate("action3").getRelativeUrl(new HashMap() {{
+            put("action", "foo");
+            put("id", 123);
+        }}));
+        Assert.assertEquals("/context/3/foo", templates.getTemplate("action3").getRelativeUrl(new HashMap() {{
+            put("action", "foo");
+        }}));
+        Assert.assertEquals("/context/3", templates.getTemplate("action3").getRelativeUrl());
+        Assert.assertEquals("/context/pattern/foo-bar", templates.getTemplate("action4").getRelativeUrl(new HashMap() {{
+            put("foo", "foo");
+            put("bar", "bar");
+        }}));
+        Assert.assertEquals("/context/foo/1", templates.getTemplate("action5").getRelativeUrl(new HashMap() {{
+            put("action", "foo");
+        }}));
+        Assert.assertEquals("/context/2/foo", templates.getTemplate("action6").getRelativeUrl(new HashMap() {{
+            put("action", "foo");
+        }}));
+        Assert.assertEquals("/context/2", templates.getTemplate("action6").getRelativeUrl());
     }
 }
