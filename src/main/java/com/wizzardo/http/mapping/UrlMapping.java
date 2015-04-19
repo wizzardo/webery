@@ -22,9 +22,15 @@ public class UrlMapping<T> {
     protected T value;
     protected UrlMapping<T> parent;
     protected UrlMappingEndsWith<T> endsWithMapping;
+    protected TemplatesHolder<String> urlTemplates;
     protected String context;
 
     public UrlMapping() {
+    }
+
+    public UrlMapping(String host, int port, String context) {
+        this.context = context;
+        urlTemplates = new TemplatesHolder<>(host, port, context);
     }
 
     protected UrlMapping(UrlMapping parent) {
@@ -136,6 +142,13 @@ public class UrlMapping<T> {
     }
 
     public UrlMapping<T> append(String url, T handler) {
+        return append(url, null, handler);
+    }
+
+    public UrlMapping<T> append(String url, String name, T handler) {
+        if (name != null)
+            urlTemplates.append(name, url);
+
         String[] parts = url.split("/");
         UrlMapping<T> tree = this;
         int counter = 0;
