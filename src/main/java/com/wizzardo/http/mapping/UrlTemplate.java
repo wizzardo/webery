@@ -17,6 +17,11 @@ public class UrlTemplate {
         this.host = host;
         this.context = context;
 
+        if (url.endsWith("/*"))
+            url = url.substring(0, url.length() - 2);
+        else if (url.endsWith("*"))
+            url = url.substring(0, url.length() - 1);
+
         Matcher m = variables.matcher(url);
         if (!m.find()) {
             holders.add(new StringHolder(url));
@@ -42,33 +47,49 @@ public class UrlTemplate {
     }
 
     public String getUrl(String base, Map<String, Object> params) {
-        StringBuilder sb = new StringBuilder(base);
-        return getRelativeUrl(params, sb);
+        return getRelativeUrl(params, null, new StringBuilder(base));
     }
 
     public String getAbsoluteUrl() {
-        return getAbsoluteUrl(null);
+        return getRelativeUrl(null, null, new StringBuilder(host));
     }
 
     public String getAbsoluteUrl(Map<String, Object> params) {
-        StringBuilder sb = new StringBuilder(host);
-        return getRelativeUrl(params, sb);
+        return getRelativeUrl(params, null, new StringBuilder(host));
+    }
+
+    public String getAbsoluteUrl(Map<String, Object> params, String suffix) {
+        return getRelativeUrl(params, suffix, new StringBuilder(host));
+    }
+
+    public String getAbsoluteUrl(String suffix) {
+        return getRelativeUrl(null, suffix, new StringBuilder(host));
     }
 
     public String getRelativeUrl() {
-        return getRelativeUrl(null);
+        return getRelativeUrl(null, null, null);
     }
 
-    public String getRelativeUrl(Map params) {
-        StringBuilder sb = new StringBuilder();
-        return getRelativeUrl(params, sb);
+    public String getRelativeUrl(Map<String, Object> params) {
+        return getRelativeUrl(params, null, null);
     }
 
-    private String getRelativeUrl(Map<?, ?> paramsSrc, StringBuilder sb) {
-        if(context!=null)
+    public String getRelativeUrl(Map<String, Object> params, String suffix) {
+        return getRelativeUrl(params, suffix, null);
+    }
+
+    public String getRelativeUrl(String suffix) {
+        return getRelativeUrl(null, suffix, null);
+    }
+
+    public String getRelativeUrl(Map<String, ?> paramsSrc, String suffix, StringBuilder sb) {
+        if (sb == null)
+            sb = new StringBuilder();
+
+        if (context != null)
             sb.append('/').append(context);
 
-        Map<Object, Object> params;
+        Map<String, Object> params;
 
         if (paramsSrc != null)
             params = new LinkedHashMap<>(paramsSrc);
@@ -79,6 +100,10 @@ public class UrlTemplate {
             if (!holder.append(sb, params))
                 break;
         }
+
+        if (suffix != null)
+            sb.append(suffix);
+
         if (!params.isEmpty()) {
             sb.append("?");
             boolean and = false;
