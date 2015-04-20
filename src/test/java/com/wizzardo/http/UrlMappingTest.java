@@ -89,29 +89,47 @@ public class UrlMappingTest extends ServerTest {
                 .append("action4", "/pattern/${foo}-${bar}")
                 .append("action5", "/$action/1")
                 .append("action6", "/2/$action?")
+                .append("any", "/any/*")
+                .append("action7", "/any/${var}/*")
+                .append("action8", "/any/${var}-*")
         ;
 
         Assert.assertEquals("/context/action1", templates.getTemplate("action1").getRelativeUrl());
         Assert.assertEquals("/context/action2", templates.getTemplate("action2").getRelativeUrl());
         Assert.assertEquals("http://localhost:8080/context/action2", templates.getTemplate("action2").getAbsoluteUrl());
-        Assert.assertEquals("/context/3/foo/123", templates.getTemplate("action3").getRelativeUrl(new HashMap() {{
+        Assert.assertEquals("/context/3/foo/123", templates.getTemplate("action3").getRelativeUrl(new HashMap<String, Object>() {{
             put("action", "foo");
             put("id", 123);
         }}));
-        Assert.assertEquals("/context/3/foo", templates.getTemplate("action3").getRelativeUrl(new HashMap() {{
+        Assert.assertEquals("/context/3/foo", templates.getTemplate("action3").getRelativeUrl(new HashMap<String, Object>() {{
             put("action", "foo");
         }}));
         Assert.assertEquals("/context/3", templates.getTemplate("action3").getRelativeUrl());
-        Assert.assertEquals("/context/pattern/foo-bar", templates.getTemplate("action4").getRelativeUrl(new HashMap() {{
+        Assert.assertEquals("/context/pattern/foo-bar", templates.getTemplate("action4").getRelativeUrl(new HashMap<String, Object>() {{
             put("foo", "foo");
             put("bar", "bar");
         }}));
-        Assert.assertEquals("/context/foo/1", templates.getTemplate("action5").getRelativeUrl(new HashMap() {{
+        Assert.assertEquals("/context/foo/1", templates.getTemplate("action5").getRelativeUrl(new HashMap<String, Object>() {{
             put("action", "foo");
         }}));
-        Assert.assertEquals("/context/2/foo", templates.getTemplate("action6").getRelativeUrl(new HashMap() {{
+        Assert.assertEquals("/context/2/foo", templates.getTemplate("action6").getRelativeUrl(new HashMap<String, Object>() {{
             put("action", "foo");
         }}));
         Assert.assertEquals("/context/2", templates.getTemplate("action6").getRelativeUrl());
+
+        Assert.assertEquals("/context/any", templates.getTemplate("any").getRelativeUrl());
+        Assert.assertEquals("/context/any/foo/bar", templates.getTemplate("any").getRelativeUrl("/foo/bar"));
+        Assert.assertEquals("/context/any/foo", templates.getTemplate("action7").getRelativeUrl(new HashMap<String, Object>() {{
+            put("var", "foo");
+        }}));
+        Assert.assertEquals("/context/any/foo/foo/bar", templates.getTemplate("action7").getRelativeUrl(new HashMap<String, Object>() {{
+            put("var", "foo");
+        }}, "/foo/bar"));
+        Assert.assertEquals("/context/any/foo-", templates.getTemplate("action8").getRelativeUrl(new HashMap<String, Object>() {{
+            put("var", "foo");
+        }}));
+        Assert.assertEquals("/context/any/foo-foo/bar", templates.getTemplate("action8").getRelativeUrl(new HashMap<String, Object>() {{
+            put("var", "foo");
+        }}, "foo/bar"));
     }
 }
