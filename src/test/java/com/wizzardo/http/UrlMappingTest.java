@@ -132,4 +132,25 @@ public class UrlMappingTest extends ServerTest {
             put("var", "foo");
         }}, "foo/bar"));
     }
+
+    @Test
+    public void testUrlTemplatesVariables() throws IOException {
+        TemplatesHolder<String> templates = new TemplatesHolder<>("localhost", 8080);
+        templates
+                .append("action1", "/${var}")
+                .append("action2", "/prefix-${var}")
+                .append("action3", "/prefix-${var}-suffix")
+        ;
+
+        Assert.assertEquals("/null", templates.getTemplate("action1").getRelativeUrl());
+        Assert.assertEquals("/foo", templates.getTemplate("action1").getRelativeUrl(new HashMap<String, Object>() {{
+            put("var", "foo");
+        }}));
+        Assert.assertEquals("/prefix-foo", templates.getTemplate("action2").getRelativeUrl(new HashMap<String, Object>() {{
+            put("var", "foo");
+        }}));
+        Assert.assertEquals("/prefix-foo-suffix", templates.getTemplate("action3").getRelativeUrl(new HashMap<String, Object>() {{
+            put("var", "foo");
+        }}));
+    }
 }
