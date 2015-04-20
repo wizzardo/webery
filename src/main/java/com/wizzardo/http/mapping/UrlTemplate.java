@@ -124,11 +124,9 @@ public class UrlTemplate {
 
     class StringHolder implements TemplateHolder {
         String value;
-        byte[] bytes;
 
         public StringHolder(String value) {
             this.value = value;
-            bytes = value.getBytes();
         }
 
 
@@ -142,15 +140,12 @@ public class UrlTemplate {
     class VariableHolder implements TemplateHolder {
         String param;
         String prefix;
-        byte[] prefixBytes;
         boolean optional = false;
 
         public VariableHolder(String param, String prefix, boolean optional) {
             this.param = param;
             this.optional = optional;
             this.prefix = prefix;
-            if (prefix != null)
-                prefixBytes = prefix.getBytes();
         }
 
         @Override
