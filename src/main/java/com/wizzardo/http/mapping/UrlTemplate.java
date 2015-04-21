@@ -1,5 +1,8 @@
 package com.wizzardo.http.mapping;
 
+import com.wizzardo.tools.misc.Unchecked;
+
+import java.net.URLEncoder;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -112,7 +115,9 @@ public class UrlTemplate {
                     sb.append("&");
                 else
                     and = true;
-                sb.append(param.getKey()).append("=").append(param.getValue());
+                sb.append(param.getKey())
+                        .append("=")
+                        .append(Unchecked.call(() -> URLEncoder.encode(String.valueOf(param.getValue()), "utf-8")));
             }
         }
         return sb.toString();
@@ -155,7 +160,7 @@ public class UrlTemplate {
                 return false;
             if (prefix != null)
                 sb.append(prefix);
-            sb.append(value);
+            sb.append(Unchecked.call(() -> URLEncoder.encode(String.valueOf(value), "utf-8")));
             return true;
         }
     }

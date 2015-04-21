@@ -153,4 +153,20 @@ public class UrlMappingTest extends ServerTest {
             put("var", "foo");
         }}));
     }
+
+    @Test
+    public void testUrlTemplatesVariablesUrlEncode() throws IOException {
+        TemplatesHolder<String> templates = new TemplatesHolder<>("localhost", 8080);
+        templates
+                .append("action1", "/${var}")
+        ;
+
+        Assert.assertEquals("/foo%26bar", templates.getTemplate("action1").getRelativeUrl(new HashMap<String, Object>() {{
+            put("var", "foo&bar");
+        }}));
+        Assert.assertEquals("/foo%26bar?key=a%3Db", templates.getTemplate("action1").getRelativeUrl(new HashMap<String, Object>() {{
+            put("var", "foo&bar");
+            put("key", "a=b");
+        }}));
+    }
 }
