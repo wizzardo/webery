@@ -8,7 +8,7 @@ import com.wizzardo.http.request.Request;
 class UrlMappingMatcherAnyVariable<T> extends UrlMappingWithVariables<T> {
     protected String variable;
 
-    protected UrlMappingMatcherAnyVariable(UrlMapping parent, String part, int partNumber) {
+    protected UrlMappingMatcherAnyVariable(UrlMapping<T> parent, String part, int partNumber) {
         super(parent, part, partNumber);
         variable = variables[0];
     }

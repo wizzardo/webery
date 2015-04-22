@@ -10,7 +10,7 @@ import java.util.List;
 class UrlMappingEndsWith<T> extends UrlMapping<T> {
     protected CharTree<UrlMapping<T>> endsWith = new CharTree<>();
 
-    protected UrlMappingEndsWith(UrlMapping parent) {
+    protected UrlMappingEndsWith(UrlMapping<T> parent) {
         super(parent);
     }
 

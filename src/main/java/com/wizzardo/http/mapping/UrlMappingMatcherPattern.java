@@ -8,7 +8,7 @@ import java.util.regex.Pattern;
 class UrlMappingMatcherPattern<T> extends UrlMappingMatcher<T> {
     Pattern pattern;
 
-    protected UrlMappingMatcherPattern(UrlMapping parent, String pattern) {
+    protected UrlMappingMatcherPattern(UrlMapping<T> parent, String pattern) {
         super(parent);
         this.pattern = Pattern.compile(pattern);
     }

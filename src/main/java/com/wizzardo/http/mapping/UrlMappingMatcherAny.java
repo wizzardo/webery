@@ -4,7 +4,7 @@ package com.wizzardo.http.mapping;
 * Created by wizzardo on 27.03.15.
 */
 class UrlMappingMatcherAny<T> extends UrlMappingMatcher<T> {
-    protected UrlMappingMatcherAny(UrlMapping parent) {
+    protected UrlMappingMatcherAny(UrlMapping<T> parent) {
         super(parent);
     }
 

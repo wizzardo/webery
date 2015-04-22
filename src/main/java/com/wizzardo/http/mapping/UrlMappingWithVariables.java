@@ -15,7 +15,7 @@ class UrlMappingWithVariables<T> extends UrlMappingMatcher<T> {
     Pattern pattern;
     int partNumber;
 
-    UrlMappingWithVariables(UrlMapping parent, String part, int partNumber) {
+    UrlMappingWithVariables(UrlMapping<T> parent, String part, int partNumber) {
         super(parent);
         this.partNumber = partNumber;
         Matcher m = VARIABLES.matcher(part);
