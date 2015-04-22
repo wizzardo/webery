@@ -22,6 +22,7 @@ public class ServerTest {
     protected int workers = 4;
     protected int port = 9999;
     protected volatile Handler handler;
+    protected String context;
 
     @Rule
     public TestName name = new TestName();
@@ -29,7 +30,7 @@ public class ServerTest {
     @Before
     public void setUp() throws NoSuchMethodException, ClassNotFoundException, NoSuchFieldException {
         System.out.println("setUp " + name.getMethodName());
-        server = new HttpServer(null, port, workers) {
+        server = new HttpServer(null, port, context, workers) {
             @Override
             protected Response handle(Request request, Response response) throws IOException {
                 response.setHeader(Header.KEY_CONNECTION, Header.VALUE_CLOSE);
@@ -60,6 +61,7 @@ public class ServerTest {
         System.out.println("tearDown " + name.getMethodName());
         server.stopEpoll();
         handler = null;
+        context = null;
     }
 
 

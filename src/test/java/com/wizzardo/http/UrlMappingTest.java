@@ -64,22 +64,6 @@ public class UrlMappingTest extends ServerTest {
     }
 
     @Test
-    public void testContext() throws IOException {
-        server.setContext("context");
-
-        handler = new UrlHandler()
-                .append("/action1", (request, response) -> response.setBody("action1"))
-                .append("/", (request, response) -> response.setBody("action2"))
-        ;
-        ((UrlHandler) handler).setContext("context");
-
-
-        Assert.assertEquals("action1", makeRequest("/context/action1").get().asString());
-        Assert.assertEquals("action2", makeRequest("/context/").get().asString());
-        Assert.assertEquals("/ not found", makeRequest("/").get().asString());
-    }
-
-    @Test
     public void testUrlTemplates() throws IOException {
         TemplatesHolder<String> templates = new TemplatesHolder<>("localhost", 8080, "context");
         templates
