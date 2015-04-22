@@ -8,6 +8,14 @@ import java.util.regex.Pattern;
  */
 public class ChainUrlMapping<T> extends UrlMapping<ChainUrlMapping.Chain<T>> {
 
+    public ChainUrlMapping() {
+        super();
+    }
+
+    public ChainUrlMapping(String context) {
+        super(context);
+    }
+
     public ChainUrlMapping<T> add(String url, T t) {
         UrlMapping<Chain<T>> tree = this;
         String[] parts = url.split("/");

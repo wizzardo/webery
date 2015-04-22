@@ -11,7 +11,15 @@ import java.io.IOException;
  * Created by wizzardo on 10.01.15.
  */
 public class UrlHandler implements Handler {
-    private UrlMapping<Handler> mapping = new UrlMapping<>();
+    private UrlMapping<Handler> mapping;
+
+    public UrlHandler() {
+        this(null);
+    }
+
+    public UrlHandler(String context) {
+        mapping = new UrlMapping<>(context);
+    }
 
     @Override
     public Response handle(Request request, Response response) throws IOException {
@@ -26,9 +34,5 @@ public class UrlHandler implements Handler {
     public UrlHandler append(String url, Handler handler) {
         mapping.append(url, handler);
         return this;
-    }
-
-    public void setContext(String context) {
-        mapping.setContext(context);
     }
 }

@@ -28,12 +28,16 @@ public class UrlMapping<T> {
     public UrlMapping() {
     }
 
+    public UrlMapping(String context) {
+        this.context = context;
+    }
+
     public UrlMapping(String host, int port, String context) {
         this.context = context;
         urlTemplates = new TemplatesHolder<>(host, port, context);
     }
 
-    protected UrlMapping(UrlMapping parent) {
+    protected UrlMapping(UrlMapping<T> parent) {
         this.parent = parent;
     }
 
@@ -46,12 +50,11 @@ public class UrlMapping<T> {
             parent.prepare(request);
     }
 
-    public void setContext(String context) {
-        this.context = context;
-    }
+    public UrlTemplate getUrlTemplate(String name) {
+        if (urlTemplates == null)
+            return null;
 
-    public String getContext() {
-        return context;
+        return urlTemplates.getTemplate(name);
     }
 
     public T get(Request request) {

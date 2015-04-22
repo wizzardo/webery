@@ -13,8 +13,17 @@ import com.wizzardo.http.response.Response;
  */
 public class FiltersMapping {
 
-    protected ChainUrlMapping<Filter> before = new ChainUrlMapping<>();
-    protected ChainUrlMapping<Filter> after = new ChainUrlMapping<>();
+    protected ChainUrlMapping<Filter> before;
+    protected ChainUrlMapping<Filter> after;
+
+    public FiltersMapping() {
+        this(null);
+    }
+
+    public FiltersMapping(String context) {
+        before = new ChainUrlMapping<>(context);
+        after = new ChainUrlMapping<>(context);
+    }
 
     public FiltersMapping addBefore(String url, Filter handler) {
         before.add(url, handler);
@@ -50,10 +59,5 @@ public class FiltersMapping {
 
         }
         return true;
-    }
-
-    public void setContext(String context) {
-        before.setContext(context);
-        after.setContext(context);
     }
 }

@@ -20,8 +20,8 @@ public class HttpServer<T extends HttpConnection> extends AbstractHttpServer<T> 
             .buildStaticResponse();
 
     private byte[] serverName = "Server: wizzardo-http/0.1\r\n".getBytes();
-    protected FiltersMapping filtersMapping = new FiltersMapping();
-    protected UrlMapping<Handler> urlMapping = new UrlMapping<>();
+    protected FiltersMapping filtersMapping;
+    protected UrlMapping<Handler> urlMapping;
     protected ServerDate serverDate = new ServerDate();
 
     public HttpServer(int port) {
@@ -29,11 +29,24 @@ public class HttpServer<T extends HttpConnection> extends AbstractHttpServer<T> 
     }
 
     public HttpServer(String host, int port) {
-        this(host, port, 0);
+        this(host, port, null, 0);
+    }
+
+    public HttpServer(String host, int port, String context) {
+        this(host, port, context, 0);
     }
 
     public HttpServer(String host, int port, int workersCount) {
+        this(host, port, null, workersCount);
+    }
+
+    public HttpServer(String host, int port, String context, int workersCount) {
         super(host, port, workersCount);
+        if(host == null)
+            host = "0.0.0.0";
+
+        urlMapping = new UrlMapping<>(host, port, context);
+        filtersMapping = new FiltersMapping(context);
 
         urlMapping.append("/", (request, response) -> response.setStaticResponse(staticResponse.copy()));
     }
@@ -72,70 +85,5 @@ public class HttpServer<T extends HttpConnection> extends AbstractHttpServer<T> 
         else
             response.setStatus(Status._404).setBody(request.path() + " not found");
         return response;
-    }
-
-    public void setContext(String context) {
-        urlMapping.setContext(context);
-        filtersMapping.setContext(context);
-    }
-
-    public static void main(String[] args) {
-        HttpServer server = new HttpServer(null, 8084, args.length > 0 ? Integer.parseInt(args[0]) : 0);
-        server.setIoThreadsCount(args.length > 1 ? Integer.parseInt(args[1]) : 1);
-        ReadableByteBuffer staticResponse = new Response()
-                .appendHeader(Header.KEY_CONNECTION, Header.VALUE_KEEP_ALIVE)
-                .appendHeader(Header.KEY_CONTENT_TYPE, Header.VALUE_HTML_UTF8)
-                .setBody("ololo".getBytes())
-                .buildStaticResponse();
-
-        server.getUrlMapping()
-//                        .append("/ololo", (request, response) -> response.setStaticResponse(staticResponse.copy()))
-//                        .append("/*", new FileTreeHandler("/usr/share/nginx/html/", ""))
-                .append("/*", new FileTreeHandler("/media/wizzardo/DATA/", ""))
-//                        .append("/*", new FileTreeHandler("/home/wizzardo/", ""))
-        ;
-//        server.setHandler(new UrlHandler()
-//                        .append("/static/*", new FileTreeHandler("/home/wizzardo/", "/static"))
-//                        .append("/echo", new WebSocketHandler() {
-//                            @Override
-//                            public void onMessage(WebSocketListener listener, Message message) {
-//                                System.out.println(message.asString());
-//                                listener.sendMessage(message);
-//                            }
-//                        }).append("/time", new WebSocketHandler() {
-//                            {
-//                                final Thread thread = new Thread(() -> {
-//                                    while (true) {
-//                                        try {
-//                                            Thread.sleep(1000);
-//                                        } catch (InterruptedException ignored) {
-//                                        }
-//
-//                                        broadcast(new Date().toString());
-//                                    }
-//                                });
-//                                thread.setDaemon(true);
-//                                thread.start();
-//                            }
-//
-//                            ConcurrentLinkedQueue<WebSocketListener> listeners = new ConcurrentLinkedQueue<>();
-//
-//                            void broadcast(String message) {
-//                                Message m = new Message().append(message);
-//
-//                                Iterator<WebSocketListener> iter = listeners.iterator();
-//                                while (iter.hasNext()) {
-//                                    WebSocketListener listener = iter.next();
-//                                    listener.sendMessage(m);
-//                                }
-//                            }
-//
-//                            @Override
-//                            public void onConnect(WebSocketListener listener) {
-//                                listeners.add(listener);
-//                            }
-//                        })
-//        );
-        server.start();
     }
 }
