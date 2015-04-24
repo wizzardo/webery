@@ -22,5 +22,5 @@ public abstract class Renderer {
         return model;
     }
 
-    protected abstract ReadableData render();
+    protected abstract RenderResult render();
 }

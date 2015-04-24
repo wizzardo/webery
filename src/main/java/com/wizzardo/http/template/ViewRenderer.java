@@ -1,7 +1,5 @@
 package com.wizzardo.http.template;
 
-import com.wizzardo.epoll.readable.ReadableBuilder;
-import com.wizzardo.epoll.readable.ReadableData;
 import com.wizzardo.tools.cache.Cache;
 import com.wizzardo.tools.collections.CollectionTools;
 import com.wizzardo.tools.collections.Pair;
@@ -41,9 +39,10 @@ public class ViewRenderer extends Renderer {
     }
 
     @Override
-    protected ReadableData render() {
+    protected RenderResult render() {
         if (template != null)
             return render(template, model);
+
         return render(controller, view, model);
     }
 
@@ -180,9 +179,9 @@ public class ViewRenderer extends Renderer {
 
     private static Renderable createRenderClosure(final String pathToView, String params, final String offset) {
         ExecutableTagHolder.InnerHolderHelper p = new ExecutableTagHolder.InnerHolderHelper(params);
-        CollectionTools.Closure2<ReadableBuilder, String, Map<String, Object>> c = (path, model) -> {
+        CollectionTools.Closure2<RenderResult, String, Map<String, Object>> c = (path, model) -> {
             List<Renderable> l = viewsCache.get(new Pair<>(path, offset));
-            ReadableBuilder result = new ReadableBuilder();
+            RenderResult result = new RenderResult();
             for (Renderable renderable : l) {
                 result.append(renderable.get(model));
             }
@@ -191,23 +190,23 @@ public class ViewRenderer extends Renderer {
 
         return new ExpressionHolder() {
             @Override
-            public ReadableBuilder get(Map<String, Object> model) {
+            public RenderResult get(Map<String, Object> model) {
                 Map m = (Map) p.get(model);
                 return c.execute(pathToView, m);
             }
         };
     }
 
-    public static ReadableData render(String controller, String view, Model model) {
+    public static RenderResult render(String controller, String view, Model model) {
         String path = "views/" + controller + "/" + view + ".gsp";
         RenderableList l = viewsCache.get(new Pair<>(path, ""));
-        ReadableData result = l.get(model);
+        RenderResult result = l.get(model);
         return result;
     }
 
-    public static ReadableData render(String template, Model model) {
+    public static RenderResult render(String template, Model model) {
         RenderableList l = templatesCache.get(new Pair<>(template, ""));
-        ReadableData result = l.get(model);
+        RenderResult result = l.get(model);
         return result;
     }
 }

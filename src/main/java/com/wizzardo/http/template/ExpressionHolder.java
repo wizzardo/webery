@@ -27,8 +27,8 @@ public class ExpressionHolder implements Renderable {
     protected ExpressionHolder() {
     }
 
-    public ReadableData get(Map<String, Object> model) {
-        return new ReadableByteArray(String.valueOf(getRaw(model)).getBytes(StandardCharsets.UTF_8));
+    public RenderResult get(Map<String, Object> model) {
+        return new RenderResult(String.valueOf(getRaw(model)));
     }
 
     private static Pattern p = Pattern.compile("\\$\\{([^\\{\\}]+)\\}|\\$([^\\., -]+)|(\\[.+\\])");

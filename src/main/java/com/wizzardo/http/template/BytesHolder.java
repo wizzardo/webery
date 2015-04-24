@@ -21,8 +21,8 @@ public class BytesHolder implements Renderable {
         this.bytes = s.getBytes(StandardCharsets.UTF_8);
     }
 
-    public ReadableData get(Map<String, Object> model) {
-        return new ReadableByteArray(bytes);
+    public RenderResult get(Map<String, Object> model) {
+        return new RenderResult(bytes);
     }
 
     @Override

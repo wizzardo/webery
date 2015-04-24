@@ -9,5 +9,5 @@ import java.util.Map;
  * Date: 2/11/13
  */
 public interface Renderable {
-    ReadableData get(Map<String, Object> model);
+    RenderResult get(Map<String, Object> model);
 }

@@ -13,8 +13,8 @@ import java.util.Map;
 public class RenderableList extends ArrayList<Renderable> implements Renderable {
 
     @Override
-    public ReadableData get(Map<String, Object> model) {
-        ReadableBuilder result = new ReadableBuilder();
+    public RenderResult get(Map<String, Object> model) {
+        RenderResult result = new RenderResult();
         for (Renderable renderable : this) {
             result.append(renderable.get(model));
         }

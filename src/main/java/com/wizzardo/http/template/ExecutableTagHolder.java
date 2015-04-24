@@ -14,11 +14,11 @@ import java.util.regex.Pattern;
  * Date: 2/11/13
  */
 public class ExecutableTagHolder implements Renderable {
-    private CollectionTools.Closure2<ReadableData, Map<String, Object>, Body> closure;
+    private CollectionTools.Closure2<RenderResult, Map<String, Object>, Body> closure;
     private Map<String, InnerHolder> attrsRaw;
     private Body body;
 
-    public ExecutableTagHolder(Body body, CollectionTools.Closure2<ReadableData, Map<String, Object>, Body> closure) {
+    public ExecutableTagHolder(Body body, CollectionTools.Closure2<RenderResult, Map<String, Object>, Body> closure) {
         this.closure = closure;
         attrsRaw = new LinkedHashMap<>(body.attributes().size());
         this.body = body;
@@ -27,7 +27,7 @@ public class ExecutableTagHolder implements Renderable {
         }
     }
 
-    public ReadableData get(Map<String, Object> model) {
+    public RenderResult get(Map<String, Object> model) {
         Map<String, Object> attrs = new HashMap<String, Object>(attrsRaw.size() + model.size());
         attrs.putAll(model);
         for (Map.Entry<String, InnerHolder> attr : attrsRaw.entrySet()) {
