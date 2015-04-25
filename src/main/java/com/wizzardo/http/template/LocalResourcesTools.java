@@ -1,10 +1,12 @@
 package com.wizzardo.http.template;
 
 
+import com.wizzardo.tools.io.IOTools;
 import com.wizzardo.tools.io.ZipTools;
 
 import java.io.*;
 import java.net.URISyntaxException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.zip.ZipEntry;
@@ -59,32 +61,10 @@ public class LocalResourcesTools implements ResourceTools {
     }
 
     public String getResourceAsString(String path) {
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-
-        int r;
-        byte[] b = new byte[10240];
-        InputStream in = null;
         try {
-            in = getResource(path);
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        }
-        if (in == null) {
-            return null;
-        }
-
-        try {
-            while ((r = in.read(b)) != -1) {
-                out.write(b, 0, r);
-            }
-            in.close();
+            return new String(IOTools.bytes(getResource(path)), StandardCharsets.UTF_8);
         } catch (IOException e) {
             e.printStackTrace();
-        }
-
-        try {
-            return out.toString("utf-8");
-        } catch (UnsupportedEncodingException ignore) {
         }
         return null;
     }
@@ -127,12 +107,7 @@ public class LocalResourcesTools implements ResourceTools {
 
     private void getClasses(File homeDir, File f, List<Class> l) {
         if (f.isDirectory()) {
-            for (File file : f.listFiles(new FileFilter() {
-                @Override
-                public boolean accept(File f) {
-                    return f.isDirectory() || (f.getName().endsWith(".class"));
-                }
-            })) {
+            for (File file : f.listFiles(f1 -> f1.isDirectory() || (f1.getName().endsWith(".class")))) {
                 getClasses(homeDir, file, l);
             }
         } else {
