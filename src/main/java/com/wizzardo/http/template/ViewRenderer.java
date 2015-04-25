@@ -66,29 +66,6 @@ public class ViewRenderer extends Renderer {
         return l;
     });
 
-    public static void prepare(String s, StringBuilder sb, RenderableList l) {
-        if (s.contains("$")) {
-            Matcher m = p.matcher(s);
-            int last = 0;
-            while (m.find()) {
-                sb.append(s.substring(last, m.start()));
-                l.add(new BytesHolder(sb.toString().getBytes()));
-                sb.setLength(0);
-                String exp = m.group(1);
-                if (exp == null) {
-                    exp = m.group(2);
-                }
-                l.add(new ExpressionHolder(exp));
-                last = m.end();
-            }
-            if (last != s.length()) {
-                sb.append(s.substring(last));
-            }
-        } else {
-            sb.append(s);
-        }
-    }
-
     public static void prepare(String s, RenderableList l) {
         if (s.contains("$")) {
             Matcher m = p.matcher(s);
