@@ -95,9 +95,9 @@ public class ViewRenderer extends Renderer {
 
     static void prepare(Node n, RenderableList l, String dir, String offset) {
         if (n.name() == null) {
-//            sb.append(offset);
+            l.append(offset);
             prepare(n.textOwn(), l);
-//            sb.append("\n");
+            l.append("\n");
             return;
         }
 
