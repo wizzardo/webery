@@ -1,8 +1,5 @@
 package com.wizzardo.http.template;
 
-import com.wizzardo.epoll.readable.ReadableByteArray;
-import com.wizzardo.epoll.readable.ReadableData;
-
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
@@ -28,5 +25,16 @@ public class BytesHolder implements Renderable {
     @Override
     public String toString() {
         return new String(bytes, StandardCharsets.UTF_8);
+    }
+
+    public void append(byte[] bytes) {
+        byte[] b = new byte[bytes.length + this.bytes.length];
+        System.arraycopy(this.bytes, 0, b, 0, this.bytes.length);
+        System.arraycopy(bytes, 0, b, this.bytes.length, bytes.length);
+        this.bytes = b;
+    }
+
+    public void append(String s) {
+        append(s.getBytes(StandardCharsets.UTF_8));
     }
 }

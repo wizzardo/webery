@@ -28,6 +28,7 @@ public class RenderTest {
         RenderResult result = l.get(model);
 
 //        System.out.println(result.toString());
+        Assert.assertEquals(3, l.size());
         Assert.assertEquals("<div style=\"width: 100px\">\n" +
                 "    <a href=\"http://ya.ru\">\n" +
                 "        yandex\n" +
