@@ -87,13 +87,13 @@ public class ViewRenderer extends Renderer {
         }
     }
 
-    static void prepare(List<Node> n, RenderableList l, String dir, String offset) {
+    public static void prepare(List<Node> n, RenderableList l, String dir, String offset) {
         for (Node node : n) {
             prepare(node, l, dir, offset);
         }
     }
 
-    static void prepare(Node n, RenderableList l, String dir, String offset) {
+    public static void prepare(Node n, RenderableList l, String dir, String offset) {
         if (n.name() == null) {
             l.append(offset);
             prepare(n.textOwn(), l);

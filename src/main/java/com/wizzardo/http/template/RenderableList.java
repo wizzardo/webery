@@ -47,7 +47,9 @@ public class RenderableList extends ArrayList<Renderable> implements Renderable 
     }
 
     public RenderableList append(RenderableList renderables) {
-        addAll(renderables);
+        for (Renderable renderable : renderables) {
+            add(renderable);
+        }
         return this;
     }
 }
