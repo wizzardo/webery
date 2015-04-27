@@ -27,7 +27,7 @@ public class Request<C extends HttpConnection> {
 
     protected C connection;
     protected Map<String, MultiValue> headers;
-    protected Map<String, MultiValue> params;
+    protected Parameters params;
     protected Map<String, MultiPartEntry> multiPartEntryMap;
     protected Map<String, String> cookies;
     protected Method method;
@@ -150,7 +150,7 @@ public class Request<C extends HttpConnection> {
         return value == null ? null : value.getValues();
     }
 
-    public Map<String, MultiValue> params() {
+    public Parameters params() {
         if (body != null && !bodyParsed) {
             new RequestReader(headers, params).parseParameters(body.bytes(), 0, (int) contentLength);
             bodyParsed = true;

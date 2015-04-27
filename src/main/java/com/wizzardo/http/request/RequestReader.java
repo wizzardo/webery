@@ -33,7 +33,7 @@ public class RequestReader {
     }
 
     protected Map<String, MultiValue> headers;
-    protected Map<String, MultiValue> params;
+    protected Parameters params;
     protected String method;
     protected Path path;
     protected String queryString;
@@ -66,11 +66,11 @@ public class RequestReader {
         this(null, null);
     }
 
-    public RequestReader(Map<String, MultiValue> headers, Map<String, MultiValue> params) {
+    public RequestReader(Map<String, MultiValue> headers, Parameters params) {
         if (headers == null)
             headers = new LinkedHashMap<String, MultiValue>(175);
         if (params == null)
-            params = new LinkedHashMap<String, MultiValue>();
+            params = new Parameters();
 
         this.headers = headers;
         this.params = params;
