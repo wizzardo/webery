@@ -35,13 +35,17 @@ public abstract class AbstractHttpServer<T extends HttpConnection> extends Epoll
 
         System.out.println("worker count: " + workersCount);
         for (int i = 0; i < workersCount; i++) {
-            new Worker<T>(queue, "worker_" + i) {
-                @Override
-                protected void process(T connection) {
-                    processConnection(connection);
-                }
-            }.start();
+            createWorker(queue, "worker_" + i).start();
         }
+    }
+
+    protected Worker<T> createWorker(BlockingQueue<T> queue, String name) {
+        return new Worker<T>(queue, name) {
+            @Override
+            protected void process(T connection) {
+                processConnection(connection);
+            }
+        };
     }
 
     @Override
