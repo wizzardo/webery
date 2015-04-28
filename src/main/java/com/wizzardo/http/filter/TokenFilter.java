@@ -3,6 +3,8 @@ package com.wizzardo.http.filter;
 import com.wizzardo.http.request.Header;
 import com.wizzardo.http.request.Request;
 import com.wizzardo.http.response.Response;
+import com.wizzardo.tools.io.BytesTools;
+import com.wizzardo.tools.security.Base64;
 import com.wizzardo.tools.security.MD5;
 
 import java.util.HashMap;
@@ -20,7 +22,7 @@ public class TokenFilter implements AuthFilter {
     //token = key + md5(timestamp + secret) + timestamp
 
     //hashes - key:secret
-    protected Map<String, String> hashes = new HashMap<>();
+    protected Map<BytesHolder, BytesHolder> hashes = new HashMap<>();
     protected AuthFilter authFilter;
 
     public TokenFilter(AuthFilter authFilter) {
@@ -33,26 +35,17 @@ public class TokenFilter implements AuthFilter {
         if ((token = request.param("token")) == null)
             return authFilter.filter(request, response);
 
-        if (token.length() <= 64)
-            return returnNotAuthorized(response);
+        byte[] data = Base64.decodeFast(token, true);
 
-        String secret = hashes.get(token.substring(0, 32));
+        BytesHolder secret = hashes.get(new BytesHolder(data, 0, 16));
         if (secret == null)
             return returnNotAuthorized(response);
 
-        String sign = token.substring(32, 64);
-        String timestamp = token.substring(64);
-
-        if (!sign.equals(sign(timestamp, secret)))
+        MD5.create().update(data, 32, 8).update(secret.bytes).asBytes(data, 0);
+        if (!BytesHolder.equals(data, 0, 16, data, 16, 16))
             return returnNotAuthorized(response);
 
-        long time;
-        try {
-            time = Long.parseLong(timestamp);
-        } catch (NumberFormatException e) {
-            return returnNotAuthorized(response);
-        }
-
+        long time = BytesTools.toLong(data, 32);
         if (System.currentTimeMillis() > time)
             return returnNotAuthorized(response);
 
@@ -67,7 +60,7 @@ public class TokenFilter implements AuthFilter {
     @Override
     public TokenFilter allow(String user, String password) {
         authFilter.allow(user, password);
-        hashes.put(MD5.create().update(user).asString(), MD5.create().update(user + ":" + password).asString());
+        hashes.put(new BytesHolder(MD5.create().update(user).asBytes()), new BytesHolder(MD5.create().update(user + ":" + password).asBytes()));
 
         return this;
     }
@@ -81,12 +74,14 @@ public class TokenFilter implements AuthFilter {
         String auth = request.header(Header.KEY_AUTHORIZATION);
         if (auth == null)
             return "";
-
-        String key = MD5.create().update(getUser(request)).asString();
-        String secret = hashes.get(key);
+        byte[] token = new byte[40]; // 16+16+8
+        MD5.create().update(getUser(request)).asBytes(token, 0); // key
+        BytesHolder secret = hashes.get(new BytesHolder(token, 0, 16));
 
         long timestamp = System.currentTimeMillis() + HOUR * 12;
-        return key + sign(timestamp, secret) + timestamp;
+        BytesTools.toBytes(timestamp, token, 32, 8);
+        MD5.create().update(token, 32, 8).update(secret.bytes).asBytes(token, 16);
+        return Base64.encodeToString(token, false, true);
     }
 
     private String sign(String timestamp, String secret) {
@@ -96,4 +91,58 @@ public class TokenFilter implements AuthFilter {
     private String sign(long timestamp, String secret) {
         return sign(String.valueOf(timestamp), secret);
     }
+
+    static class BytesHolder {
+        final byte[] bytes;
+        final int offset;
+        final int length;
+        int hash;
+
+        BytesHolder(byte[] bytes, int offset, int length) {
+            this.bytes = bytes;
+            this.offset = offset;
+            this.length = length;
+        }
+
+        BytesHolder(byte[] bytes) {
+            this(bytes, 0, bytes.length);
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+
+            BytesHolder that = (BytesHolder) o;
+            return equals(bytes, offset, length, that.bytes, that.offset, that.length);
+        }
+
+        static boolean equals(byte[] b1, int o1, int l1, byte[] b2, int o2, int l2) {
+            if (l1 != l2)
+                return false;
+
+            for (int i = 0; i < l1; i++) {
+                if (b1[o1 + i] != b2[o2 + i])
+                    return false;
+            }
+
+            return true;
+        }
+
+        @Override
+        public int hashCode() {
+            if (hash != 0)
+                return hash;
+
+            int result = 1;
+            byte[] b = bytes;
+            for (int i = offset; i < length - offset; i++) {
+                byte element = b[i];
+                result = 31 * result + element;
+            }
+            hash = result;
+            return result;
+        }
+    }
+
 }
