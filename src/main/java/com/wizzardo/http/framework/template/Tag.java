@@ -1,10 +1,5 @@
-package com.wizzardo.http.template;
+package com.wizzardo.http.framework.template;
 
-import com.wizzardo.tools.misc.Unchecked;
-
-import java.lang.reflect.Constructor;
-import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 /**

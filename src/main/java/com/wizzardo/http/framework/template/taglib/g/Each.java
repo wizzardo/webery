@@ -1,9 +1,9 @@
-package com.wizzardo.http.template.taglib.g;
+package com.wizzardo.http.framework.template.taglib.g;
 
-import com.wizzardo.http.template.Body;
-import com.wizzardo.http.template.ExpressionHolder;
-import com.wizzardo.http.template.RenderResult;
-import com.wizzardo.http.template.Tag;
+import com.wizzardo.http.framework.template.ExpressionHolder;
+import com.wizzardo.http.framework.template.Tag;
+import com.wizzardo.http.framework.template.Body;
+import com.wizzardo.http.framework.template.RenderResult;
 
 import java.util.Collection;
 import java.util.Map;

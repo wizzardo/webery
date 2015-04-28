@@ -1,11 +1,13 @@
-package com.wizzardo.http.template;
+package com.wizzardo.http.framework.template;
 
-import com.wizzardo.http.template.taglib.g.Each;
+import com.wizzardo.http.framework.template.Model;
+import com.wizzardo.http.framework.template.RenderResult;
+import com.wizzardo.http.framework.template.RenderableList;
+import com.wizzardo.http.framework.template.ViewRenderer;
 import com.wizzardo.tools.xml.Node;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;

@@ -1,12 +1,9 @@
-package com.wizzardo.http.template;
+package com.wizzardo.http.framework.template;
 
-import com.wizzardo.epoll.readable.ReadableByteArray;
-import com.wizzardo.epoll.readable.ReadableData;
 import com.wizzardo.tools.evaluation.EvalTools;
 import com.wizzardo.tools.evaluation.Expression;
 import com.wizzardo.tools.misc.Unchecked;
 
-import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;

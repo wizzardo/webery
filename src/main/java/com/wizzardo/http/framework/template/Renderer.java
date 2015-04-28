@@ -1,7 +1,5 @@
-package com.wizzardo.http.template;
+package com.wizzardo.http.framework.template;
 
-
-import com.wizzardo.epoll.readable.ReadableData;
 
 /**
  * @author: moxa

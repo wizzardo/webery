@@ -1,4 +1,4 @@
-package com.wizzardo.http.template;
+package com.wizzardo.http.framework.template;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Map;

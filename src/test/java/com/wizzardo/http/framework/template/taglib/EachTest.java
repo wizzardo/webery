@@ -1,7 +1,7 @@
-package com.wizzardo.http.template.taglib;
+package com.wizzardo.http.framework.template.taglib;
 
-import com.wizzardo.http.template.*;
-import com.wizzardo.http.template.taglib.g.Each;
+import com.wizzardo.http.framework.template.*;
+import com.wizzardo.http.framework.template.taglib.g.Each;
 import com.wizzardo.tools.xml.Node;
 import org.junit.Assert;
 import org.junit.Before;

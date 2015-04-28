@@ -1,6 +1,4 @@
-package com.wizzardo.http.template;
-
-import com.wizzardo.epoll.readable.ReadableData;
+package com.wizzardo.http.framework.template;
 
 import java.util.Map;
 

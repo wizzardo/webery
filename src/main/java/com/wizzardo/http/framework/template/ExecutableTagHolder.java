@@ -1,6 +1,5 @@
-package com.wizzardo.http.template;
+package com.wizzardo.http.framework.template;
 
-import com.wizzardo.epoll.readable.ReadableData;
 import com.wizzardo.tools.collections.CollectionTools;
 import com.wizzardo.tools.evaluation.EvalTools;
 import com.wizzardo.tools.evaluation.Expression;
