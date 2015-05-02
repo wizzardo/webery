@@ -5,6 +5,8 @@
 package com.wizzardo.http.framework;
 
 import com.wizzardo.http.Session;
+import com.wizzardo.http.framework.di.DependencyScope;
+import com.wizzardo.http.framework.di.Injectable;
 import com.wizzardo.http.framework.template.Model;
 import com.wizzardo.http.framework.template.Renderer;
 import com.wizzardo.http.framework.template.TextRenderer;
@@ -17,6 +19,7 @@ import com.wizzardo.http.response.Status;
 /**
  * @author Moxa
  */
+@Injectable(scope = DependencyScope.PROTOTYPE)
 public abstract class Controller {
 
     protected Request request;
