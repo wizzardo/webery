@@ -6,6 +6,7 @@ import java.io.OutputStream;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.function.Consumer;
 
 /**
  * @author: moxa
@@ -113,5 +114,14 @@ public class RenderResult {
             }
         }
         return sb.toString();
+    }
+
+    public void provideBytes(Consumer<byte[]> consumer) {
+        if (bytes != null)
+            consumer.accept(bytes);
+        else
+            for (RenderResult render : renders) {
+                render.provideBytes(consumer);
+            }
     }
 }
