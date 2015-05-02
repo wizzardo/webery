@@ -12,7 +12,7 @@ public class TextRenderer extends Renderer {
     }
 
     @Override
-    protected RenderResult render() {
+    public RenderResult render() {
         return new RenderResult(text);
     }
 }

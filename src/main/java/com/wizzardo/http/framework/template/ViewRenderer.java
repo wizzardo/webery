@@ -39,7 +39,7 @@ public class ViewRenderer extends Renderer {
     }
 
     @Override
-    protected RenderResult render() {
+    public RenderResult render() {
         if (template != null)
             return render(template, model);
 
