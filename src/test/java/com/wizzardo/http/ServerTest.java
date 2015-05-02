@@ -18,7 +18,7 @@ import java.io.IOException;
  */
 public class ServerTest {
 
-    protected HttpServer server;
+    protected HttpServer<HttpConnection> server;
     protected int workers = 4;
     protected int port = 9999;
     protected volatile Handler handler;
@@ -30,7 +30,7 @@ public class ServerTest {
     @Before
     public void setUp() throws NoSuchMethodException, ClassNotFoundException, NoSuchFieldException {
         System.out.println("setUp " + name.getMethodName());
-        server = new HttpServer(null, port, context, workers) {
+        server = new HttpServer<HttpConnection>(null, port, context, workers) {
             @Override
             protected Response handle(Request request, Response response) throws IOException {
                 response.setHeader(Header.KEY_CONNECTION, Header.VALUE_CLOSE);
