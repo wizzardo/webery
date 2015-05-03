@@ -4,11 +4,15 @@ import com.wizzardo.http.Session;
 import com.wizzardo.http.framework.WebWorker;
 import com.wizzardo.tools.cache.Cache;
 import com.wizzardo.tools.cache.Computable;
+import com.wizzardo.tools.reflection.FieldReflection;
 
-import java.lang.annotation.*;
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author: moxa
@@ -117,8 +121,8 @@ public class DependencyFactory {
     }
 
     private static abstract class Dependency<T> {
-        private static Cache<Class, List<Field>> dependencies = new Cache<Class, List<Field>>(0, clazz -> {
-            List<Field> l = new ArrayList<Field>();
+        private static Cache<Class, List<FieldReflection>> dependencies = new Cache<>(0, clazz -> {
+            List<FieldReflection> l = new ArrayList<>();
             while (clazz != null) {
                 for (Field f : clazz.getDeclaredFields()) {
                     int mod = f.getType().getModifiers();
@@ -127,13 +131,11 @@ public class DependencyFactory {
                     if (f.getType().getAnnotation(Injectable.class) != null
                             || Modifier.isAbstract(mod)
                             || Modifier.isInterface(mod)) {
-                        f.setAccessible(true);
-                        l.add(f);
+                        l.add(new FieldReflection(f, true));
                     } else
                         for (Class i : f.getType().getInterfaces()) {
                             if (i.getAnnotation(Injectable.class) != null) {
-                                f.setAccessible(true);
-                                l.add(f);
+                                l.add(new FieldReflection(f, true));
                                 break;
                             }
                         }
@@ -146,19 +148,8 @@ public class DependencyFactory {
         public abstract T get();
 
         protected void injectDependencies(Object ob) {
-            System.out.println("injectDependencies for " + ob);
-            Iterator<Field> iter = dependencies.get(ob.getClass()).iterator();
-            while (iter.hasNext()) {
-                Field f = iter.next();
-                try {
-                    System.out.println("trying inject " + f.getName() + " (" + f.getType() + ")");
-                    f.set(ob, DependencyFactory.getDependency(f.getType()));
-                    System.out.println("\tsuccess");
-                } catch (IllegalAccessException | IllegalStateException | NullPointerException ignored) {
-                    iter.remove();
-                    System.out.println("\tfailed");
-                }
-
+            for (FieldReflection f : dependencies.get(ob.getClass())) {
+                f.setObject(ob, DependencyFactory.getDependency(f.getField().getType()));
             }
         }
     }
