@@ -107,7 +107,7 @@ public abstract class AbstractHttpServer<T extends HttpConnection> extends Epoll
         }
     }
 
-    private void processConnection(T connection) {
+    protected void processConnection(T connection) {
         try {
             handle(connection);
             finishHandling(connection);
