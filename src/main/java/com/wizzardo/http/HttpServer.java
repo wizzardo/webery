@@ -42,12 +42,15 @@ public class HttpServer<T extends HttpConnection> extends AbstractHttpServer<T> 
 
     public HttpServer(String host, int port, String context, int workersCount) {
         super(host, port, workersCount);
-        if(host == null)
+        if (host == null)
             host = "0.0.0.0";
 
         urlMapping = new UrlMapping<>(host, port, context);
         filtersMapping = new FiltersMapping(context);
+        init();
+    }
 
+    protected void init() {
         urlMapping.append("/", (request, response) -> response.setStaticResponse(staticResponse.copy()));
     }
 

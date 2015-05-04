@@ -6,6 +6,8 @@ import com.wizzardo.tools.io.ZipTools;
 
 import java.io.*;
 import java.net.URISyntaxException;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
@@ -22,10 +24,17 @@ public class LocalResourcesTools implements ResourceTools {
     private List<File> resourcesDirs = new ArrayList<File>();
 
     {
-        try {
-            classpath.add(LocalResourcesTools.class.getProtectionDomain().getCodeSource().getLocation().toURI().getRawPath());
-        } catch (Exception ignored) {
+        ClassLoader cl = ClassLoader.getSystemClassLoader();
+
+        URL[] urls = ((URLClassLoader)cl).getURLs();
+        for(URL url: urls){
+            classpath.add(url.getFile());
         }
+
+//        try {
+//            classpath.add(LocalResourcesTools.class.getProtectionDomain().getCodeSource().getLocation().toURI().getRawPath());
+//        } catch (Exception ignored) {
+//        }
         try {
             File workDir = new File(LocalResourcesTools.class.getProtectionDomain().getCodeSource().getLocation().toURI());
             if (workDir.isFile())

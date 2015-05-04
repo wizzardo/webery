@@ -112,7 +112,7 @@ public class DependencyFactory {
         return (T) dependencies.get(clazz).get();
     }
 
-    void setClasses(List<Class> classes) {
+    public void setClasses(List<Class> classes) {
         this.classes = classes;
     }
 
