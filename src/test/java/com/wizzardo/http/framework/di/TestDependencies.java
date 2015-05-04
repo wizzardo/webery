@@ -143,19 +143,19 @@ public class TestDependencies extends WebApplicationTest {
         Assert.assertEquals("4", makeRequest("/multiply").get().asString());
     }
 
-//    @Test
-//    public void testInterface() throws IOException {
-//        Assert.assertEquals("implementation", HttpClient.createRequest("http://localhost:8080/interface").get().asString());
-//        J j = DependencyFactory.getDependency(J.class);
-//        Assert.assertNotNull(j);
-//        Assert.assertEquals("implementation", j.doIt());
-//
-//        SimplesController3 controller = DependencyFactory.getDependency(SimplesController3.class);
-//        Assert.assertNotNull(controller.j);
-//        Assert.assertEquals("implementation", controller.j.doIt());
-//
-//
-////        Assert.assertEquals("implementation", HttpClient.connect("http://localhost:8080/service").get().asString());
-//    }
+    @Test
+    public void testInterface() throws IOException {
+        Assert.assertEquals("F", makeRequest("/interface").get().asString());
+        J j = DependencyFactory.getDependency(J.class);
+        Assert.assertNotNull(j);
+        Assert.assertEquals("J", j.doIt());
+
+        SimplesController3 controller = DependencyFactory.getDependency(SimplesController3.class);
+        Assert.assertNotNull(controller.j);
+        Assert.assertEquals("J", controller.j.doIt());
+
+
+        Assert.assertEquals("J", makeRequest("/service").get().asString());
+    }
 
 }
