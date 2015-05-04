@@ -1,11 +1,13 @@
 package com.wizzardo.http.framework.di;
 
-import com.wizzardo.http.framework.Controller;
 import com.wizzardo.http.Handler;
-import com.wizzardo.http.ServerTest;
+import com.wizzardo.http.framework.Controller;
+import com.wizzardo.http.framework.ControllerHandler;
+import com.wizzardo.http.framework.WebApplicationTest;
+import com.wizzardo.http.framework.template.Renderer;
 import com.wizzardo.http.request.Request;
 import com.wizzardo.http.response.Response;
-import com.wizzardo.http.framework.template.Renderer;
+import com.wizzardo.tools.http.HttpSession;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -15,7 +17,7 @@ import java.io.IOException;
  * @author: moxa
  * Date: 7/22/13
  */
-public class TestDependencies extends ServerTest {
+public class TestDependencies extends WebApplicationTest {
 
     @Injectable
     public static class A {
@@ -38,27 +40,20 @@ public class TestDependencies extends ServerTest {
         int counter = 0;
     }
 
-    public static interface E {
-        public String doIt();
+    public interface E {
+        default String doIt() {
+            return getClass().getSimpleName();
+        }
     }
 
     @Injectable
     public static class F implements E {
-
-        @Override
-        public String doIt() {
-            return "implementation";
-        }
     }
 
-    public static class J implements Service {
-
-        public String doIt() {
-            return "implementation";
-        }
+    public static class J implements Service, E {
     }
 
-    public static class IncrementHandler implements Handler{
+    public static class IncrementHandler implements Handler {
         @Override
         public Response handle(Request request, Response response) throws IOException {
             return response;
@@ -99,14 +94,16 @@ public class TestDependencies extends ServerTest {
         }
     }
 
-//    @Override
-//    public void setUp() throws NoSuchMethodException, ClassNotFoundException, NoSuchFieldException {
-//        super.setUp();
-//        server.getUrlMapping().append("/increment", SimplesController.class, "increment");
-//        server.getUrlMapping().add("/multiply", SimplesController2.class, "multiply");
-//        server.getUrlMapping().add("/interface", SimplesController.class, "check");
-//        server.getUrlMapping().add("/service", SimplesController3.class, "service");
-//    }
+    @Override
+    public void setUp() throws NoSuchMethodException, ClassNotFoundException, NoSuchFieldException {
+        super.setUp();
+        server.getUrlMapping()
+                .append("/interface", new ControllerHandler(SimplesController.class, "check"))
+                .append("/increment", new ControllerHandler(SimplesController.class, "increment"))
+                .append("/multiply", new ControllerHandler(SimplesController2.class, "multiply"))
+                .append("/service", new ControllerHandler(SimplesController3.class, "service"))
+        ;
+    }
 
     @Test
     public void testCircularDependencies() {
@@ -138,15 +135,13 @@ public class TestDependencies extends ServerTest {
         Assert.assertTrue(c1.a == a);
     }
 
-//    @Test
-//    public void testSession() throws IOException {
-//        List<Cookie> cookies = HttpClient.createRequest("http://localhost:8080/increment").get().getCookies();
-//
-//        Assert.assertEquals("2", HttpClient.createRequest("http://localhost:8080/increment").cookies(cookies).get().asString());
-//        Assert.assertEquals("3", HttpClient.createRequest("http://localhost:8080/increment").cookies(cookies).get().asString());
-//        Assert.assertEquals("1", HttpClient.createRequest("http://localhost:8080/increment").get().asString());
-//        Assert.assertEquals("6", HttpClient.createRequest("http://localhost:8080/multiply").cookies(cookies).get().asString());
-//    }
+    @Test
+    public void testSession() throws IOException {
+        Assert.assertEquals("1", makeRequest("/increment").get().asString());
+        Assert.assertEquals("2", makeRequest("/increment").get().asString());
+        Assert.assertEquals("1", makeRequest("/increment", new HttpSession()).get().asString());
+        Assert.assertEquals("4", makeRequest("/multiply").get().asString());
+    }
 
 //    @Test
 //    public void testInterface() throws IOException {

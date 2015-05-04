@@ -4,6 +4,7 @@ import com.wizzardo.http.request.Header;
 import com.wizzardo.http.request.Request;
 import com.wizzardo.http.response.Response;
 import com.wizzardo.tools.http.HttpClient;
+import com.wizzardo.tools.http.HttpSession;
 import com.wizzardo.tools.io.IOTools;
 import org.junit.After;
 import org.junit.Before;
@@ -86,8 +87,19 @@ public class ServerTest {
     }
 
     protected com.wizzardo.tools.http.Request makeRequest(String path) {
-        return HttpClient.createRequest("http://localhost:" + port + path)
-                .header("testMethod", name.getMethodName())
+        return fillRequest(HttpClient.createRequest(makeUrl(path)));
+    }
+
+    protected com.wizzardo.tools.http.Request makeRequest(String path, HttpSession session) {
+        return fillRequest(session.createRequest(makeUrl(path)));
+    }
+
+    protected String makeUrl(String path) {
+        return "http://localhost:" + port + path;
+    }
+
+    protected com.wizzardo.tools.http.Request fillRequest(com.wizzardo.tools.http.Request request) {
+        return request.header("testMethod", name.getMethodName())
                 .header("Connection", "Close");
     }
 
