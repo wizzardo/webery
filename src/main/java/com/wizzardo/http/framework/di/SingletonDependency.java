@@ -1,0 +1,30 @@
+package com.wizzardo.http.framework.di;
+
+/**
+ * Created by wizzardo on 05.05.15.
+ */
+public class SingletonDependency<T> extends Dependency<T> {
+    private T instance;
+    private volatile boolean init = false;
+
+    SingletonDependency(Class<T> clazz) {
+        try {
+            this.instance = clazz.newInstance();
+        } catch (InstantiationException | IllegalAccessException ignored) {
+            throw new IllegalStateException("can't create instance of class " + clazz);
+        }
+    }
+
+    @Override
+    public T get() {
+        if (!init) {
+            synchronized (this) {
+                if (!init) {
+                    init = true;
+                    injectDependencies(instance);
+                }
+            }
+        }
+        return instance;
+    }
+}
