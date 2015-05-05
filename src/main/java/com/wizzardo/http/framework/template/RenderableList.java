@@ -52,4 +52,10 @@ public class RenderableList extends ArrayList<Renderable> implements Renderable 
         }
         return this;
     }
+
+    @Override
+    public void clear() {
+        super.clear();
+        lastStatic = null;
+    }
 }
