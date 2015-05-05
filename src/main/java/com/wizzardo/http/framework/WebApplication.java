@@ -4,13 +4,13 @@ import com.wizzardo.http.HttpConnection;
 import com.wizzardo.http.HttpServer;
 import com.wizzardo.http.Worker;
 import com.wizzardo.http.framework.di.DependencyFactory;
+import com.wizzardo.http.framework.di.SingletonDependency;
 import com.wizzardo.http.framework.template.LocalResourcesTools;
+import com.wizzardo.http.mapping.UrlMapping;
 import com.wizzardo.http.request.Request;
 import com.wizzardo.http.response.Response;
 
-import java.io.File;
 import java.io.IOException;
-import java.net.URISyntaxException;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
 
@@ -42,6 +42,8 @@ public class WebApplication<T extends HttpConnection> extends HttpServer<T> {
     protected void init() {
         List<Class> classes = new LocalResourcesTools().getClasses();
         DependencyFactory.get().setClasses(classes);
+
+        DependencyFactory.get().register(UrlMapping.class, new SingletonDependency<>(urlMapping));
     }
 
     @Override
