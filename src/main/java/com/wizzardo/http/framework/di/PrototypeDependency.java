@@ -6,7 +6,7 @@ package com.wizzardo.http.framework.di;
 public class PrototypeDependency<T> extends Dependency<T> {
     protected Class<T> clazz;
 
-    PrototypeDependency(Class<T> clazz) {
+    public PrototypeDependency(Class<T> clazz) {
         this.clazz = clazz;
     }
 

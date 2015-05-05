@@ -9,7 +9,7 @@ import com.wizzardo.http.framework.WebWorker;
 public class SessionDependency<T> extends Dependency<T> {
     protected Class<T> clazz;
 
-    SessionDependency(Class<T> clazz) {
+    public SessionDependency(Class<T> clazz) {
         this.clazz = clazz;
     }
 

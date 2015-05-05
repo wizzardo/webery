@@ -7,12 +7,16 @@ public class SingletonDependency<T> extends Dependency<T> {
     private T instance;
     private volatile boolean init = false;
 
-    SingletonDependency(Class<T> clazz) {
+    public SingletonDependency(Class<T> clazz) {
         try {
             this.instance = clazz.newInstance();
         } catch (InstantiationException | IllegalAccessException ignored) {
             throw new IllegalStateException("can't create instance of class " + clazz);
         }
+    }
+
+    public SingletonDependency(T instance) {
+        this.instance = instance;
     }
 
     @Override

@@ -111,7 +111,11 @@ public class DependencyFactory {
         this.classes = classes;
     }
 
-    public void addClassMapping(Class abstractClass, Class implementation) {
+    public void bind(Class abstractClass, Class implementation) {
         mapping.put(abstractClass, implementation);
+    }
+
+    public <T> void register(Class<T> clazz, Dependency<T> dependency) {
+        dependencies.put(clazz, dependency);
     }
 }
