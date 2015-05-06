@@ -32,7 +32,7 @@ public class ServerTest<S extends HttpServer> {
     @Before
     public void setUp() throws NoSuchMethodException, ClassNotFoundException, NoSuchFieldException {
         System.out.println("setUp " + name.getMethodName());
-        server = (S) new HttpServer<HttpConnection, UrlMapping<Handler>>(null, port, context, workers) {
+        server = (S) new HttpServer<HttpConnection>(null, port, context, workers) {
             @Override
             protected Response handle(Request request, Response response) throws IOException {
                 response.setHeader(Header.KEY_CONNECTION, Header.VALUE_CLOSE);

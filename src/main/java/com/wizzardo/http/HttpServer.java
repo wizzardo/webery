@@ -12,7 +12,7 @@ import java.io.IOException;
 /**
  * Created by wizzardo on 18.02.15.
  */
-public class HttpServer<T extends HttpConnection, U extends UrlMapping<Handler>> extends AbstractHttpServer<T> {
+public class HttpServer<T extends HttpConnection> extends AbstractHttpServer<T> {
     private ReadableByteBuffer staticResponse = new Response()
             .appendHeader(Header.KEY_CONNECTION, Header.VALUE_KEEP_ALIVE)
             .appendHeader(Header.KEY_CONTENT_TYPE, Header.VALUE_HTML_UTF8)
@@ -21,7 +21,7 @@ public class HttpServer<T extends HttpConnection, U extends UrlMapping<Handler>>
 
     private byte[] serverName = "Server: wizzardo-http/0.1\r\n".getBytes();
     protected FiltersMapping filtersMapping;
-    protected U urlMapping;
+    protected UrlMapping<Handler> urlMapping;
     protected ServerDate serverDate = new ServerDate();
 
     public HttpServer(int port) {
@@ -50,8 +50,8 @@ public class HttpServer<T extends HttpConnection, U extends UrlMapping<Handler>>
         init();
     }
 
-    protected U createUrlMapping(String host, int port, String context) {
-        return (U) new UrlMapping<Handler>(host, port, context);
+    protected UrlMapping<Handler> createUrlMapping(String host, int port, String context) {
+        return new UrlMapping<>(host, port, context);
     }
 
     protected void init() {
@@ -62,7 +62,7 @@ public class HttpServer<T extends HttpConnection, U extends UrlMapping<Handler>>
         return filtersMapping;
     }
 
-    public U getUrlMapping() {
+    public UrlMapping<Handler> getUrlMapping() {
         return urlMapping;
     }
 

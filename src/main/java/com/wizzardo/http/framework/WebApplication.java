@@ -18,7 +18,7 @@ import java.util.concurrent.BlockingQueue;
 /**
  * Created by wizzardo on 28.04.15.
  */
-public class WebApplication extends HttpServer<HttpConnection, ControllerUrlMapping> {
+public class WebApplication extends HttpServer<HttpConnection> {
 
     public WebApplication(int port) {
         super(port);
@@ -55,6 +55,11 @@ public class WebApplication extends HttpServer<HttpConnection, ControllerUrlMapp
                 processConnection(connection);
             }
         };
+    }
+
+    @Override
+    public ControllerUrlMapping getUrlMapping() {
+        return (ControllerUrlMapping) super.getUrlMapping();
     }
 
     @Override
