@@ -12,7 +12,7 @@ import java.util.regex.Pattern;
  * @author: moxa
  * Date: 2/11/13
  */
-public class ExpressionHolder implements Renderable {
+public class ExpressionHolder<T> implements Renderable {
     private volatile boolean prepared = false;
     private String string;
     private Expression expression;
@@ -30,7 +30,7 @@ public class ExpressionHolder implements Renderable {
 
     private static Pattern p = Pattern.compile("\\$\\{([^\\{\\}]+)\\}|\\$([^\\., -]+)|(\\[.+\\])");
 
-    public Object getRaw(Map<String, Object> model) {
+    public T getRaw(Map<String, Object> model) {
         if (!prepared) {
             synchronized (this) {
                 if (!prepared) {
@@ -52,7 +52,7 @@ public class ExpressionHolder implements Renderable {
                 }
             }
         }
-        return Unchecked.call(() -> expression.get(model));
+        return Unchecked.call(() -> (T) expression.get(model));
     }
 
     @Override

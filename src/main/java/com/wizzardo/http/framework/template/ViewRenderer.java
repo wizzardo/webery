@@ -165,7 +165,7 @@ public class ViewRenderer extends Renderer {
             return result;
         };
 
-        return new ExpressionHolder() {
+        return new ExpressionHolder<Object>() {
             @Override
             public RenderResult get(Map<String, Object> model) {
                 Map m = (Map) p.get(model);
