@@ -76,13 +76,18 @@ public abstract class Controller {
         if (name != null)
             return name;
 
-        String controllerName = getClass().getSimpleName();
+        name = getControllerName(getClass());
+        return name;
+    }
+
+    static String getControllerName(Class<? extends Controller> clazz) {
+        String controllerName = clazz.getSimpleName();
         if (controllerName.endsWith("Controller"))
             controllerName = controllerName.substring(0, controllerName.length() - "Controller".length());
         controllerName = controllerName.substring(0, 1).toLowerCase() + controllerName.substring(1);
-        name = controllerName;
         return controllerName;
     }
+
 
     public String getName() {
         return name();
