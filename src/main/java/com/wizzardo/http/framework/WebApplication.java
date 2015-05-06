@@ -1,5 +1,6 @@
 package com.wizzardo.http.framework;
 
+import com.wizzardo.http.Handler;
 import com.wizzardo.http.HttpConnection;
 import com.wizzardo.http.HttpServer;
 import com.wizzardo.http.Worker;
@@ -17,7 +18,7 @@ import java.util.concurrent.BlockingQueue;
 /**
  * Created by wizzardo on 28.04.15.
  */
-public class WebApplication<T extends HttpConnection> extends HttpServer<T> {
+public class WebApplication extends HttpServer<HttpConnection, ControllerUrlMapping> {
 
     public WebApplication(int port) {
         super(port);
@@ -47,13 +48,18 @@ public class WebApplication<T extends HttpConnection> extends HttpServer<T> {
     }
 
     @Override
-    protected Worker<T> createWorker(BlockingQueue<T> queue, String name) {
-        return new WebWorker<T>(queue, name) {
+    protected Worker<HttpConnection> createWorker(BlockingQueue<HttpConnection> queue, String name) {
+        return new WebWorker<HttpConnection>(queue, name) {
             @Override
-            protected void process(T connection) {
+            protected void process(HttpConnection connection) {
                 processConnection(connection);
             }
         };
+    }
+
+    @Override
+    protected ControllerUrlMapping createUrlMapping(String host, int port, String context) {
+        return new ControllerUrlMapping(host, port, context);
     }
 
     @Override

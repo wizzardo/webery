@@ -54,4 +54,12 @@ public class ControllerHandler implements Handler {
         }
         throw new IllegalStateException("Can't find action '" + action + "'");
     }
+
+    public String getActionName() {
+        return action.getName();
+    }
+
+    public String getControllerName() {
+        return Controller.getControllerName(controller);
+    }
 }

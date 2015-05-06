@@ -12,7 +12,7 @@ import java.io.IOException;
 /**
  * Created by wizzardo on 18.02.15.
  */
-public class HttpServer<T extends HttpConnection> extends AbstractHttpServer<T> {
+public class HttpServer<T extends HttpConnection, U extends UrlMapping<Handler>> extends AbstractHttpServer<T> {
     private ReadableByteBuffer staticResponse = new Response()
             .appendHeader(Header.KEY_CONNECTION, Header.VALUE_KEEP_ALIVE)
             .appendHeader(Header.KEY_CONTENT_TYPE, Header.VALUE_HTML_UTF8)
@@ -21,7 +21,7 @@ public class HttpServer<T extends HttpConnection> extends AbstractHttpServer<T> 
 
     private byte[] serverName = "Server: wizzardo-http/0.1\r\n".getBytes();
     protected FiltersMapping filtersMapping;
-    protected UrlMapping<Handler> urlMapping;
+    protected U urlMapping;
     protected ServerDate serverDate = new ServerDate();
 
     public HttpServer(int port) {
@@ -45,9 +45,13 @@ public class HttpServer<T extends HttpConnection> extends AbstractHttpServer<T> 
         if (host == null)
             host = "0.0.0.0";
 
-        urlMapping = new UrlMapping<>(host, port, context);
+        urlMapping = createUrlMapping(host, port, context);
         filtersMapping = new FiltersMapping(context);
         init();
+    }
+
+    protected U createUrlMapping(String host, int port, String context) {
+        return (U) new UrlMapping<Handler>(host, port, context);
     }
 
     protected void init() {
@@ -58,7 +62,7 @@ public class HttpServer<T extends HttpConnection> extends AbstractHttpServer<T> 
         return filtersMapping;
     }
 
-    public UrlMapping<Handler> getUrlMapping() {
+    public U getUrlMapping() {
         return urlMapping;
     }
 
