@@ -2,7 +2,6 @@ package com.wizzardo.http.framework.di;
 
 import com.wizzardo.http.Handler;
 import com.wizzardo.http.framework.Controller;
-import com.wizzardo.http.framework.ControllerHandler;
 import com.wizzardo.http.framework.WebApplicationTest;
 import com.wizzardo.http.framework.template.Renderer;
 import com.wizzardo.http.request.Request;
@@ -98,10 +97,10 @@ public class TestDependencies extends WebApplicationTest {
     public void setUp() throws NoSuchMethodException, ClassNotFoundException, NoSuchFieldException {
         super.setUp();
         server.getUrlMapping()
-                .append("/interface", new ControllerHandler(SimplesController.class, "check"))
-                .append("/increment", new ControllerHandler(SimplesController.class, "increment"))
-                .append("/multiply", new ControllerHandler(SimplesController2.class, "multiply"))
-                .append("/service", new ControllerHandler(SimplesController3.class, "service"))
+                .append("/interface", SimplesController.class, "check")
+                .append("/increment", SimplesController.class, "increment")
+                .append("/multiply", SimplesController2.class, "multiply")
+                .append("/service", SimplesController3.class, "service")
         ;
     }
 

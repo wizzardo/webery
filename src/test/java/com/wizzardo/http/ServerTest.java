@@ -1,5 +1,6 @@
 package com.wizzardo.http;
 
+import com.wizzardo.http.mapping.UrlMapping;
 import com.wizzardo.http.request.Header;
 import com.wizzardo.http.request.Request;
 import com.wizzardo.http.response.Response;
@@ -17,9 +18,9 @@ import java.io.IOException;
  * @author: moxa
  * Date: 5/7/13
  */
-public class ServerTest {
+public class ServerTest<S extends HttpServer> {
 
-    protected HttpServer<HttpConnection> server;
+    protected S server;
     protected int workers = 4;
     protected int port = 9999;
     protected volatile Handler handler;
@@ -31,7 +32,7 @@ public class ServerTest {
     @Before
     public void setUp() throws NoSuchMethodException, ClassNotFoundException, NoSuchFieldException {
         System.out.println("setUp " + name.getMethodName());
-        server = new HttpServer<HttpConnection>(null, port, context, workers) {
+        server = (S) new HttpServer<HttpConnection, UrlMapping<Handler>>(null, port, context, workers) {
             @Override
             protected Response handle(Request request, Response response) throws IOException {
                 response.setHeader(Header.KEY_CONNECTION, Header.VALUE_CLOSE);
