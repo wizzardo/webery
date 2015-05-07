@@ -8,7 +8,7 @@ import java.util.Map;
  */
 public abstract class Tag extends RenderableList {
 
-    public Tag(Map<String, String> attrs, Body body) {
+    public Tag(Map<String, String> attrs, Body body, String offset) {
     }
 
     protected void prepareAttrs(Map<String, String> attrs) {

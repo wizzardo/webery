@@ -21,13 +21,18 @@ public class Link extends Tag {
     protected UrlMapping<Handler> urlMapping = DependencyFactory.getDependency(UrlMapping.class);
 
     public Link(Map<String, String> attrs, Body body) {
-        super(attrs, body);
+        this(attrs, body, "");
+    }
+
+    public Link(Map<String, String> attrs, Body body, String offset) {
+        super(attrs, body, offset);
         String controller = attrs.remove("controller");
         String action = attrs.remove("action");
         final String base = attrs.remove("base");
         final String fragment = attrs.remove("fragment");
         boolean absolute = Boolean.valueOf(attrs.remove("absolute"));
 
+        append(offset);
         append("<a href=\"");
 
         String paramsRaw = attrs.remove("params");
@@ -55,10 +60,9 @@ public class Link extends Tag {
         append("\"");
         prepareAttrs(attrs);
         if (body != null && !body.isEmpty()) {
-            append(">").append(body).append("</a>");
+            append(">\n").append(body).append(offset).append("</a>\n");
         } else {
-            append("/>");
+            append("/>\n");
         }
     }
-
 }

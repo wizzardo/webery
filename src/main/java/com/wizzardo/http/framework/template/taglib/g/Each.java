@@ -14,8 +14,8 @@ import java.util.Map;
  */
 public class Each extends Tag {
 
-    public Each(Map<String, String> attrs, final Body body) {
-        super(attrs, body);
+    public Each(Map<String, String> attrs, final Body body, String offset) {
+        super(attrs, body, offset);
 
         final ExpressionHolder raw = new ExpressionHolder(attrs.get("in"));
         Object varName = attrs.get("var");
