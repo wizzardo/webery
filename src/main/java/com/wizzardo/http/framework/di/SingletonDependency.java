@@ -16,7 +16,12 @@ public class SingletonDependency<T> extends Dependency<T> {
     }
 
     public SingletonDependency(T instance) {
+        this(instance, false);
+    }
+
+    public SingletonDependency(T instance, boolean injectDependencies) {
         this.instance = instance;
+        init = !injectDependencies;
     }
 
     @Override
