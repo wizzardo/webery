@@ -2,9 +2,9 @@ package com.wizzardo.http.framework.template.taglib;
 
 import com.wizzardo.http.framework.Controller;
 import com.wizzardo.http.framework.WebApplicationTest;
-import com.wizzardo.http.framework.template.Renderer;
-import com.wizzardo.http.framework.template.TagLib;
+import com.wizzardo.http.framework.template.*;
 import com.wizzardo.http.framework.template.taglib.g.Link;
+import com.wizzardo.tools.xml.Node;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -45,33 +45,33 @@ public class LinkTest extends WebApplicationTest {
 
         attrs.put("controller", "book");
         attrs.put("action", "list");
-        Assert.assertEquals("<a href=\"/book/list\"/>", new Link(new LinkedHashMap<>(attrs), null).get(model).toString());
+        Assert.assertEquals("<a href=\"/book/list\"/>\n", new Link(new LinkedHashMap<>(attrs), null).get(model).toString());
 
         attrs.put("absolute", "true");
-        Assert.assertEquals("<a href=\"http://localhost:9999/book/list\"/>", new Link(new LinkedHashMap<>(attrs), null).get(model).toString());
+        Assert.assertEquals("<a href=\"http://localhost:9999/book/list\"/>\n", new Link(new LinkedHashMap<>(attrs), null).get(model).toString());
 
         attrs.put("base", "http://ya.ru");
-        Assert.assertEquals("<a href=\"http://ya.ru/book/list\"/>", new Link(new LinkedHashMap<>(attrs), null).get(model).toString());
+        Assert.assertEquals("<a href=\"http://ya.ru/book/list\"/>\n", new Link(new LinkedHashMap<>(attrs), null).get(model).toString());
 
         attrs.put("fragment", "some_fragment");
-        Assert.assertEquals("<a href=\"http://ya.ru/book/list#some_fragment\"/>", new Link(new LinkedHashMap<>(attrs), null).get(model).toString());
+        Assert.assertEquals("<a href=\"http://ya.ru/book/list#some_fragment\"/>\n", new Link(new LinkedHashMap<>(attrs), null).get(model).toString());
 
         attrs.put("params", "[key:'value']");
-        Assert.assertEquals("<a href=\"http://ya.ru/book/list?key=value#some_fragment\"/>", new Link(new LinkedHashMap<>(attrs), null).get(model).toString());
+        Assert.assertEquals("<a href=\"http://ya.ru/book/list?key=value#some_fragment\"/>\n", new Link(new LinkedHashMap<>(attrs), null).get(model).toString());
 
         attrs.put("params", "[key:'value', key2: 'value2']");
-        Assert.assertEquals("<a href=\"http://ya.ru/book/list?key=value&key2=value2#some_fragment\"/>", new Link(new LinkedHashMap<>(attrs), null).get(model).toString());
+        Assert.assertEquals("<a href=\"http://ya.ru/book/list?key=value&key2=value2#some_fragment\"/>\n", new Link(new LinkedHashMap<>(attrs), null).get(model).toString());
 
 
         attrs.clear();
         attrs.put("controller", "book");
         attrs.put("action", "get");
         attrs.put("params", "[id:1]");
-        Assert.assertEquals("<a href=\"/book/1\"/>", new Link(new LinkedHashMap<>(attrs), null).get(model).toString());
+        Assert.assertEquals("<a href=\"/book/1\"/>\n", new Link(new LinkedHashMap<>(attrs), null).get(model).toString());
 
         attrs.put("class", "red");
         attrs.put("id", "link1");
-        Assert.assertEquals("<a href=\"/book/1\" class=\"red\" id=\"link1\"/>", new Link(new LinkedHashMap<>(attrs), null).get(model).toString());
+        Assert.assertEquals("<a href=\"/book/1\" class=\"red\" id=\"link1\"/>\n", new Link(new LinkedHashMap<>(attrs), null).get(model).toString());
 
 
         attrs.clear();
@@ -79,10 +79,24 @@ public class LinkTest extends WebApplicationTest {
         attrs.put("action", "get");
         attrs.put("params", "[id:id]");
         model.put("id", 1);
-        Assert.assertEquals("<a href=\"/book/1\"/>", new Link(new LinkedHashMap<>(attrs), null).get(model).toString());
+        Assert.assertEquals("<a href=\"/book/1\"/>\n", new Link(new LinkedHashMap<>(attrs), null).get(model).toString());
 
         attrs.put("id", "link_${id}");
-        Assert.assertEquals("<a href=\"/book/1\" id=\"link_1\"/>", new Link(new LinkedHashMap<>(attrs), null).get(model).toString());
+        Assert.assertEquals("<a href=\"/book/1\" id=\"link_1\"/>\n", new Link(new LinkedHashMap<>(attrs), null).get(model).toString());
+    }
 
+    @Test
+    public void testInTemplate() {
+        Node n = Node.parse("<div><g:link controller=\"book\" action=\"get\" params=\"[id: 1]\">text</g:link></div>", true);
+
+        RenderableList l = new RenderableList();
+        ViewRenderer.prepare(n.children(), l, "", "");
+
+        Assert.assertEquals("" +
+                "<div>\n" +
+                "    <a href=\"/book/1\">\n" +
+                "        text\n" +
+                "    </a>\n" +
+                "</div>\n", l.get(new Model()).toString());
     }
 }

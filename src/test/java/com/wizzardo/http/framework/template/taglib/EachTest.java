@@ -29,7 +29,8 @@ public class EachTest {
 
         RenderResult result = l.get(new Model());
 
-        Assert.assertEquals("<div>\n" +
+        Assert.assertEquals("" +
+                "<div>\n" +
                 "        1\n" +
                 "        <br/>\n" +
                 "        2\n" +
@@ -50,7 +51,8 @@ public class EachTest {
         model.put("list", Arrays.asList(1, 2, 3));
         RenderResult result = l.get(model);
 
-        Assert.assertEquals("<div>\n" +
+        Assert.assertEquals("" +
+                "<div>\n" +
                 "        1\n" +
                 "        <br/>\n" +
                 "        2\n" +
