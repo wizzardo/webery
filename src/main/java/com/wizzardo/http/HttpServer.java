@@ -43,7 +43,7 @@ public class HttpServer<T extends HttpConnection> extends AbstractHttpServer<T> 
     public HttpServer(String host, int port, String context, int workersCount) {
         super(host, port, workersCount);
         if (host == null)
-            host = "0.0.0.0";
+            host = "localhost";
 
         urlMapping = createUrlMapping(host, port, context);
         filtersMapping = new FiltersMapping(context);
