@@ -20,4 +20,8 @@ public abstract class Tag extends RenderableList {
             append("\"");
         }
     }
+
+    public void appendTo(RenderableList l) {
+        l.append(this);
+    }
 }
