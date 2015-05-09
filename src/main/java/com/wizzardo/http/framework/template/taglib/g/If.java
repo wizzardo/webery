@@ -26,6 +26,10 @@ public class If extends Tag {
         this.elseTag = elseTag;
     }
 
+    public Tag getElse() {
+        return elseTag;
+    }
+
     @Override
     public void appendTo(RenderableList l) {
         l.add(this);

@@ -1,19 +1,19 @@
 package com.wizzardo.http.framework.template.taglib.g;
 
-import com.wizzardo.http.framework.template.*;
+import com.wizzardo.http.framework.template.Body;
+import com.wizzardo.http.framework.template.Renderable;
+import com.wizzardo.http.framework.template.RenderableList;
+import com.wizzardo.http.framework.template.Tag;
 
 import java.util.Map;
 
 /**
  * Created by wizzardo on 08.05.15.
  */
-public class Else extends Tag {
+public class Elseif extends If {
 
-    protected final Body body;
-
-    public Else(Map<String, String> attrs, Body body, String offset) {
+    public Elseif(Map<String, String> attrs, Body body, String offset) {
         super(attrs, body, offset);
-        this.body = body;
     }
 
     @Override
@@ -27,12 +27,5 @@ public class Else extends Tag {
             throw new IllegalStateException("If tag must be before Else tag");
 
         ((If) tag).setElse(this);
-    }
-
-    @Override
-    public RenderResult get(Map<String, Object> model) {
-        RenderResult result = new RenderResult();
-        result.add(body.get(model));
-        return result;
     }
 }
