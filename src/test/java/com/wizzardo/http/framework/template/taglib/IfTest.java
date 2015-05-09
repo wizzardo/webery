@@ -1,6 +1,7 @@
 package com.wizzardo.http.framework.template.taglib;
 
 import com.wizzardo.http.framework.template.*;
+import com.wizzardo.http.framework.template.taglib.g.Else;
 import com.wizzardo.http.framework.template.taglib.g.If;
 import com.wizzardo.tools.xml.Node;
 import org.junit.Assert;
@@ -17,6 +18,7 @@ public class IfTest {
     @Before
     public void setup() {
         TagLib.findTags(Collections.singletonList(If.class));
+        TagLib.findTags(Collections.singletonList(Else.class));
     }
 
     @Test
@@ -31,6 +33,31 @@ public class IfTest {
 
         Assert.assertEquals("" +
                 "<div>\n" +
+                "</div>\n", result.toString());
+
+        model.clear();
+        model.put("flag", true);
+        result = l.get(model);
+
+        Assert.assertEquals("" +
+                "<div>\n" +
+                "        text\n" +
+                "</div>\n", result.toString());
+    }
+
+    @Test
+    public void test_2() {
+        Node n = Node.parse("<div><g:if test=\"${flag}\">text</g:if><g:else>else</g:else></div>", true);
+
+        RenderableList l = new RenderableList();
+        ViewRenderer.prepare(n.children(), l, "", "");
+
+        Model model = new Model();
+        RenderResult result = l.get(model);
+
+        Assert.assertEquals("" +
+                "<div>\n" +
+                "        else\n" +
                 "</div>\n", result.toString());
 
         model.clear();
