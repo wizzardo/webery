@@ -66,9 +66,12 @@ public class RenderResult {
     }
 
     public int size() {
-        if (bytes != null) {
+        if (bytes != null)
             return bytes.length;
-        }
+
+        if (renders == null)
+            return 0;
+
         int size = 0;
         for (RenderResult r : renders) {
             size += r.size();
@@ -106,14 +109,19 @@ public class RenderResult {
 
     public String toString(Charset charset) {
         StringBuilder sb = new StringBuilder(size());
+        toString(sb, charset);
+        return sb.toString();
+    }
+
+    public void toString(StringBuilder sb, Charset charset) {
         if (bytes != null) {
             sb.append(new String(bytes, charset));
         } else {
-            for (RenderResult r : renders) {
-                sb.append(r.toString(charset));
-            }
+            if (renders != null)
+                for (RenderResult r : renders) {
+                    r.toString(sb, charset);
+                }
         }
-        return sb.toString();
     }
 
     public void provideBytes(Consumer<byte[]> consumer) {
