@@ -21,11 +21,17 @@ public class Each extends Tag {
         Object varName = attrs.get("var");
         String var = varName == null ? "it" : String.valueOf(varName);
 
+        String indexName = attrs.get("status");
+
         add(model -> {
             Collection in = raw.getRaw(model);
             RenderResult result = new RenderResult();
+            int i = 0;
             for (Object ob : in) {
                 model.put(var, ob);
+                if (indexName != null)
+                    model.put(indexName, i++);
+
                 result.add(body.get(model));
             }
             return result;
