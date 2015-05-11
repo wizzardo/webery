@@ -61,4 +61,26 @@ public class EachTest {
                 "        <br/>\n" +
                 "</div>\n", result.toString());
     }
+
+    @Test
+    public void test_3() {
+        Node n = Node.parse("<div><g:each in=\"$list\" status=\"i\">${i+1}: $it<br/></g:each></div>", true);
+
+        RenderableList l = new RenderableList();
+        ViewRenderer.prepare(n.children(), l, "", "");
+
+        Model model = new Model();
+        model.put("list", Arrays.asList("one", "two", "three"));
+        RenderResult result = l.get(model);
+
+        Assert.assertEquals("" +
+                "<div>\n" +
+                "        1: one\n" +
+                "        <br/>\n" +
+                "        2: two\n" +
+                "        <br/>\n" +
+                "        3: three\n" +
+                "        <br/>\n" +
+                "</div>\n", result.toString());
+    }
 }
