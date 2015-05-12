@@ -16,9 +16,15 @@ public class ExpressionHolder<T> implements Renderable {
     private volatile boolean prepared = false;
     private String string;
     private Expression expression;
+    protected boolean stringTemplate;
 
     public ExpressionHolder(String s) {
+        this(s, false);
+    }
+
+    public ExpressionHolder(String s, boolean stringTemplate) {
         string = s;
+        this.stringTemplate = stringTemplate;
     }
 
     protected ExpressionHolder() {
@@ -35,18 +41,22 @@ public class ExpressionHolder<T> implements Renderable {
             synchronized (this) {
                 if (!prepared) {
                     Unchecked.run(() -> {
-                        Matcher m = p.matcher(string);
-                        if (m.find()) {
-                            String exp = m.group(1);
-                            if (exp == null) {
-                                exp = m.group(2);
-                            }
-                            if (exp == null) {
-                                exp = m.group(3);
-                            }
-                            expression = EvalTools.prepare(exp, model);
-                        } else
-                            expression = EvalTools.prepare(string, model);
+                        if (stringTemplate)
+                            expression = EvalTools.prepare("\"" + string + "\"", model);
+                        else {
+                            Matcher m = p.matcher(string);
+                            if (m.find()) {
+                                String exp = m.group(1);
+                                if (exp == null) {
+                                    exp = m.group(2);
+                                }
+                                if (exp == null) {
+                                    exp = m.group(3);
+                                }
+                                expression = EvalTools.prepare(exp, model);
+                            } else
+                                expression = EvalTools.prepare(string, model);
+                        }
                     });
                     prepared = true;
                 }
