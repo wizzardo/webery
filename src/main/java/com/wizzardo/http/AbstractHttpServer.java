@@ -77,7 +77,7 @@ public abstract class AbstractHttpServer<T extends HttpConnection> extends Epoll
 
             ByteBuffer b;
             try {
-                while ((b = read(connection, connection.getBufferSize(), this)).limit() > 0) {
+                while ((b = connection.read(connection.getBufferSize(), this)).limit() > 0) {
                     if (connection.check(b))
                         break;
                 }
