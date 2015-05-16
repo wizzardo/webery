@@ -1,5 +1,6 @@
 package com.wizzardo.http;
 
+import com.wizzardo.epoll.SslConfig;
 import com.wizzardo.epoll.readable.ReadableByteBuffer;
 import com.wizzardo.http.mapping.UrlMapping;
 import com.wizzardo.http.request.Header;
@@ -42,18 +43,20 @@ public class HttpServer<T extends HttpConnection> extends AbstractHttpServer<T> 
     }
 
     public HttpServer(String host, int port, String context, int workersCount) {
+        this(host, port, null, workersCount, null);
+    }
+
+    public HttpServer(String host, int port, String context, int workersCount, SslConfig sslConfig) {
         super(host, port, workersCount);
         this.context = context;
+        if (sslConfig != null)
+            loadCertificates(sslConfig);
+
+        init();
     }
 
     protected UrlMapping<Handler> createUrlMapping(String host, int port, String context) {
         return new UrlMapping<>(host, port, context);
-    }
-
-    @Override
-    public void run() {
-        init();
-        super.run();
     }
 
     protected void init() {

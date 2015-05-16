@@ -41,6 +41,7 @@ public class WebApplication extends HttpServer<HttpConnection> {
     }
 
     protected void init() {
+        super.init();
         List<Class> classes = new LocalResourcesTools().getClasses();
         DependencyFactory.get().setClasses(classes);
 
