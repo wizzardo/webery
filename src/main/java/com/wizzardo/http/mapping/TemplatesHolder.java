@@ -18,7 +18,7 @@ public class TemplatesHolder<K> {
         if (!host.startsWith("http"))
             host = "http://" + host;
 
-        if (port != 80)
+        if (port != 80 && port != 443)
             host += ":" + port;
 
 

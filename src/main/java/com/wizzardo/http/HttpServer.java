@@ -23,6 +23,7 @@ public class HttpServer<T extends HttpConnection> extends AbstractHttpServer<T> 
     protected FiltersMapping filtersMapping;
     protected UrlMapping<Handler> urlMapping;
     protected ServerDate serverDate = new ServerDate();
+    protected String context;
 
     public HttpServer(int port) {
         this(null, port);
@@ -42,19 +43,28 @@ public class HttpServer<T extends HttpConnection> extends AbstractHttpServer<T> 
 
     public HttpServer(String host, int port, String context, int workersCount) {
         super(host, port, workersCount);
-        if (host == null)
-            host = "localhost";
-
-        urlMapping = createUrlMapping(host, port, context);
-        filtersMapping = new FiltersMapping(context);
-        init();
+        this.context = context;
     }
 
     protected UrlMapping<Handler> createUrlMapping(String host, int port, String context) {
         return new UrlMapping<>(host, port, context);
     }
 
+    @Override
+    public void run() {
+        init();
+        super.run();
+    }
+
     protected void init() {
+        String base = getHost().equals("0.0.0.0") ? "localhost" : getHost();
+        if (isSecured())
+            base = "https://" + base;
+        else
+            base = "http://" + base;
+
+        urlMapping = createUrlMapping(base, getPort(), context);
+        filtersMapping = new FiltersMapping(context);
         urlMapping.append("/", (request, response) -> response.setStaticResponse(staticResponse.copy()));
     }
 

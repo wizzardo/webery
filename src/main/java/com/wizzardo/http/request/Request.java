@@ -296,6 +296,10 @@ public class Request<C extends HttpConnection> {
         }
     }
 
+    public boolean isSecured() {
+        return connection.isSecured();
+    }
+
     public Session session() {
         return session("/");
     }
