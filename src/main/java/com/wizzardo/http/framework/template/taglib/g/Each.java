@@ -4,6 +4,7 @@ import com.wizzardo.http.framework.template.Body;
 import com.wizzardo.http.framework.template.ExpressionHolder;
 import com.wizzardo.http.framework.template.RenderResult;
 import com.wizzardo.http.framework.template.Tag;
+import com.wizzardo.tools.collections.MapTools;
 
 import java.util.Collection;
 import java.util.Map;
@@ -17,9 +18,8 @@ public class Each extends Tag {
     public Each(Map<String, String> attrs, final Body body, String offset) {
         super(attrs, body, offset);
 
-        ExpressionHolder<Collection> raw = new ExpressionHolder<>(attrs.get("in"));
-        Object varName = attrs.get("var");
-        String var = varName == null ? "it" : String.valueOf(varName);
+        ExpressionHolder<Collection> raw = new ExpressionHolder<>(check(attrs, "in"));
+        String var = MapTools.getString(attrs, "var", "it");
 
         String indexName = attrs.get("status");
 

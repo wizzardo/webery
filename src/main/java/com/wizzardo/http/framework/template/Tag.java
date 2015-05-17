@@ -24,4 +24,12 @@ public abstract class Tag extends RenderableList {
     public void appendTo(RenderableList l) {
         l.append(this);
     }
+
+    protected String check(Map<String, String> attrs, String name) {
+        String value = attrs.get(name);
+        if (value == null)
+            throw new IllegalStateException("variable '" + name + "' is mandatory");
+
+        return value;
+    }
 }

@@ -14,7 +14,7 @@ public class TextField extends Tag {
     public TextField(Map<String, String> attrs, Body body, String offset) {
         super(attrs, body, offset);
 
-        ExpressionHolder name = new ExpressionHolder<>(attrs.get("name"), true);
+        ExpressionHolder name = new ExpressionHolder<>(check(attrs, "name"), true);
 
         String id = attrs.get("id");
         String value = attrs.get("value");

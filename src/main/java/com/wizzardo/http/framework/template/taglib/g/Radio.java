@@ -15,14 +15,14 @@ public class Radio extends Tag {
     public Radio(Map<String, String> attrs, Body body, String offset) {
         super(attrs, body, offset);
 
-        ExpressionHolder name = new ExpressionHolder<>(attrs.get("name"), true);
-        ExpressionHolder value = new ExpressionHolder<>(attrs.get("value"), true);
+        ExpressionHolder name = new ExpressionHolder<>(check(attrs, "name"), true);
+        ExpressionHolder value = new ExpressionHolder<>(check(attrs, "value"), true);
 
         append(offset);
         append("<input type=\"radio\" name=\"");
-        append(name::get);
+        append(name);
         append("\" value=\"");
-        append(value::get);
+        append(value);
         append("\"");
 
         String ch;
