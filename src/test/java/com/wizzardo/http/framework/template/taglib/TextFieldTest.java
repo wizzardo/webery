@@ -72,4 +72,16 @@ public class TextFieldTest {
 
         Assert.assertEquals("<input type=\"text\" name=\"myField\" id=\"myField\"/>", result.toString());
     }
+
+    @Test
+    public void test_5() {
+        Node n = Node.parse("<g:textField name=\"myField\" style=\"border: 0\"/>", true);
+
+        RenderableList l = new RenderableList();
+        ViewRenderer.prepare(n.children(), l, "", "");
+
+        RenderResult result = l.get(new Model());
+
+        Assert.assertEquals("<input type=\"text\" name=\"myField\" id=\"myField\" style=\"border: 0\"/>", result.toString());
+    }
 }

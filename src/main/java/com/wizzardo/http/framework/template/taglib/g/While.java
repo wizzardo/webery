@@ -16,7 +16,7 @@ public class While extends Tag {
     public While(Map<String, String> attrs, Body body, String offset) {
         super(attrs, body, offset);
 
-        ExpressionHolder<Collection> raw = new ExpressionHolder<>(check(attrs, "test"));
+        ExpressionHolder<Collection> raw = new ExpressionHolder<>(remove(attrs, "test"));
 
         add(model -> {
             RenderResult result = new RenderResult();

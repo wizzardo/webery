@@ -16,8 +16,8 @@ public class Collect extends Tag {
     public Collect(Map<String, String> attrs, Body body, String offset) {
         super(attrs, body, offset);
 
-        ExpressionHolder<Collection> in = new ExpressionHolder<>(check(attrs, "in"));
-        ExpressionHolder expr = new ExpressionHolder<>(check(attrs, "expr"));
+        ExpressionHolder<Collection> in = new ExpressionHolder<>(remove(attrs, "in"));
+        ExpressionHolder expr = new ExpressionHolder<>(remove(attrs, "expr"));
 
         add(model -> {
             Collection src = in.getRaw(model);

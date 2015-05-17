@@ -68,4 +68,16 @@ public class RadioTest {
 
         Assert.assertEquals("<input type=\"radio\" name=\"myGroup_1\" value=\"4\" checked=\"checked\"/>", result.toString());
     }
+
+    @Test
+    public void test_5() {
+        Node n = Node.parse("<g:radio name=\"myGroup\" value=\"5\" style=\"border: 0\"/>", true);
+
+        RenderableList l = new RenderableList();
+        ViewRenderer.prepare(n.children(), l, "", "");
+
+        RenderResult result = l.get(new Model());
+
+        Assert.assertEquals("<input type=\"radio\" name=\"myGroup\" value=\"5\" style=\"border: 0\"/>", result.toString());
+    }
 }

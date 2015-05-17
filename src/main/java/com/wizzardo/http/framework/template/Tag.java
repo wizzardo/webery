@@ -25,8 +25,8 @@ public abstract class Tag extends RenderableList {
         l.append(this);
     }
 
-    protected String check(Map<String, String> attrs, String name) {
-        String value = attrs.get(name);
+    protected String remove(Map<String, String> attrs, String name) {
+        String value = attrs.remove(name);
         if (value == null)
             throw new IllegalStateException("variable '" + name + "' is mandatory");
 

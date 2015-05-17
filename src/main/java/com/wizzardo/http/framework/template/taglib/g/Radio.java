@@ -15,8 +15,8 @@ public class Radio extends Tag {
     public Radio(Map<String, String> attrs, Body body, String offset) {
         super(attrs, body, offset);
 
-        ExpressionHolder name = new ExpressionHolder<>(check(attrs, "name"), true);
-        ExpressionHolder value = new ExpressionHolder<>(check(attrs, "value"), true);
+        ExpressionHolder name = new ExpressionHolder<>(remove(attrs, "name"), true);
+        ExpressionHolder value = new ExpressionHolder<>(remove(attrs, "value"), true);
 
         append(offset);
         append("<input type=\"radio\" name=\"");
@@ -26,7 +26,7 @@ public class Radio extends Tag {
         append("\"");
 
         String ch;
-        if ((ch = attrs.get("checked")) != null) {
+        if ((ch = attrs.remove("checked")) != null) {
             if (ch.equalsIgnoreCase("true"))
                 append(" checked=\"checked\"");
             else if (!ch.equalsIgnoreCase("false")) {
@@ -35,6 +35,7 @@ public class Radio extends Tag {
             }
         }
 
+        prepareAttrs(attrs);
         append("/>");
     }
 }

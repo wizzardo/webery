@@ -14,10 +14,10 @@ public class TextField extends Tag {
     public TextField(Map<String, String> attrs, Body body, String offset) {
         super(attrs, body, offset);
 
-        ExpressionHolder name = new ExpressionHolder<>(check(attrs, "name"), true);
+        ExpressionHolder name = new ExpressionHolder<>(remove(attrs, "name"), true);
 
-        String id = attrs.get("id");
-        String value = attrs.get("value");
+        String id = attrs.remove("id");
+        String value = attrs.remove("value");
 
         append(offset);
         append("<input type=\"text\" name=\"");
@@ -38,6 +38,7 @@ public class TextField extends Tag {
         if (value != null)
             append(" value=\"").append(new ExpressionHolder<>(value, true)).append("\"");
 
+        prepareAttrs(attrs);
         append("/>");
     }
 }
