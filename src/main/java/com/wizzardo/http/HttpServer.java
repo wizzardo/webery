@@ -43,7 +43,7 @@ public class HttpServer<T extends HttpConnection> extends AbstractHttpServer<T> 
     }
 
     public HttpServer(String host, int port, String context, int workersCount) {
-        this(host, port, null, workersCount, null);
+        this(host, port, context, workersCount, null);
     }
 
     public HttpServer(String host, int port, String context, int workersCount, SslConfig sslConfig) {
