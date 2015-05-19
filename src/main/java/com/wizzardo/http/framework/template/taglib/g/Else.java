@@ -9,11 +9,11 @@ import java.util.Map;
  */
 public class Else extends Tag {
 
-    protected final Body body;
+    protected Body body;
 
-    public Else(Map<String, String> attrs, Body body, String offset) {
-        super(attrs, body, offset);
+    public Tag init(Map<String, String> attrs, Body body, String offset) {
         this.body = body;
+        return this;
     }
 
     @Override

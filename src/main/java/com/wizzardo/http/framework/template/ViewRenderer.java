@@ -143,8 +143,9 @@ public class ViewRenderer extends Renderer {
         }
 
         if (TagLib.hasTag(n.name())) {
-            Tag t = TagLib.createTag(n.name(), n.attributes(), new Body(n, offset, dir), offset);
+            Tag t = TagLib.createTag(n.name());
             if (t != null) {
+                t.init(n, offset, dir);
                 t.appendTo(l);
                 return true;
             }

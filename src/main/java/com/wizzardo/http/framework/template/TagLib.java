@@ -2,7 +2,6 @@ package com.wizzardo.http.framework.template;
 
 import com.wizzardo.tools.misc.Unchecked;
 
-import java.lang.reflect.Constructor;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -12,7 +11,7 @@ import java.util.Map;
  */
 public class TagLib {
 
-    private static Map<String, Constructor<Tag>> taglib = new HashMap<>();
+    private static Map<String, Class<? extends Tag>> taglib = new HashMap<>();
 
     public static void findTags(List<Class> l) {
         for (Class c : l) {
@@ -22,25 +21,21 @@ public class TagLib {
 
                 String tag = namespace + ":" + c.getSimpleName().substring(0, 1).toLowerCase() + c.getSimpleName().substring(1);
                 System.out.println("register tag: " + tag);
-                taglib.put(tag, findConstructor(c));
+                taglib.put(tag, c);
             }
         }
-    }
-
-    private static Constructor<Tag> findConstructor(Class<Tag> clazz) {
-        return Unchecked.call(() -> clazz.getDeclaredConstructor(Map.class, Body.class, String.class));
     }
 
     public static boolean hasTag(String name) {
         return taglib.containsKey(name);
     }
 
-    public static Tag createTag(String name, Map<String, String> attrs, Body body, String offset) {
-        Constructor<Tag> c = taglib.get(name);
+    public static Tag createTag(String name) {
+        Class<? extends Tag> c = taglib.get(name);
         if (c == null)
             return null;
 
-        return Unchecked.call(() -> c.newInstance(attrs, body, offset));
+        return Unchecked.call(c::newInstance);
     }
 
 }

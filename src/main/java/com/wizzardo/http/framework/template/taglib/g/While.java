@@ -13,9 +13,7 @@ import java.util.Map;
  * Created by wizzardo on 16.05.15.
  */
 public class While extends Tag {
-    public While(Map<String, String> attrs, Body body, String offset) {
-        super(attrs, body, offset);
-
+    public Tag init(Map<String, String> attrs, Body body, String offset) {
         ExpressionHolder<Collection> raw = new ExpressionHolder<>(remove(attrs, "test"));
 
         add(model -> {
@@ -25,5 +23,6 @@ public class While extends Tag {
             }
             return result;
         });
+        return this;
     }
 }

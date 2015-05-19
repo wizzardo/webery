@@ -1,5 +1,7 @@
 package com.wizzardo.http.framework.template;
 
+import com.wizzardo.tools.xml.Node;
+
 import java.util.Map;
 
 /**
@@ -8,8 +10,19 @@ import java.util.Map;
  */
 public abstract class Tag extends RenderableList {
 
-    public Tag(Map<String, String> attrs, Body body, String offset) {
+    public Tag init(Node node, String offset, String dir) {
+        return init(node.attributes(), new Body(node, offset + ViewRenderer.OFFSET, dir), offset);
     }
+
+    public Tag init(Map<String, String> attrs) {
+        return init(attrs, null, "");
+    }
+
+    public Tag init(Map<String, String> attrs, Body body) {
+        return init(attrs, body, "");
+    }
+
+    public abstract Tag init(Map<String, String> attrs, Body body, String offset);
 
     protected void prepareAttrs(Map<String, String> attrs) {
         for (Map.Entry<String, String> attr : attrs.entrySet()) {

@@ -11,9 +11,8 @@ import java.util.Map;
  * Created by wizzardo on 18.05.15.
  */
 public class TextArea extends Tag {
-    public TextArea(Map<String, String> attrs, Body body, String offset) {
-        super(attrs, body, offset);
 
+    public Tag init(Map<String, String> attrs, Body body, String offset) {
         ExpressionHolder name = new ExpressionHolder<>(remove(attrs, "name"), true);
 
         String id = attrs.remove("id");
@@ -44,5 +43,6 @@ public class TextArea extends Tag {
             append("\n").append(body::get);
 
         append("</textarea>");
+        return this;
     }
 }

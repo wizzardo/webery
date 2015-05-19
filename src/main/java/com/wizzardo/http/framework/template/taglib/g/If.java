@@ -11,15 +11,15 @@ import java.util.Map;
 public class If extends Tag {
 
     protected Tag elseTag;
-    protected final Body body;
-    protected final ExpressionHolder exp;
+    protected Body body;
+    protected ExpressionHolder exp;
 
-    public If(Map<String, String> attrs, Body body, String offset) {
-        super(attrs, body, offset);
+    public Tag init(Map<String, String> attrs, Body body, String offset) {
         this.body = body;
 
         String test = attrs.remove("test");
         exp = new ExpressionHolder<>(test);
+        return this;
     }
 
     public void setElse(Tag elseTag) {

@@ -11,9 +11,7 @@ import java.util.Map;
  * Created by wizzardo on 17.05.15.
  */
 public class TextField extends Tag {
-    public TextField(Map<String, String> attrs, Body body, String offset) {
-        super(attrs, body, offset);
-
+    public Tag init(Map<String, String> attrs, Body body, String offset) {
         ExpressionHolder name = new ExpressionHolder<>(remove(attrs, "name"), true);
 
         String id = attrs.remove("id");
@@ -40,5 +38,6 @@ public class TextField extends Tag {
 
         prepareAttrs(attrs);
         append("/>");
+        return this;
     }
 }

@@ -15,7 +15,7 @@ public class Body extends RenderableList {
         this.node = node;
 
         for (Node child : node.children()) {
-            ViewRenderer.prepare(child, this, dir, offset + ViewRenderer.OFFSET);
+            ViewRenderer.prepare(child, this, dir, offset);
         }
     }
 

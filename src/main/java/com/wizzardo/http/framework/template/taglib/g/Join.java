@@ -14,9 +14,7 @@ import java.util.Map;
  * Created by wizzardo on 12.05.15.
  */
 public class Join extends Tag {
-    public Join(Map<String, String> attrs, Body body, String offset) {
-        super(attrs, body, offset);
-
+    public Tag init(Map<String, String> attrs, Body body, String offset) {
         ExpressionHolder<Collection> in = new ExpressionHolder<>(remove(attrs, "in"));
         String delimiter = MapTools.getString(attrs, "delimiter", ", ");
 
@@ -26,5 +24,6 @@ public class Join extends Tag {
             result.append(CollectionTools.join(src, delimiter));
             return result;
         });
+        return this;
     }
 }

@@ -12,9 +12,8 @@ import java.util.Map;
  * Created by wizzardo on 12.05.15.
  */
 public class Radio extends Tag {
-    public Radio(Map<String, String> attrs, Body body, String offset) {
-        super(attrs, body, offset);
 
+    public Tag init(Map<String, String> attrs, Body body, String offset) {
         ExpressionHolder name = new ExpressionHolder<>(remove(attrs, "name"), true);
         ExpressionHolder value = new ExpressionHolder<>(remove(attrs, "value"), true);
 
@@ -37,5 +36,6 @@ public class Radio extends Tag {
 
         prepareAttrs(attrs);
         append("/>");
+        return this;
     }
 }

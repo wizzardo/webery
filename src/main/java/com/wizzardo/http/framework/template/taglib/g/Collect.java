@@ -13,9 +13,7 @@ import java.util.Map;
  */
 public class Collect extends Tag {
 
-    public Collect(Map<String, String> attrs, Body body, String offset) {
-        super(attrs, body, offset);
-
+    public Tag init(Map<String, String> attrs, Body body, String offset) {
         ExpressionHolder<Collection> in = new ExpressionHolder<>(remove(attrs, "in"));
         ExpressionHolder expr = new ExpressionHolder<>(remove(attrs, "expr"));
 
@@ -29,5 +27,6 @@ public class Collect extends Tag {
             }
             return result;
         });
+        return this;
     }
 }
