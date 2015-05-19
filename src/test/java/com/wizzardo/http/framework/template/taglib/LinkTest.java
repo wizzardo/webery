@@ -45,33 +45,33 @@ public class LinkTest extends WebApplicationTest {
 
         attrs.put("controller", "book");
         attrs.put("action", "list");
-        Assert.assertEquals("<a href=\"/book/list\"/>\n", new Link(new LinkedHashMap<>(attrs), null).get(model).toString());
+        Assert.assertEquals("<a href=\"/book/list\"/>\n", new Link().init(new LinkedHashMap<>(attrs)).get(model).toString());
 
         attrs.put("absolute", "true");
-        Assert.assertEquals("<a href=\"http://localhost:9999/book/list\"/>\n", new Link(new LinkedHashMap<>(attrs), null).get(model).toString());
+        Assert.assertEquals("<a href=\"http://localhost:9999/book/list\"/>\n", new Link().init(new LinkedHashMap<>(attrs)).get(model).toString());
 
         attrs.put("base", "http://ya.ru");
-        Assert.assertEquals("<a href=\"http://ya.ru/book/list\"/>\n", new Link(new LinkedHashMap<>(attrs), null).get(model).toString());
+        Assert.assertEquals("<a href=\"http://ya.ru/book/list\"/>\n", new Link().init(new LinkedHashMap<>(attrs)).get(model).toString());
 
         attrs.put("fragment", "some_fragment");
-        Assert.assertEquals("<a href=\"http://ya.ru/book/list#some_fragment\"/>\n", new Link(new LinkedHashMap<>(attrs), null).get(model).toString());
+        Assert.assertEquals("<a href=\"http://ya.ru/book/list#some_fragment\"/>\n", new Link().init(new LinkedHashMap<>(attrs)).get(model).toString());
 
         attrs.put("params", "[key:'value']");
-        Assert.assertEquals("<a href=\"http://ya.ru/book/list?key=value#some_fragment\"/>\n", new Link(new LinkedHashMap<>(attrs), null).get(model).toString());
+        Assert.assertEquals("<a href=\"http://ya.ru/book/list?key=value#some_fragment\"/>\n", new Link().init(new LinkedHashMap<>(attrs)).get(model).toString());
 
         attrs.put("params", "[key:'value', key2: 'value2']");
-        Assert.assertEquals("<a href=\"http://ya.ru/book/list?key=value&key2=value2#some_fragment\"/>\n", new Link(new LinkedHashMap<>(attrs), null).get(model).toString());
+        Assert.assertEquals("<a href=\"http://ya.ru/book/list?key=value&key2=value2#some_fragment\"/>\n", new Link().init(new LinkedHashMap<>(attrs)).get(model).toString());
 
 
         attrs.clear();
         attrs.put("controller", "book");
         attrs.put("action", "get");
         attrs.put("params", "[id:1]");
-        Assert.assertEquals("<a href=\"/book/1\"/>\n", new Link(new LinkedHashMap<>(attrs), null).get(model).toString());
+        Assert.assertEquals("<a href=\"/book/1\"/>\n", new Link().init(new LinkedHashMap<>(attrs)).get(model).toString());
 
         attrs.put("class", "red");
         attrs.put("id", "link1");
-        Assert.assertEquals("<a href=\"/book/1\" class=\"red\" id=\"link1\"/>\n", new Link(new LinkedHashMap<>(attrs), null).get(model).toString());
+        Assert.assertEquals("<a href=\"/book/1\" class=\"red\" id=\"link1\"/>\n", new Link().init(new LinkedHashMap<>(attrs)).get(model).toString());
 
 
         attrs.clear();
@@ -79,10 +79,10 @@ public class LinkTest extends WebApplicationTest {
         attrs.put("action", "get");
         attrs.put("params", "[id:id]");
         model.put("id", 1);
-        Assert.assertEquals("<a href=\"/book/1\"/>\n", new Link(new LinkedHashMap<>(attrs), null).get(model).toString());
+        Assert.assertEquals("<a href=\"/book/1\"/>\n", new Link().init(new LinkedHashMap<>(attrs)).get(model).toString());
 
         attrs.put("id", "link_${id}");
-        Assert.assertEquals("<a href=\"/book/1\" id=\"link_1\"/>\n", new Link(new LinkedHashMap<>(attrs), null).get(model).toString());
+        Assert.assertEquals("<a href=\"/book/1\" id=\"link_1\"/>\n", new Link().init(new LinkedHashMap<>(attrs)).get(model).toString());
     }
 
     @Test
