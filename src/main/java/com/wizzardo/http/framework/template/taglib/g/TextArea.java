@@ -4,6 +4,7 @@ import com.wizzardo.http.framework.template.Body;
 import com.wizzardo.http.framework.template.ExpressionHolder;
 import com.wizzardo.http.framework.template.RenderResult;
 import com.wizzardo.http.framework.template.Tag;
+import com.wizzardo.tools.xml.Node;
 
 import java.util.Map;
 
@@ -11,6 +12,11 @@ import java.util.Map;
  * Created by wizzardo on 18.05.15.
  */
 public class TextArea extends Tag {
+
+    @Override
+    public Tag init(Node node, String offset, String dir) {
+        return init(node.attributes(), new Body(node, "", dir, false), offset);
+    }
 
     public Tag init(Map<String, String> attrs, Body body, String offset) {
         ExpressionHolder name = new ExpressionHolder<>(remove(attrs, "name"), true);
@@ -40,7 +46,7 @@ public class TextArea extends Tag {
         if (value != null)
             append(new ExpressionHolder<>(value, true));
         else
-            append("\n").append(body::get);
+            append(body::get);
 
         append("</textarea>");
         return this;

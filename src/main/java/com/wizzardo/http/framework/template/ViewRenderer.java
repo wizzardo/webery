@@ -94,10 +94,15 @@ public class ViewRenderer extends Renderer {
     }
 
     public static void prepare(Node n, RenderableList l, String dir, String offset) {
+        prepare(n, l, dir, offset, true);
+    }
+
+    public static void prepare(Node n, RenderableList l, String dir, String offset, boolean addNewLine) {
         if (n.name() == null) {
             l.append(offset);
             prepare(n.textOwn(), l);
-            l.append("\n");
+            if (addNewLine)
+                l.append("\n");
             return;
         }
 
@@ -120,15 +125,19 @@ public class ViewRenderer extends Renderer {
             }
         }
         if (n.isEmpty()) {
-            l.append("/>\n");
+            l.append("/>");
         } else {
-            l.append(">\n");
+            l.append(">");
+            if (addNewLine)
+                l.append("\n");
             for (Node child : n.children()) {
-                prepare(child, l, dir, offset + OFFSET);
+                prepare(child, l, dir, offset + OFFSET, addNewLine);
             }
             l.append(offset);
-            l.append("</").append(n.name()).append(">\n");
+            l.append("</").append(n.name()).append(">");
         }
+        if (addNewLine)
+            l.append("\n");
     }
 
 
