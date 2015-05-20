@@ -105,4 +105,23 @@ public class IfTest {
                 "        two\n" +
                 "</div>\n", result.toString());
     }
+
+    @Test
+    public void test_4() {
+        Node n = Node.parse("\"<div><g:if test=\\\"${flag}\\\">text</g:if>error<g:else>foo</g:else></div>\"", true);
+        try {
+            ViewRenderer.prepare(n.children(), new RenderableList(), "", "");
+            assert false;
+        } catch (IllegalStateException e) {
+            Assert.assertEquals("If tag must be before Else tag", e.getMessage());
+        }
+
+        n = Node.parse("\"<div><g:if test=\\\"${flag}\\\">text</g:if>error<g:elseif>foo</g:elseif></div>\"", true);
+        try {
+            ViewRenderer.prepare(n.children(), new RenderableList(), "", "");
+            assert false;
+        } catch (IllegalStateException e) {
+            Assert.assertEquals("If tag must be before Else tag", e.getMessage());
+        }
+    }
 }
