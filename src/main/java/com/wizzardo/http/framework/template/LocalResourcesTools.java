@@ -26,8 +26,8 @@ public class LocalResourcesTools implements ResourceTools {
     {
         ClassLoader cl = ClassLoader.getSystemClassLoader();
 
-        URL[] urls = ((URLClassLoader)cl).getURLs();
-        for(URL url: urls){
+        URL[] urls = ((URLClassLoader) cl).getURLs();
+        for (URL url : urls) {
             classpath.add(url.getFile());
         }
 
@@ -145,12 +145,12 @@ public class LocalResourcesTools implements ResourceTools {
     }
 
     private Class getClass(String name) {
-        if (name.length() < 7)
+        if (name.length() < 7 || !name.endsWith(".class"))
             return null;
         try {
             name = name.substring(0, name.length() - 6).replace('/', '.');
             return ClassLoader.getSystemClassLoader().loadClass(name);
-        } catch (ClassNotFoundException ignored) {
+        } catch (ClassNotFoundException | NoClassDefFoundError ignored) {
         }
         return null;
     }
