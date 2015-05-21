@@ -3,6 +3,7 @@ package com.wizzardo.http.framework.template;
 import com.wizzardo.tools.xml.Node;
 
 import java.util.Map;
+import java.util.function.Supplier;
 
 /**
  * @author: moxa
@@ -44,5 +45,15 @@ public abstract class Tag extends RenderableList {
             throw new IllegalStateException("variable '" + name + "' is mandatory");
 
         return value;
+    }
+
+    protected String remove(Map<String, String> attrs, String name, Supplier<String> defaultSupplier) {
+        String value = attrs.remove(name);
+        return value == null ? defaultSupplier.get() : value;
+    }
+
+    protected String remove(Map<String, String> attrs, String name, String def) {
+        String value = attrs.remove(name);
+        return value == null ? def : value;
     }
 }

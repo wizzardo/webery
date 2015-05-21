@@ -23,18 +23,14 @@ public class Link extends Tag {
     public Tag init(Map<String, String> attrs, Body body, String offset) {
         String controller = attrs.remove("controller");
         String action = attrs.remove("action");
-        final String base = attrs.remove("base");
-        final String fragment = attrs.remove("fragment");
+        String base = attrs.remove("base");
+        String fragment = attrs.remove("fragment");
         boolean absolute = Boolean.valueOf(attrs.remove("absolute"));
 
         append(offset);
         append("<a href=\"");
 
-        String paramsRaw = attrs.remove("params");
-        if (paramsRaw == null)
-            paramsRaw = "[:]";
-
-        ExpressionHolder<Map<String, Object>> params = new ExpressionHolder<>(paramsRaw);
+        ExpressionHolder<Map<String, Object>> params = new ExpressionHolder<>(remove(attrs, "params", "[:]"));
 
         UrlTemplate template = urlMapping.getUrlTemplate(controller + "." + action);
 
