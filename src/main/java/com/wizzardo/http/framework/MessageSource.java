@@ -48,16 +48,20 @@ public abstract class MessageSource {
                 Matcher matcher = ARGS_PATTERN.matcher(raw);
                 int from = 0;
                 while (matcher.find()) {
-                    if (matcher.start() != from)
-                        l.add(new TextPart(raw.substring(from, matcher.start())));
+                    if (matcher.start() != from) {
+                        String value = raw.substring(from, matcher.start());
+                        l.add(args -> value);
+                    }
 
                     int number = Integer.parseInt(matcher.group(1));
-                    l.add(new ArgumentPart(number));
+                    l.add(args -> args.length <= number ? "null" : String.valueOf(args[number]));
 
                     from = matcher.end();
                 }
-                if (from != raw.length())
-                    l.add(new TextPart(raw.substring(from)));
+                if (from != raw.length()) {
+                    String value = raw.substring(from);
+                    l.add(args -> value);
+                }
 
                 parts = l.toArray(new Part[l.size()]);
             } catch (Exception e) {
@@ -68,30 +72,5 @@ public abstract class MessageSource {
         interface Part {
             String get(Object[] args);
         }
-
-        static class TextPart implements Part {
-            String value;
-
-            public TextPart(String value) {
-                this.value = value;
-            }
-
-            public String get(Object[] args) {
-                return value;
-            }
-        }
-
-        static class ArgumentPart implements Part {
-            int i;
-
-            public ArgumentPart(int i) {
-                this.i = i;
-            }
-
-            public String get(Object[] args) {
-                return args.length <= i ? "null" : String.valueOf(args[i]);
-            }
-        }
-
     }
 }
