@@ -11,10 +11,10 @@ import java.util.regex.Pattern;
  */
 public class Template {
 
-    static final Pattern ARGS_PATTERN = Pattern.compile("\\{([0-9]+)\\}");
+    protected static final Pattern ARGS_PATTERN = Pattern.compile("\\{([0-9]+)\\}");
 
-    final String raw;
-    Part[] parts;
+    protected final String raw;
+    protected Part[] parts;
 
     public Template(String message) {
         raw = message;
