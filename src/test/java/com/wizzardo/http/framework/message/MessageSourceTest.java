@@ -18,4 +18,10 @@ public class MessageSourceTest {
         Assert.assertEquals("bar bar", new Template("{0} {0}").get("bar"));
         Assert.assertEquals("foo null", new Template("foo {0}").get());
     }
+
+    @Test
+    public void test_properties() {
+        MessageSource ms = new PropertiesMessageSource("messages");
+        Assert.assertEquals("bar", ms.get("foo"));
+    }
 }
