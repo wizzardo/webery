@@ -8,4 +8,9 @@ import java.util.Map;
  */
 public interface Renderable {
     RenderResult get(Map<String, Object> model);
+
+    static Renderable create(String s) {
+        RenderResult result = new RenderResult(s);
+        return model -> result;
+    }
 }
