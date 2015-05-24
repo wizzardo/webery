@@ -38,7 +38,7 @@ public class JoinTest {
 
         RenderResult result = l.get(new Model());
 
-        Assert.assertEquals("Grails_Groovy_Gradle", result.toString());
+        Assert.assertEquals("Grails_Groovy_Gradle\n", result.toString());
     }
 
     @Test
@@ -50,6 +50,6 @@ public class JoinTest {
 
         RenderResult result = l.get(new Model());
 
-        Assert.assertEquals("Grails, Groovy, Gradle", result.toString());
+        Assert.assertEquals("Grails, Groovy, Gradle\n", result.toString());
     }
 }

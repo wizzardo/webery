@@ -37,7 +37,7 @@ public class TextField extends Tag {
             append(" value=\"").append(new ExpressionHolder<>(value, true)).append("\"");
 
         prepareAttrs(attrs);
-        append("/>");
+        append("/>\n");
         return this;
     }
 }

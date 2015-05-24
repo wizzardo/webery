@@ -31,7 +31,7 @@ public class TextAreaTest {
         model.put("myValue", 1);
         RenderResult result = l.get(model);
 
-        Assert.assertEquals("<textarea name=\"myField\" id=\"myField\">1</textarea>", result.toString());
+        Assert.assertEquals("<textarea name=\"myField\" id=\"myField\">1</textarea>\n", result.toString());
     }
 
     @Test
@@ -47,7 +47,7 @@ public class TextAreaTest {
 
         Assert.assertEquals("<textarea name=\"myField\" id=\"myField\">" +
                 "1" +
-                "</textarea>", result.toString());
+                "</textarea>\n", result.toString());
     }
 
 }

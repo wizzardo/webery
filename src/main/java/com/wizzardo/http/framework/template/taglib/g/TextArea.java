@@ -48,7 +48,7 @@ public class TextArea extends Tag {
         else
             append(body::get);
 
-        append("</textarea>");
+        append("</textarea>\n");
         return this;
     }
 }

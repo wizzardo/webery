@@ -24,6 +24,7 @@ public class Join extends Tag {
             result.append(CollectionTools.join(src, delimiter));
             return result;
         });
+        append("\n");
         return this;
     }
 }

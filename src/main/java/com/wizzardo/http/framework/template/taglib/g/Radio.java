@@ -35,7 +35,7 @@ public class Radio extends Tag {
         }
 
         prepareAttrs(attrs);
-        append("/>");
+        append("/>\n");
         return this;
     }
 }

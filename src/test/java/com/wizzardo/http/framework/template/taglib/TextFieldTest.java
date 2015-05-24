@@ -30,7 +30,7 @@ public class TextFieldTest {
         model.put("myValue", 1);
         RenderResult result = l.get(model);
 
-        Assert.assertEquals("<input type=\"text\" name=\"myField\" id=\"myField\" value=\"1\"/>", result.toString());
+        Assert.assertEquals("<input type=\"text\" name=\"myField\" id=\"myField\" value=\"1\"/>\n", result.toString());
     }
 
     @Test
@@ -44,7 +44,7 @@ public class TextFieldTest {
         model.put("myValue", 1);
         RenderResult result = l.get(model);
 
-        Assert.assertEquals("<input type=\"text\" name=\"myField\" id=\"text_1\" value=\"1\"/>", result.toString());
+        Assert.assertEquals("<input type=\"text\" name=\"myField\" id=\"text_1\" value=\"1\"/>\n", result.toString());
     }
 
     @Test
@@ -58,7 +58,7 @@ public class TextFieldTest {
         model.put("myValue", 1);
         RenderResult result = l.get(model);
 
-        Assert.assertEquals("<input type=\"text\" name=\"myField_1\" id=\"myField_1\" value=\"2\"/>", result.toString());
+        Assert.assertEquals("<input type=\"text\" name=\"myField_1\" id=\"myField_1\" value=\"2\"/>\n", result.toString());
     }
 
     @Test
@@ -70,7 +70,7 @@ public class TextFieldTest {
 
         RenderResult result = l.get(new Model());
 
-        Assert.assertEquals("<input type=\"text\" name=\"myField\" id=\"myField\"/>", result.toString());
+        Assert.assertEquals("<input type=\"text\" name=\"myField\" id=\"myField\"/>\n", result.toString());
     }
 
     @Test
@@ -82,6 +82,6 @@ public class TextFieldTest {
 
         RenderResult result = l.get(new Model());
 
-        Assert.assertEquals("<input type=\"text\" name=\"myField\" id=\"myField\" style=\"border: 0\"/>", result.toString());
+        Assert.assertEquals("<input type=\"text\" name=\"myField\" id=\"myField\" style=\"border: 0\"/>\n", result.toString());
     }
 }

@@ -30,7 +30,7 @@ public class RadioTest {
 
         RenderResult result = l.get(new Model());
 
-        Assert.assertEquals("<input type=\"radio\" name=\"myGroup\" value=\"1\"/>", result.toString());
+        Assert.assertEquals("<input type=\"radio\" name=\"myGroup\" value=\"1\"/>\n", result.toString());
     }
 
     @Test
@@ -42,7 +42,7 @@ public class RadioTest {
 
         RenderResult result = l.get(new Model());
 
-        Assert.assertEquals("<input type=\"radio\" name=\"myGroup\" value=\"2\"/>", result.toString());
+        Assert.assertEquals("<input type=\"radio\" name=\"myGroup\" value=\"2\"/>\n", result.toString());
     }
 
     @Test
@@ -54,7 +54,7 @@ public class RadioTest {
 
         RenderResult result = l.get(new Model());
 
-        Assert.assertEquals("<input type=\"radio\" name=\"myGroup\" value=\"3\" checked=\"checked\"/>", result.toString());
+        Assert.assertEquals("<input type=\"radio\" name=\"myGroup\" value=\"3\" checked=\"checked\"/>\n", result.toString());
     }
 
     @Test
@@ -66,7 +66,7 @@ public class RadioTest {
 
         RenderResult result = l.get(new Model());
 
-        Assert.assertEquals("<input type=\"radio\" name=\"myGroup_1\" value=\"4\" checked=\"checked\"/>", result.toString());
+        Assert.assertEquals("<input type=\"radio\" name=\"myGroup_1\" value=\"4\" checked=\"checked\"/>\n", result.toString());
     }
 
     @Test
@@ -78,6 +78,6 @@ public class RadioTest {
 
         RenderResult result = l.get(new Model());
 
-        Assert.assertEquals("<input type=\"radio\" name=\"myGroup\" value=\"5\" style=\"border: 0\"/>", result.toString());
+        Assert.assertEquals("<input type=\"radio\" name=\"myGroup\" value=\"5\" style=\"border: 0\"/>\n", result.toString());
     }
 }
