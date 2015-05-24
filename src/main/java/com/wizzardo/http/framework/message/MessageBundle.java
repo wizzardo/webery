@@ -80,4 +80,9 @@ public class MessageBundle implements MessageSource {
     public Locale getDefaultLocale() {
         return defaultLocale;
     }
+
+    public MessageBundle appendDefault(String key, String template) {
+        defaultSource.templates.put(key, new Template(template));
+        return this;
+    }
 }

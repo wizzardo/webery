@@ -6,6 +6,8 @@ import com.wizzardo.http.HttpServer;
 import com.wizzardo.http.Worker;
 import com.wizzardo.http.framework.di.DependencyFactory;
 import com.wizzardo.http.framework.di.SingletonDependency;
+import com.wizzardo.http.framework.message.MessageBundle;
+import com.wizzardo.http.framework.message.MessageSource;
 import com.wizzardo.http.framework.template.LocalResourcesTools;
 import com.wizzardo.http.mapping.UrlMapping;
 import com.wizzardo.http.request.Request;
@@ -46,6 +48,14 @@ public class WebApplication extends HttpServer<HttpConnection> {
         DependencyFactory.get().setClasses(classes);
 
         DependencyFactory.get().register(UrlMapping.class, new SingletonDependency<>(urlMapping));
+        DependencyFactory.get().register(MessageSource.class, new SingletonDependency<>(initMessageSource()));
+    }
+
+    protected MessageSource initMessageSource() {
+        return new MessageBundle()
+                .appendDefault("default.boolean.true", "true")
+                .appendDefault("default.boolean.false", "false")
+                ;
     }
 
     @Override
