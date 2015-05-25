@@ -126,7 +126,7 @@ public class HttpConnection<H extends AbstractHttpServer, Q extends Request, S e
         if (i < 0)
             return false;
 
-        this.requestReader = null;
+//        this.requestReader = null;
         position = i;
         r = limit;
         request = createRequest();
@@ -205,6 +205,7 @@ public class HttpConnection<H extends AbstractHttpServer, Q extends Request, S e
         outputStream = null;
         inputListener = null;
         outputListener = null;
+        requestReader.clear();
         r = 0;
     }
 

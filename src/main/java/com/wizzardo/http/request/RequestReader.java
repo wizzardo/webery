@@ -63,7 +63,7 @@ public class RequestReader {
     }
 
     public RequestReader(Map<String, MultiValue> headers) {
-        this(null, null);
+        this(headers, null);
     }
 
     public RequestReader(Map<String, MultiValue> headers, Parameters params) {
@@ -74,6 +74,19 @@ public class RequestReader {
 
         this.headers = headers;
         this.params = params;
+    }
+
+    public void clear() {
+        headers.clear();
+        params.clear();
+        method = null;
+        queryString = null;
+        protocol = null;
+        tempKey = null;
+        complete = false;
+        waitForNewLine = false;
+        path = null;
+        r = 0;
     }
 
     public Request fillRequest(Request request) {
