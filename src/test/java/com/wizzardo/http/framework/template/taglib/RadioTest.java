@@ -30,7 +30,7 @@ public class RadioTest {
 
         RenderResult result = l.get(new Model());
 
-        Assert.assertEquals("<input type=\"radio\" name=\"myGroup\" value=\"1\"/>\n", result.toString());
+        Assert.assertEquals("<input type=\"radio\" name=\"myGroup\" id=\"myGroup\" value=\"1\"/>\n", result.toString());
     }
 
     @Test
@@ -42,7 +42,7 @@ public class RadioTest {
 
         RenderResult result = l.get(new Model());
 
-        Assert.assertEquals("<input type=\"radio\" name=\"myGroup\" value=\"2\"/>\n", result.toString());
+        Assert.assertEquals("<input type=\"radio\" name=\"myGroup\" id=\"myGroup\" value=\"2\"/>\n", result.toString());
     }
 
     @Test
@@ -54,7 +54,7 @@ public class RadioTest {
 
         RenderResult result = l.get(new Model());
 
-        Assert.assertEquals("<input type=\"radio\" name=\"myGroup\" value=\"3\" checked=\"checked\"/>\n", result.toString());
+        Assert.assertEquals("<input type=\"radio\" name=\"myGroup\" id=\"myGroup\" value=\"3\" checked=\"checked\"/>\n", result.toString());
     }
 
     @Test
@@ -66,18 +66,18 @@ public class RadioTest {
 
         RenderResult result = l.get(new Model());
 
-        Assert.assertEquals("<input type=\"radio\" name=\"myGroup_1\" value=\"4\" checked=\"checked\"/>\n", result.toString());
+        Assert.assertEquals("<input type=\"radio\" name=\"myGroup_1\" id=\"myGroup_1\" value=\"4\" checked=\"checked\"/>\n", result.toString());
     }
 
     @Test
     public void test_5() {
-        Node n = Node.parse("<g:radio name=\"myGroup\" value=\"5\" style=\"border: 0\"/>", true);
+        Node n = Node.parse("<g:radio name=\"myGroup\" id=\"radio_id\" value=\"5\" style=\"border: 0\"/>", true);
 
         RenderableList l = new RenderableList();
         ViewRenderer.prepare(n.children(), l, "", "");
 
         RenderResult result = l.get(new Model());
 
-        Assert.assertEquals("<input type=\"radio\" name=\"myGroup\" value=\"5\" style=\"border: 0\"/>\n", result.toString());
+        Assert.assertEquals("<input type=\"radio\" name=\"myGroup\" id=\"radio_id\" value=\"5\" style=\"border: 0\"/>\n", result.toString());
     }
 }

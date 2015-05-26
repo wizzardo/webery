@@ -17,9 +17,23 @@ public class Radio extends Tag {
         ExpressionHolder name = new ExpressionHolder<>(remove(attrs, "name"), true);
         ExpressionHolder value = new ExpressionHolder<>(remove(attrs, "value"), true);
 
+        String id = attrs.remove("id");
+
         append(offset);
         append("<input type=\"radio\" name=\"");
-        append(name);
+        append(model -> {
+            RenderResult result = new RenderResult();
+            String nameString = String.valueOf(name.getRaw(model));
+            result.append(nameString);
+            if (id == null)
+                result.append("\" id=\"").append(nameString);
+
+            return result;
+        });
+
+        if (id != null)
+            append("\" id=\"").append(new ExpressionHolder<>(id, true));
+
         append("\" value=\"");
         append(value);
         append("\"");
