@@ -13,7 +13,7 @@ import java.util.Collections;
 /**
  * Created by wizzardo on 18.05.15.
  */
-public class TextAreaTest {
+public class TextAreaTest implements TagTest {
 
     @Before
     public void setup() {
@@ -22,28 +22,16 @@ public class TextAreaTest {
 
     @Test
     public void test_1() {
-        Node n = Node.parse("<g:textArea name=\"myField\" value=\"${myValue}\"/>", true);
-
-        RenderableList l = new RenderableList();
-        ViewRenderer.prepare(n.children(), l, "", "");
-
-        Model model = new Model();
-        model.put("myValue", 1);
-        RenderResult result = l.get(model);
+        RenderResult result = prepare("<g:textArea name=\"myField\" value=\"${myValue}\"/>")
+                .get(new Model().append("myValue", 1));
 
         Assert.assertEquals("<textarea name=\"myField\" id=\"myField\">1</textarea>\n", result.toString());
     }
 
     @Test
     public void test_2() {
-        Node n = Node.parse("<g:textArea name=\"myField\">$myValue</g:textArea>", true);
-
-        RenderableList l = new RenderableList();
-        ViewRenderer.prepare(n.children(), l, "", "");
-
-        Model model = new Model();
-        model.put("myValue", 1);
-        RenderResult result = l.get(model);
+        RenderResult result = prepare("<g:textArea name=\"myField\">$myValue</g:textArea>")
+                .get(new Model().append("myValue", 1));
 
         Assert.assertEquals("<textarea name=\"myField\" id=\"myField\">" +
                 "1" +

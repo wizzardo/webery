@@ -15,7 +15,7 @@ import java.util.Map;
 /**
  * Created by wizzardo on 26.04.15.
  */
-public class LinkTest extends WebApplicationTest {
+public class LinkTest extends WebApplicationTest implements TagTest {
 
     public static class BookController extends Controller {
 
@@ -87,16 +87,12 @@ public class LinkTest extends WebApplicationTest {
 
     @Test
     public void testInTemplate() {
-        Node n = Node.parse("<div><g:link controller=\"book\" action=\"get\" params=\"[id: 1]\">text</g:link></div>", true);
-
-        RenderableList l = new RenderableList();
-        ViewRenderer.prepare(n.children(), l, "", "");
-
         Assert.assertEquals("" +
                 "<div>\n" +
                 "    <a href=\"/book/1\">\n" +
                 "        text\n" +
                 "    </a>\n" +
-                "</div>\n", l.get(new Model()).toString());
+                "</div>\n", prepare("<div><g:link controller=\"book\" action=\"get\" params=\"[id: 1]\">text</g:link></div>")
+                .get(new Model()).toString());
     }
 }

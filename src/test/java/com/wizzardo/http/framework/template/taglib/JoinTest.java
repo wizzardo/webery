@@ -1,7 +1,6 @@
 package com.wizzardo.http.framework.template.taglib;
 
 import com.wizzardo.http.framework.template.*;
-import com.wizzardo.http.framework.template.taglib.g.Collect;
 import com.wizzardo.http.framework.template.taglib.g.Join;
 import com.wizzardo.tools.xml.Node;
 import org.junit.Assert;
@@ -14,7 +13,7 @@ import java.util.Collections;
 /**
  * Created by wizzardo on 26.04.15.
  */
-public class JoinTest {
+public class JoinTest implements TagTest {
 
     @Before
     public void setup() {
@@ -31,24 +30,14 @@ public class JoinTest {
 
     @Test
     public void test_1() {
-        Node n = Node.parse("<g:join in=\"['Grails', 'Groovy', 'Gradle']\" delimiter=\"_\"/>", true);
-
-        RenderableList l = new RenderableList();
-        ViewRenderer.prepare(n.children(), l, "", "");
-
-        RenderResult result = l.get(new Model());
+        RenderResult result = prepare("<g:join in=\"['Grails', 'Groovy', 'Gradle']\" delimiter=\"_\"/>").get(new Model());
 
         Assert.assertEquals("Grails_Groovy_Gradle\n", result.toString());
     }
 
     @Test
     public void test_2() {
-        Node n = Node.parse("<g:join in=\"['Grails', 'Groovy', 'Gradle']\"/>", true);
-
-        RenderableList l = new RenderableList();
-        ViewRenderer.prepare(n.children(), l, "", "");
-
-        RenderResult result = l.get(new Model());
+        RenderResult result = prepare("<g:join in=\"['Grails', 'Groovy', 'Gradle']\"/>").get(new Model());
 
         Assert.assertEquals("Grails, Groovy, Gradle\n", result.toString());
     }

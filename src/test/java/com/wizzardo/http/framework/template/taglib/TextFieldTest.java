@@ -12,7 +12,7 @@ import java.util.Collections;
 /**
  * Created by wizzardo on 26.04.15.
  */
-public class TextFieldTest {
+public class TextFieldTest implements TagTest {
 
     @Before
     public void setup() {
@@ -21,66 +21,38 @@ public class TextFieldTest {
 
     @Test
     public void test_1() {
-        Node n = Node.parse("<g:textField name=\"myField\" value=\"${myValue}\"/>", true);
-
-        RenderableList l = new RenderableList();
-        ViewRenderer.prepare(n.children(), l, "", "");
-
-        Model model = new Model();
-        model.put("myValue", 1);
-        RenderResult result = l.get(model);
+        RenderResult result = prepare("<g:textField name=\"myField\" value=\"${myValue}\"/>")
+                .get(new Model().append("myValue", 1));
 
         Assert.assertEquals("<input type=\"text\" name=\"myField\" id=\"myField\" value=\"1\"/>\n", result.toString());
     }
 
     @Test
     public void test_2() {
-        Node n = Node.parse("<g:textField name=\"myField\" id=\"text_${myValue}\" value=\"${myValue}\"/>", true);
-
-        RenderableList l = new RenderableList();
-        ViewRenderer.prepare(n.children(), l, "", "");
-
-        Model model = new Model();
-        model.put("myValue", 1);
-        RenderResult result = l.get(model);
+        RenderResult result = prepare("<g:textField name=\"myField\" id=\"text_${myValue}\" value=\"${myValue}\"/>")
+                .get(new Model().append("myValue", 1));
 
         Assert.assertEquals("<input type=\"text\" name=\"myField\" id=\"text_1\" value=\"1\"/>\n", result.toString());
     }
 
     @Test
     public void test_3() {
-        Node n = Node.parse("<g:textField name=\"myField_${myValue++}\" value=\"${myValue}\"/>", true);
-
-        RenderableList l = new RenderableList();
-        ViewRenderer.prepare(n.children(), l, "", "");
-
-        Model model = new Model();
-        model.put("myValue", 1);
-        RenderResult result = l.get(model);
+        RenderResult result = prepare("<g:textField name=\"myField_${myValue++}\" value=\"${myValue}\"/>")
+                .get(new Model().append("myValue", 1));
 
         Assert.assertEquals("<input type=\"text\" name=\"myField_1\" id=\"myField_1\" value=\"2\"/>\n", result.toString());
     }
 
     @Test
     public void test_4() {
-        Node n = Node.parse("<g:textField name=\"myField\"/>", true);
-
-        RenderableList l = new RenderableList();
-        ViewRenderer.prepare(n.children(), l, "", "");
-
-        RenderResult result = l.get(new Model());
+        RenderResult result = prepare("<g:textField name=\"myField\"/>").get(new Model());
 
         Assert.assertEquals("<input type=\"text\" name=\"myField\" id=\"myField\"/>\n", result.toString());
     }
 
     @Test
     public void test_5() {
-        Node n = Node.parse("<g:textField name=\"myField\" style=\"border: 0\"/>", true);
-
-        RenderableList l = new RenderableList();
-        ViewRenderer.prepare(n.children(), l, "", "");
-
-        RenderResult result = l.get(new Model());
+        RenderResult result = prepare("<g:textField name=\"myField\" style=\"border: 0\"/>").get(new Model());
 
         Assert.assertEquals("<input type=\"text\" name=\"myField\" id=\"myField\" style=\"border: 0\"/>\n", result.toString());
     }

@@ -2,7 +2,6 @@ package com.wizzardo.http.framework.template.taglib;
 
 import com.wizzardo.http.framework.template.*;
 import com.wizzardo.http.framework.template.taglib.g.Collect;
-import com.wizzardo.tools.xml.Node;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -13,7 +12,7 @@ import java.util.Collections;
 /**
  * Created by wizzardo on 26.04.15.
  */
-public class CollectTest {
+public class CollectTest implements TagTest {
 
     @Before
     public void setup() {
@@ -30,14 +29,8 @@ public class CollectTest {
 
     @Test
     public void test_1() {
-        Node n = Node.parse("<div><g:collect in=\"${books}\" expr=\"${it.title}\">$it<br/></g:collect></div>", true);
-
-        RenderableList l = new RenderableList();
-        ViewRenderer.prepare(n.children(), l, "", "");
-
-        Model model = new Model();
-        model.put("books", Arrays.asList(new Book("Book one"), new Book("Book two")));
-        RenderResult result = l.get(model);
+        RenderResult result = prepare("<div><g:collect in=\"${books}\" expr=\"${it.title}\">$it<br/></g:collect></div>")
+                .get(new Model().append("books", Arrays.asList(new Book("Book one"), new Book("Book two"))));
 
         Assert.assertEquals("" +
                 "<div>\n" +

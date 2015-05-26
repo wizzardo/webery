@@ -12,7 +12,7 @@ import java.util.Collections;
 /**
  * Created by wizzardo on 26.04.15.
  */
-public class WhileTest {
+public class WhileTest implements TagTest {
 
     @Before
     public void setup() {
@@ -21,14 +21,8 @@ public class WhileTest {
 
     @Test
     public void test_1() {
-        Node n = Node.parse("<div><g:while test=\"${++i <= 3}\"><p>Current i = ${i}</p></g:while></div>", true);
-
-        RenderableList l = new RenderableList();
-        ViewRenderer.prepare(n.children(), l, "", "");
-
-        Model model = new Model();
-        model.put("i", 0);
-        RenderResult result = l.get(model);
+        RenderResult result = prepare("<div><g:while test=\"${++i <= 3}\"><p>Current i = ${i}</p></g:while></div>")
+                .get(new Model().append("i", 0));
 
         Assert.assertEquals("" +
                 "<div>\n" +

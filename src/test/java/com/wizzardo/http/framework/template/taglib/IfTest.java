@@ -14,7 +14,7 @@ import java.util.Collections;
 /**
  * Created by wizzardo on 09.05.15.
  */
-public class IfTest {
+public class IfTest implements TagTest {
 
     @Before
     public void setup() {
@@ -25,14 +25,10 @@ public class IfTest {
 
     @Test
     public void test_1() {
-        Node n = Node.parse("<div><g:if test=\"${flag}\">text</g:if></div>", true);
-
-        RenderableList l = new RenderableList();
-        ViewRenderer.prepare(n.children(), l, "", "");
-
+        RenderableList l = prepare("<div><g:if test=\"${flag}\">text</g:if></div>");
         Model model = new Model();
-        RenderResult result = l.get(model);
 
+        RenderResult result = l.get(model);
         Assert.assertEquals("" +
                 "<div>\n" +
                 "</div>\n", result.toString());
@@ -40,7 +36,6 @@ public class IfTest {
         model.clear();
         model.put("flag", true);
         result = l.get(model);
-
         Assert.assertEquals("" +
                 "<div>\n" +
                 "        text\n" +
@@ -49,14 +44,10 @@ public class IfTest {
 
     @Test
     public void test_2() {
-        Node n = Node.parse("<div><g:if test=\"${flag}\">text</g:if><g:else>else</g:else></div>", true);
-
-        RenderableList l = new RenderableList();
-        ViewRenderer.prepare(n.children(), l, "", "");
-
+        RenderableList l = prepare("<div><g:if test=\"${flag}\">text</g:if><g:else>else</g:else></div>");
         Model model = new Model();
-        RenderResult result = l.get(model);
 
+        RenderResult result = l.get(model);
         Assert.assertEquals("" +
                 "<div>\n" +
                 "        else\n" +
@@ -65,7 +56,6 @@ public class IfTest {
         model.clear();
         model.put("flag", true);
         result = l.get(model);
-
         Assert.assertEquals("" +
                 "<div>\n" +
                 "        text\n" +
@@ -74,14 +64,10 @@ public class IfTest {
 
     @Test
     public void test_3() {
-        Node n = Node.parse("<div><g:if test=\"${i == 1}\">one</g:if><g:elseif test=\"${i == 2}\">two</g:elseif><g:else>else</g:else></div>", true);
-
-        RenderableList l = new RenderableList();
-        ViewRenderer.prepare(n.children(), l, "", "");
-
+        RenderableList l = prepare("<div><g:if test=\"${i == 1}\">one</g:if><g:elseif test=\"${i == 2}\">two</g:elseif><g:else>else</g:else></div>");
         Model model = new Model();
-        RenderResult result = l.get(model);
 
+        RenderResult result = l.get(model);
         Assert.assertEquals("" +
                 "<div>\n" +
                 "        else\n" +
@@ -90,7 +76,6 @@ public class IfTest {
         model.clear();
         model.put("i", 1);
         result = l.get(model);
-
         Assert.assertEquals("" +
                 "<div>\n" +
                 "        one\n" +
@@ -99,7 +84,6 @@ public class IfTest {
         model.clear();
         model.put("i", 2);
         result = l.get(model);
-
         Assert.assertEquals("" +
                 "<div>\n" +
                 "        two\n" +
@@ -109,15 +93,12 @@ public class IfTest {
 
     @Test
     public void test_4() {
-        Node n = Node.parse("<g:if test=\"${i == 1}\">one</g:if>" +
+        RenderableList l = prepare("<g:if test=\"${i == 1}\">one</g:if>" +
                 "<g:elseif test=\"${i == 2}\">two</g:elseif>" +
                 "<g:elseif test=\"${i == 3}\">three</g:elseif>" +
-                "<g:else>else</g:else>", true);
-
-        RenderableList l = new RenderableList();
-        ViewRenderer.prepare(n.children(), l, "", "");
-
+                "<g:else>else</g:else>");
         Model model = new Model();
+
         RenderResult result = l.get(model);
         Assert.assertEquals("    else\n", result.toString());
 
@@ -139,7 +120,7 @@ public class IfTest {
 
     @Test
     public void test_exceptions() {
-        Node n = Node.parse("\"<div><g:if test=\\\"${flag}\\\">text</g:if>error<g:else>foo</g:else></div>\"", true);
+        Node n = Node.parse("<div><g:if test=\"${flag}\">text</g:if>error<g:else>foo</g:else></div>", true);
         try {
             ViewRenderer.prepare(n.children(), new RenderableList(), "", "");
             assert false;
@@ -147,7 +128,7 @@ public class IfTest {
             Assert.assertEquals("If tag must be before Else tag", e.getMessage());
         }
 
-        n = Node.parse("\"<div><g:if test=\\\"${flag}\\\">text</g:if>error<g:elseif>foo</g:elseif></div>\"", true);
+        n = Node.parse("<div><g:if test=\"${flag}\">text</g:if>error<g:elseif>foo</g:elseif></div>", true);
         try {
             ViewRenderer.prepare(n.children(), new RenderableList(), "", "");
             assert false;

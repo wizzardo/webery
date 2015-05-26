@@ -11,4 +11,8 @@ import java.util.HashMap;
  */
 public class Model extends HashMap<String, Object> {
 
+    public Model append(String key, Object value) {
+        put(key, value);
+        return this;
+    }
 }
