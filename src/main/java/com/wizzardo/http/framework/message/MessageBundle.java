@@ -15,11 +15,19 @@ public class MessageBundle implements MessageSource {
     protected Locale defaultLocale;
 
     @Override
-    public String get(String key, Object... args) {
+    public String get(String key, Args args) {
         return get(defaultLocalizedSource, key, args);
     }
 
     public String get(Locale locale, String key, Object... args) {
+        return get(locale, key, Args.create(args));
+    }
+
+    public String get(Locale locale, String key, List args) {
+        return get(locale, key, Args.create(args));
+    }
+
+    public String get(Locale locale, String key, Args args) {
         TemplateMessageSource messageSource;
         if (locale.equals(defaultLocale))
             messageSource = defaultLocalizedSource;
@@ -29,7 +37,7 @@ public class MessageBundle implements MessageSource {
         return get(messageSource, key, args);
     }
 
-    protected String get(MessageSource messageSource, String key, Object... args) {
+    protected String get(MessageSource messageSource, String key, Args args) {
         if (messageSource != null) {
             String result = messageSource.get(key, args);
             if (result != null)

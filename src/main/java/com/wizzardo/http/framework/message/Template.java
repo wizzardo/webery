@@ -21,13 +21,17 @@ public class Template {
         init();
     }
 
-    public String get(Object... args) {
+    public String get(Args args) {
         StringBuilder sb = new StringBuilder();
         appendTo(sb::append, args);
         return sb.toString();
     }
 
-    public void appendTo(Consumer<String> consumer, Object... args) {
+    public String get(Object... args) {
+        return get(Args.create(args));
+    }
+
+    public void appendTo(Consumer<String> consumer, Args args) {
         for (Part part : parts) {
             consumer.accept(part.get(args));
         }
@@ -46,7 +50,7 @@ public class Template {
                 }
 
                 int number = Integer.parseInt(matcher.group(1));
-                l.add(args -> args.length <= number ? "null" : String.valueOf(args[number]));
+                l.add(args -> String.valueOf(args.get(number)));
 
                 from = matcher.end();
             }
@@ -62,6 +66,6 @@ public class Template {
     }
 
     interface Part {
-        String get(Object[] args);
+        String get(Args args);
     }
 }
