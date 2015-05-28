@@ -48,7 +48,10 @@ public class WebApplication extends HttpServer<HttpConnection> {
         DependencyFactory.get().setClasses(classes);
 
         DependencyFactory.get().register(UrlMapping.class, new SingletonDependency<>(urlMapping));
-        DependencyFactory.get().register(MessageSource.class, new SingletonDependency<>(initMessageSource()));
+
+        MessageBundle bundle = initMessageSource();
+        DependencyFactory.get().register(MessageSource.class, new SingletonDependency<>(bundle));
+        DependencyFactory.get().register(MessageBundle.class, new SingletonDependency<>(bundle));
     }
 
     protected MessageBundle initMessageSource() {
