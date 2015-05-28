@@ -40,8 +40,12 @@ public abstract class Tag extends RenderableList {
     }
 
     protected String remove(Map<String, String> attrs, String name) {
+        return remove(attrs, name, true);
+    }
+
+    protected String remove(Map<String, String> attrs, String name, boolean mandatory) {
         String value = attrs.remove(name);
-        if (value == null)
+        if (value == null && mandatory)
             throw new IllegalStateException("variable '" + name + "' is mandatory");
 
         return value;
@@ -55,5 +59,13 @@ public abstract class Tag extends RenderableList {
     protected String remove(Map<String, String> attrs, String name, String def) {
         String value = attrs.remove(name);
         return value == null ? def : value;
+    }
+
+    protected <T> ExpressionHolder<T> asExpression(Map<String, String> attrs, String key, boolean template, boolean mandatory) {
+        String s = remove(attrs, key, mandatory);
+        if (s == null)
+            return null;
+
+        return new ExpressionHolder<>(s, template);
     }
 }
