@@ -13,6 +13,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.util.Collections;
+import java.util.Locale;
 
 /**
  * Created by wizzardo on 24.05.15.
@@ -59,6 +60,17 @@ public class MessageTest extends WebApplicationTest implements TagTest {
         Assert.assertEquals("" +
                 "<div>\n" +
                 "    default message\n" +
+                "</div>\n", result.toString());
+    }
+
+    @Test
+    public void test_4() {
+        RenderResult result = prepare("<div><g:message code=\"test.message.${0}.args\" locale=\"${ruLocale}\"/></div>")
+                .get(new Model().append("ruLocale", new Locale("ru", "RU")));
+
+        Assert.assertEquals("" +
+                "<div>\n" +
+                "    test message zero args ru\n" +
                 "</div>\n", result.toString());
     }
 }
