@@ -51,7 +51,7 @@ public class WebApplication extends HttpServer<HttpConnection> {
         DependencyFactory.get().register(MessageSource.class, new SingletonDependency<>(initMessageSource()));
     }
 
-    protected MessageSource initMessageSource() {
+    protected MessageBundle initMessageSource() {
         return new MessageBundle()
                 .appendDefault("default.boolean.true", "true")
                 .appendDefault("default.boolean.false", "false")
