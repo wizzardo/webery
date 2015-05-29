@@ -34,10 +34,10 @@ public class CollectTest implements TagTest {
 
         Assert.assertEquals("" +
                 "<div>\n" +
-                "        Book one\n" +
-                "        <br/>\n" +
-                "        Book two\n" +
-                "        <br/>\n" +
+                "    Book one\n" +
+                "    <br/>\n" +
+                "    Book two\n" +
+                "    <br/>\n" +
                 "</div>\n", result.toString());
     }
 }

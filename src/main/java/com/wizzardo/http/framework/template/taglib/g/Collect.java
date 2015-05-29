@@ -29,4 +29,9 @@ public class Collect extends Tag {
         });
         return this;
     }
+
+    @Override
+    protected String getBodyOffset(String offset) {
+        return offset;
+    }
 }

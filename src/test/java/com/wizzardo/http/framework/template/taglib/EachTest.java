@@ -25,12 +25,12 @@ public class EachTest implements TagTest {
 
         Assert.assertEquals("" +
                 "<div>\n" +
-                "        1\n" +
-                "        <br/>\n" +
-                "        2\n" +
-                "        <br/>\n" +
-                "        3\n" +
-                "        <br/>\n" +
+                "    1\n" +
+                "    <br/>\n" +
+                "    2\n" +
+                "    <br/>\n" +
+                "    3\n" +
+                "    <br/>\n" +
                 "</div>\n", result.toString());
     }
 
@@ -41,12 +41,12 @@ public class EachTest implements TagTest {
 
         Assert.assertEquals("" +
                 "<div>\n" +
-                "        1\n" +
-                "        <br/>\n" +
-                "        2\n" +
-                "        <br/>\n" +
-                "        3\n" +
-                "        <br/>\n" +
+                "    1\n" +
+                "    <br/>\n" +
+                "    2\n" +
+                "    <br/>\n" +
+                "    3\n" +
+                "    <br/>\n" +
                 "</div>\n", result.toString());
     }
 
@@ -57,12 +57,12 @@ public class EachTest implements TagTest {
 
         Assert.assertEquals("" +
                 "<div>\n" +
-                "        1: one\n" +
-                "        <br/>\n" +
-                "        2: two\n" +
-                "        <br/>\n" +
-                "        3: three\n" +
-                "        <br/>\n" +
+                "    1: one\n" +
+                "    <br/>\n" +
+                "    2: two\n" +
+                "    <br/>\n" +
+                "    3: three\n" +
+                "    <br/>\n" +
                 "</div>\n", result.toString());
     }
 }

@@ -26,15 +26,15 @@ public class WhileTest implements TagTest {
 
         Assert.assertEquals("" +
                 "<div>\n" +
-                "        <p>\n" +
-                "            Current i = 1\n" +
-                "        </p>\n" +
-                "        <p>\n" +
-                "            Current i = 2\n" +
-                "        </p>\n" +
-                "        <p>\n" +
-                "            Current i = 3\n" +
-                "        </p>\n" +
+                "    <p>\n" +
+                "        Current i = 1\n" +
+                "    </p>\n" +
+                "    <p>\n" +
+                "        Current i = 2\n" +
+                "    </p>\n" +
+                "    <p>\n" +
+                "        Current i = 3\n" +
+                "    </p>\n" +
                 "</div>\n", result.toString());
     }
 }

@@ -36,4 +36,9 @@ public class Each extends Tag {
         });
         return this;
     }
+
+    @Override
+    protected String getBodyOffset(String offset) {
+        return offset;
+    }
 }

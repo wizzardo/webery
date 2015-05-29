@@ -12,7 +12,11 @@ import java.util.function.Supplier;
 public abstract class Tag extends RenderableList {
 
     public Tag init(Node node, String offset, String dir) {
-        return init(node.attributes(), new Body(node, offset + ViewRenderer.OFFSET, dir), offset);
+        return init(node.attributes(), new Body(node, getBodyOffset(offset), dir), offset);
+    }
+
+    protected String getBodyOffset(String offset) {
+        return offset + ViewRenderer.OFFSET;
     }
 
     public Tag init(Map<String, String> attrs) {

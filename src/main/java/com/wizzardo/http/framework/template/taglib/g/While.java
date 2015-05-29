@@ -25,4 +25,9 @@ public class While extends Tag {
         });
         return this;
     }
+
+    @Override
+    protected String getBodyOffset(String offset) {
+        return offset;
+    }
 }
