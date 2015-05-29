@@ -18,7 +18,7 @@ public class TextField extends Tag {
         String value = attrs.remove("value");
 
         append(offset);
-        append("<input type=\"text\" name=\"");
+        append("<input type=\"").append(getType()).append("\" name=\"");
         append(model -> {
             RenderResult result = new RenderResult();
             String nameString = String.valueOf(name.getRaw(model));
@@ -39,5 +39,9 @@ public class TextField extends Tag {
         prepareAttrs(attrs);
         append("/>\n");
         return this;
+    }
+
+    protected String getType() {
+        return "text";
     }
 }
