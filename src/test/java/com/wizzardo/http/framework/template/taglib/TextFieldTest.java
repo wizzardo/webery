@@ -19,41 +19,45 @@ public class TextFieldTest implements TagTest {
         TagLib.findTags(Collections.singletonList(TextField.class));
     }
 
+    protected String getType() {
+        return "text";
+    }
+
     @Test
     public void test_1() {
-        RenderResult result = prepare("<g:textField name=\"myField\" value=\"${myValue}\"/>")
+        RenderResult result = prepare("<g:" + getType() + "Field name=\"myField\" value=\"${myValue}\"/>")
                 .get(new Model().append("myValue", 1));
 
-        Assert.assertEquals("<input type=\"text\" name=\"myField\" id=\"myField\" value=\"1\"/>\n", result.toString());
+        Assert.assertEquals("<input type=\"" + getType() + "\" name=\"myField\" id=\"myField\" value=\"1\"/>\n", result.toString());
     }
 
     @Test
     public void test_2() {
-        RenderResult result = prepare("<g:textField name=\"myField\" id=\"text_${myValue}\" value=\"${myValue}\"/>")
+        RenderResult result = prepare("<g:" + getType() + "Field name=\"myField\" id=\"text_${myValue}\" value=\"${myValue}\"/>")
                 .get(new Model().append("myValue", 1));
 
-        Assert.assertEquals("<input type=\"text\" name=\"myField\" id=\"text_1\" value=\"1\"/>\n", result.toString());
+        Assert.assertEquals("<input type=\"" + getType() + "\" name=\"myField\" id=\"text_1\" value=\"1\"/>\n", result.toString());
     }
 
     @Test
     public void test_3() {
-        RenderResult result = prepare("<g:textField name=\"myField_${myValue++}\" value=\"${myValue}\"/>")
+        RenderResult result = prepare("<g:" + getType() + "Field name=\"myField_${myValue++}\" value=\"${myValue}\"/>")
                 .get(new Model().append("myValue", 1));
 
-        Assert.assertEquals("<input type=\"text\" name=\"myField_1\" id=\"myField_1\" value=\"2\"/>\n", result.toString());
+        Assert.assertEquals("<input type=\"" + getType() + "\" name=\"myField_1\" id=\"myField_1\" value=\"2\"/>\n", result.toString());
     }
 
     @Test
     public void test_4() {
-        RenderResult result = prepare("<g:textField name=\"myField\"/>").get(new Model());
+        RenderResult result = prepare("<g:" + getType() + "Field name=\"myField\"/>").get(new Model());
 
-        Assert.assertEquals("<input type=\"text\" name=\"myField\" id=\"myField\"/>\n", result.toString());
+        Assert.assertEquals("<input type=\"" + getType() + "\" name=\"myField\" id=\"myField\"/>\n", result.toString());
     }
 
     @Test
     public void test_5() {
-        RenderResult result = prepare("<g:textField name=\"myField\" style=\"border: 0\"/>").get(new Model());
+        RenderResult result = prepare("<g:" + getType() + "Field name=\"myField\" style=\"border: 0\"/>").get(new Model());
 
-        Assert.assertEquals("<input type=\"text\" name=\"myField\" id=\"myField\" style=\"border: 0\"/>\n", result.toString());
+        Assert.assertEquals("<input type=\"" + getType() + "\" name=\"myField\" id=\"myField\" style=\"border: 0\"/>\n", result.toString());
     }
 }
