@@ -1,5 +1,6 @@
 package com.wizzardo.http.framework.template;
 
+import com.wizzardo.http.framework.di.DependencyFactory;
 import com.wizzardo.tools.cache.Cache;
 import com.wizzardo.tools.collections.CollectionTools;
 import com.wizzardo.tools.collections.Pair;
@@ -64,7 +65,7 @@ public class ViewRenderer extends Renderer {
             layoutTag.parent().children().remove(layoutTag);
 
             Node layout = Node.parse(resourceTools.getResourceAsString("layouts/" + layoutTag.attr("content") + ".gsp"), true, true);
-            for (Decorator decorator : DecoratorLib.decorators()) {
+            for (Decorator decorator : DependencyFactory.getDependency(DecoratorLib.class).list()) {
                 decorator.decorate(html, layout);
             }
             html = layout;

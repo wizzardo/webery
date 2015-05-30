@@ -8,6 +8,7 @@ import com.wizzardo.http.framework.di.DependencyFactory;
 import com.wizzardo.http.framework.di.SingletonDependency;
 import com.wizzardo.http.framework.message.MessageBundle;
 import com.wizzardo.http.framework.message.MessageSource;
+import com.wizzardo.http.framework.template.DecoratorLib;
 import com.wizzardo.http.framework.template.LocalResourcesTools;
 import com.wizzardo.http.mapping.UrlMapping;
 import com.wizzardo.http.request.Request;
@@ -52,6 +53,7 @@ public class WebApplication extends HttpServer<HttpConnection> {
         MessageBundle bundle = initMessageSource();
         DependencyFactory.get().register(MessageSource.class, new SingletonDependency<>(bundle));
         DependencyFactory.get().register(MessageBundle.class, new SingletonDependency<>(bundle));
+        DependencyFactory.get().register(DecoratorLib.class, new SingletonDependency<>(new DecoratorLib(classes)));
     }
 
     protected MessageBundle initMessageSource() {

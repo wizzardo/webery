@@ -9,9 +9,9 @@ import java.util.*;
  */
 public class DecoratorLib {
 
-    private static Set<Decorator> decorators = new LinkedHashSet<>();
+    private List<Decorator> decorators = new ArrayList<>();
 
-    public static void findTags(List<Class> l) {
+    public DecoratorLib(List<Class> l) {
         for (Class c : l) {
             if (Decorator.class.isAssignableFrom(c) && c != Decorator.class) {
                 decorators.add(Unchecked.call(() -> (Decorator) c.newInstance()));
@@ -19,7 +19,7 @@ public class DecoratorLib {
         }
     }
 
-    public static Collection<Decorator> decorators() {
+    public List<Decorator> list() {
         return decorators;
     }
 }
