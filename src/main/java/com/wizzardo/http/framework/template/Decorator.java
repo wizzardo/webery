@@ -23,4 +23,8 @@ public interface Decorator {
         if (replacement != null)
             nodes.addAll(i, replacement.children());
     }
+
+    default int priority() {
+        return 0;
+    }
 }

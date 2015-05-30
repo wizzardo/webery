@@ -15,4 +15,9 @@ public class LayoutTitle implements Decorator {
 
         replace(to.find("g:layoutTitle"), title);
     }
+
+    @Override
+    public int priority() {
+        return 1;
+    }
 }

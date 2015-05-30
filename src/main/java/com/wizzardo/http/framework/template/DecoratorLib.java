@@ -17,6 +17,8 @@ public class DecoratorLib {
                 decorators.add(Unchecked.call(() -> (Decorator) c.newInstance()));
             }
         }
+
+        decorators.sort((o1, o2) -> Integer.compare(o2.priority(), o1.priority()));
     }
 
     public List<Decorator> list() {
