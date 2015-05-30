@@ -6,6 +6,7 @@ import com.wizzardo.tools.reflection.FieldReflection;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -39,8 +40,25 @@ public abstract class Dependency<T> {
     public abstract T get();
 
     protected void injectDependencies(Object ob) {
-        for (FieldReflection f : dependencies.get(ob.getClass())) {
-            f.setObject(ob, DependencyFactory.getDependency(f.getField().getType()));
+        try {
+            for (FieldReflection f : dependencies.get(ob.getClass())) {
+                f.setObject(ob, DependencyFactory.getDependency(f.getField().getType()));
+            }
+        } catch (Exception e) {
+            synchronized (ob.getClass()) {
+                List<FieldReflection> list = new ArrayList<>(dependencies.get(ob.getClass()));
+                Iterator<FieldReflection> iterator = list.iterator();
+
+                while (iterator.hasNext()) {
+                    FieldReflection f = iterator.next();
+                    try {
+                        f.setObject(ob, DependencyFactory.getDependency(f.getField().getType()));
+                    } catch (Exception ex) {
+                        iterator.remove();
+                    }
+                }
+                dependencies.put(ob.getClass(), list);
+            }
         }
     }
 }
