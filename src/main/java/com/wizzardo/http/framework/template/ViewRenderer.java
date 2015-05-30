@@ -23,6 +23,9 @@ public class ViewRenderer extends Renderer {
     private String controller;
     private String template;
 
+    private static Pattern p = Pattern.compile("\\$\\{([^\\{\\}]+)\\}|\\$([^\\., -]+)");
+    private static Cache<Pair<String, String>, RenderableList> viewsCache = new Cache<>(10, s -> prepareView(s.key, s.value));
+
     public ViewRenderer(Model model, String controller, String view) {
         super(model);
         this.view = view;
@@ -46,19 +49,30 @@ public class ViewRenderer extends Renderer {
         return render(controller, view, model);
     }
 
-    private static Pattern p = Pattern.compile("\\$\\{([^\\{\\}]+)\\}|\\$([^\\., -]+)");
-    //    private static Cache<Pair<String, String>, RenderableList> viewsCache = new Cache<Pair<String, String>, RenderableList>(60 * 60 * 24, 60, new Cache.Computable<Pair<String, String>, RenderableList>() {
-    private static Cache<Pair<String, String>, RenderableList> viewsCache = new Cache<>(10, s -> {
-        String template1 = resourceTools.getResourceAsString(s.key);
-        if (template1 == null)
-            throw new IllegalArgumentException("view '" + s.key + "' not found");
+    private static RenderableList prepareView(String view, String offset) {
+        String template = resourceTools.getResourceAsString(view);
+        if (template == null)
+            throw new IllegalArgumentException("view '" + view + "' not found");
 
-        String dir = s.key.substring(0, s.key.lastIndexOf("/") + 1);
+        String dir = view.substring(0, view.lastIndexOf("/") + 1);
 
         RenderableList l = new RenderableList();
-        prepare(Node.parse(template1, true, true).children(), l, dir, s.value);
+        Node html = Node.parse(template, true, true);
+
+        Node layoutTag = html.get("html/head/meta[@name=layout]");
+        if (layoutTag != null) {
+            layoutTag.parent().children().remove(layoutTag);
+
+            Node layout = Node.parse(resourceTools.getResourceAsString("layouts/" + layoutTag.attr("content") + ".gsp"), true, true);
+            for (Decorator decorator : DecoratorLib.decorators()) {
+                decorator.decorate(html, layout);
+            }
+            html = layout;
+        }
+
+        prepare(html.children(), l, dir, offset);
         return l;
-    });
+    }
 
     private static Cache<Pair<String, String>, RenderableList> templatesCache = new Cache<>(60 * 60 * 24, s -> {
         RenderableList l = new RenderableList();
