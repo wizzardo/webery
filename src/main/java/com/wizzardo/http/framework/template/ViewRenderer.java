@@ -17,8 +17,6 @@ import java.util.regex.Pattern;
  */
 public class ViewRenderer extends Renderer {
 
-    private static ResourceTools resourceTools;
-
     static final String OFFSET = "    ";
     private String view;
     private String controller;
@@ -38,10 +36,6 @@ public class ViewRenderer extends Renderer {
         this.template = template;
     }
 
-    public static void setResourceTools(ResourceTools resourceTools) {
-        ViewRenderer.resourceTools = resourceTools;
-    }
-
     @Override
     public RenderResult render() {
         if (template != null)
@@ -51,6 +45,7 @@ public class ViewRenderer extends Renderer {
     }
 
     private static RenderableList prepareView(String view, String offset) {
+        ResourceTools resourceTools = DependencyFactory.getDependency(ResourceTools.class);
         String template = resourceTools.getResourceAsString(view);
         if (template == null)
             throw new IllegalArgumentException("view '" + view + "' not found");

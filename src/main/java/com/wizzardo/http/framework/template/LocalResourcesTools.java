@@ -1,6 +1,7 @@
 package com.wizzardo.http.framework.template;
 
 
+import com.wizzardo.http.framework.di.Injectable;
 import com.wizzardo.tools.io.IOTools;
 import com.wizzardo.tools.io.ZipTools;
 
@@ -18,6 +19,7 @@ import java.util.zip.ZipInputStream;
  * @author: moxa
  * Date: 11/23/12
  */
+@Injectable
 public class LocalResourcesTools implements ResourceTools {
 
     private List<String> classpath = new ArrayList<String>();
