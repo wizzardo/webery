@@ -13,7 +13,13 @@ public class LayoutTitle implements Decorator {
         if (title != null)
             title.parent().children().remove(title);
 
-        replace(to.find("g:layoutTitle"), title);
+
+        Node layoutTitle = to.find("g:layoutTitle");
+        String defaultTitle = layoutTitle.attr("default");
+        if (defaultTitle == null)
+            defaultTitle = "";
+
+        replace(layoutTitle, title != null ? title : new Node("title").addText(defaultTitle));
     }
 
     @Override
