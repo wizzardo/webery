@@ -28,4 +28,21 @@ public class LayoutTest extends WebApplicationTest {
                 "    </body>\n" +
                 "</html>\n", new ViewRenderer(new Model(), "layoutTest", "test1").render().toString());
     }
+
+    @Test
+    public void test2() {
+        Assert.assertEquals("" +
+                "<html>\n" +
+                "    <head>\n" +
+                "        <title>\n" +
+                "            Some Title\n" +
+                "        </title>\n" +
+                "        <script src=\"global.js\"/>\n" +
+                "        <script src=\"myscript.js\"/>\n" +
+                "    </head>\n" +
+                "    <body>\n" +
+                "        Page to be decorated\n" +
+                "    </body>\n" +
+                "</html>\n", new ViewRenderer(new Model(), "layoutTest", "test2").render().toString());
+    }
 }
