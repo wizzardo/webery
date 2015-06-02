@@ -6,6 +6,7 @@ import com.wizzardo.tools.collections.CollectionTools;
 import com.wizzardo.tools.collections.Pair;
 import com.wizzardo.tools.xml.Node;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -54,6 +55,17 @@ public class ViewRenderer extends Renderer {
 
         RenderableList l = new RenderableList();
         Node html = Node.parse(template, true, true);
+        List<String> imports = null;
+
+        Node page;
+        if (html.children().size() == 1 && (page = html.children().get(0)).name().equals("%@") && page.hasAttr("page")) {
+            html.children().remove(0);
+            html.children().addAll(page.children());
+
+            if (page.hasAttr("import")) {
+                imports = Arrays.asList(page.attr("import").split("; *"));
+            }
+        }
 
         Node layoutTag = html.get("html/head/meta[@name=layout]");
         if (layoutTag != null) {
@@ -66,17 +78,21 @@ public class ViewRenderer extends Renderer {
             html = layout;
         }
 
-        prepare(html.children(), l, dir, offset);
+        prepare(html.children(), l, dir, offset, imports);
         return l;
     }
 
     private static Cache<Pair<String, String>, RenderableList> templatesCache = new Cache<>(60 * 60 * 24, s -> {
         RenderableList l = new RenderableList();
-        prepare(s.key, l);
+        prepare(s.key, l, null);
         return l;
     });
 
     public static void prepare(String s, RenderableList l) {
+        prepare(s, l, null);
+    }
+
+    public static void prepare(String s, RenderableList l, List<String> imports) {
         if (s.contains("$")) {
             Matcher m = p.matcher(s);
             int last = 0;
@@ -86,7 +102,7 @@ public class ViewRenderer extends Renderer {
                 if (exp == null) {
                     exp = m.group(2);
                 }
-                l.add(new ExpressionHolder(exp));
+                l.add(new ExpressionHolder(exp, imports, false));
                 last = m.end();
             }
             if (last != s.length()) {
@@ -98,25 +114,29 @@ public class ViewRenderer extends Renderer {
     }
 
     public static void prepare(List<Node> n, RenderableList l, String dir, String offset) {
+        prepare(n, l, dir, offset, null);
+    }
+
+    public static void prepare(List<Node> n, RenderableList l, String dir, String offset, List<String> imports) {
         for (Node node : n) {
-            prepare(node, l, dir, offset);
+            prepare(node, l, dir, offset, imports);
         }
     }
 
-    public static void prepare(Node n, RenderableList l, String dir, String offset) {
-        prepare(n, l, dir, offset, true);
+    public static void prepare(Node n, RenderableList l, String dir, String offset, List<String> imports) {
+        prepare(n, l, dir, offset, true, imports);
     }
 
-    public static void prepare(Node n, RenderableList l, String dir, String offset, boolean addNewLine) {
+    public static void prepare(Node n, RenderableList l, String dir, String offset, boolean addNewLine, List<String> imports) {
         if (n.name() == null) {
             l.append(offset);
-            prepare(n.textOwn(), l);
+            prepare(n.textOwn(), l, imports);
             if (addNewLine)
                 l.append("\n");
             return;
         }
 
-        if (checkTagLib(n, l, dir, offset)) {
+        if (checkTagLib(n, l, dir, offset, imports)) {
             return;
         }
 
@@ -125,12 +145,12 @@ public class ViewRenderer extends Renderer {
         for (Map.Entry<String, String> attr : n.attributes().entrySet()) {
             l.append(" ");
 
-            prepare(attr.getKey(), l);
+            prepare(attr.getKey(), l, imports);
 
             String value = attr.getValue();
             if (value != null) {
                 l.append("=\"");
-                prepare(value, l);
+                prepare(value, l, imports);
                 l.append("\"");
             }
         }
@@ -141,7 +161,7 @@ public class ViewRenderer extends Renderer {
             if (addNewLine)
                 l.append("\n");
             for (Node child : n.children()) {
-                prepare(child, l, dir, offset + OFFSET, addNewLine);
+                prepare(child, l, dir, offset + OFFSET, addNewLine, imports);
             }
             l.append(offset);
             l.append("</").append(n.name()).append(">");
@@ -151,7 +171,7 @@ public class ViewRenderer extends Renderer {
     }
 
 
-    public static boolean checkTagLib(final Node n, RenderableList l, String dir, String offset) {
+    public static boolean checkTagLib(final Node n, RenderableList l, String dir, String offset, List<String> imports) {
         if (n.name().equals("g:render")) {
 
             String params = n.attr("params");
@@ -164,6 +184,7 @@ public class ViewRenderer extends Renderer {
         if (TagLib.hasTag(n.name())) {
             Tag t = TagLib.createTag(n.name());
             if (t != null) {
+                t.setImports(imports);
                 t.init(n, offset, dir);
                 t.appendTo(l);
                 return true;
