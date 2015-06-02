@@ -15,7 +15,7 @@ import java.util.Map;
  */
 public class Join extends Tag {
     public Tag init(Map<String, String> attrs, Body body, String offset) {
-        ExpressionHolder<Collection> in = new ExpressionHolder<>(remove(attrs, "in"));
+        ExpressionHolder<Collection> in = asExpression(attrs, "in", false, true);
         String delimiter = MapTools.getString(attrs, "delimiter", ", ");
 
         add(model -> {

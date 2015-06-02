@@ -16,7 +16,7 @@ public class FormatBoolean extends Tag {
 
     @Override
     public Tag init(Map<String, String> attrs, Body body, String offset) {
-        ExpressionHolder raw = new ExpressionHolder<>(remove(attrs, "boolean"));
+        ExpressionHolder raw = asExpression(attrs, "boolean", false, true);
 
         Renderable trueString = getValueString("true", attrs);
         Renderable falseString = getValueString("false", attrs);
@@ -36,7 +36,7 @@ public class FormatBoolean extends Tag {
     protected Renderable getValueString(String name, Map<String, String> attrs) {
         String value = attrs.remove(name);
         if (value != null)
-            return new ExpressionHolder<>(value, true);
+            return asExpression(value, true);
 
         value = messageSource.get("boolean." + name);
         if (value != null)

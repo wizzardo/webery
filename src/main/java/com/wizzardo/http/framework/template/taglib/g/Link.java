@@ -30,7 +30,7 @@ public class Link extends Tag {
         append(offset);
         append("<a href=\"");
 
-        ExpressionHolder<Map<String, Object>> params = new ExpressionHolder<>(remove(attrs, "params", "[:]"));
+        ExpressionHolder<Map<String, Object>> params = asExpression(remove(attrs, "params", "[:]"), false);
 
         UrlTemplate template = urlMapping.getUrlTemplate(controller + "." + action);
 

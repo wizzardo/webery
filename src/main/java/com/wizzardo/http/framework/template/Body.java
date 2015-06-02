@@ -2,6 +2,7 @@ package com.wizzardo.http.framework.template;
 
 import com.wizzardo.tools.xml.Node;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -12,14 +13,14 @@ public class Body extends RenderableList {
     private Node node;
 
     public Body(Node node, String offset, String dir) {
-        this(node, offset, dir, true);
+        this(node, offset, dir, true, null);
     }
 
-    public Body(Node node, String offset, String dir, boolean addNewLine) {
+    public Body(Node node, String offset, String dir, boolean addNewLine, List<String> imports) {
         this.node = node;
 
         for (Node child : node.children()) {
-            ViewRenderer.prepare(child, this, dir, offset, addNewLine);
+            ViewRenderer.prepare(child, this, dir, offset, addNewLine, imports);
         }
     }
 

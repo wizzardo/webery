@@ -12,7 +12,7 @@ import java.util.Map;
  */
 public class TextField extends Tag {
     public Tag init(Map<String, String> attrs, Body body, String offset) {
-        ExpressionHolder name = new ExpressionHolder<>(remove(attrs, "name"), true);
+        ExpressionHolder name = asExpression(remove(attrs, "name"), true);
 
         String id = attrs.remove("id");
         String value = attrs.remove("value");
@@ -30,11 +30,11 @@ public class TextField extends Tag {
         });
 
         if (id != null)
-            append("\" id=\"").append(new ExpressionHolder<>(id, true));
+            append("\" id=\"").append(asExpression(id, true));
 
         append("\"");
         if (value != null)
-            append(" value=\"").append(new ExpressionHolder<>(value, true)).append("\"");
+            append(" value=\"").append(asExpression(value, true)).append("\"");
 
         prepareAttrs(attrs);
         append("/>\n");

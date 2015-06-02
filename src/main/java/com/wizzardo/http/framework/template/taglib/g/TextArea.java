@@ -15,11 +15,11 @@ public class TextArea extends Tag {
 
     @Override
     public Tag init(Node node, String offset, String dir) {
-        return init(node.attributes(), new Body(node, "", dir, false), offset);
+        return init(node.attributes(), new Body(node, "", dir, false, imports), offset);
     }
 
     public Tag init(Map<String, String> attrs, Body body, String offset) {
-        ExpressionHolder name = new ExpressionHolder<>(remove(attrs, "name"), true);
+        ExpressionHolder name = asExpression(remove(attrs, "name"), true);
 
         String id = attrs.remove("id");
         String value = attrs.remove("value");
@@ -37,14 +37,14 @@ public class TextArea extends Tag {
         });
 
         if (id != null)
-            append("\" id=\"").append(new ExpressionHolder<>(id, true));
+            append("\" id=\"").append(asExpression(id, true));
 
         append("\"");
         prepareAttrs(attrs);
         append(">");
 
         if (value != null)
-            append(new ExpressionHolder<>(value, true));
+            append(asExpression(value, true));
         else
             append(body::get);
 

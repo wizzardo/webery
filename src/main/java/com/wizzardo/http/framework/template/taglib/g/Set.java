@@ -15,7 +15,7 @@ public class Set extends Tag {
     public Tag init(Map<String, String> attrs, Body body, String offset) {
         String var = remove(attrs, "var");
 
-        ExpressionHolder raw = new ExpressionHolder<>(attrs.get("value"));
+        ExpressionHolder raw = asExpression(attrs, "value", false, true);
         add(model -> {
             model.put(var, raw.get(model));
             return new RenderResult();

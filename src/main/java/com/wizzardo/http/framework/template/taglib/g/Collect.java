@@ -14,8 +14,8 @@ import java.util.Map;
 public class Collect extends Tag {
 
     public Tag init(Map<String, String> attrs, Body body, String offset) {
-        ExpressionHolder<Collection> in = new ExpressionHolder<>(remove(attrs, "in"));
-        ExpressionHolder expr = new ExpressionHolder<>(remove(attrs, "expr"));
+        ExpressionHolder<Collection> in = asExpression(attrs, "in", false, true);
+        ExpressionHolder expr = asExpression(attrs, "expr", false, true);
 
         add(model -> {
             Collection src = in.getRaw(model);

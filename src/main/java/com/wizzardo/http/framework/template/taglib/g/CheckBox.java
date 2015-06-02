@@ -15,7 +15,7 @@ public class CheckBox extends Tag {
 
     @Override
     public Tag init(Map<String, String> attrs, Body body, String offset) {
-        ExpressionHolder name = new ExpressionHolder<>(remove(attrs, "name"), true);
+        ExpressionHolder name = asExpression(attrs, "name", true, true);
 
         String id = attrs.remove("id");
         String value = attrs.remove("value");
@@ -33,18 +33,18 @@ public class CheckBox extends Tag {
         });
 
         if (id != null)
-            append("\" id=\"").append(new ExpressionHolder<>(id, true));
+            append("\" id=\"").append(asExpression(id, true));
 
         append("\"");
         if (value != null)
-            append(" value=\"").append(new ExpressionHolder<>(value, true)).append("\"");
+            append(" value=\"").append(asExpression(value, true)).append("\"");
 
         String ch;
         if ((ch = attrs.remove("checked")) != null) {
             if (ch.equalsIgnoreCase("true"))
                 append(" checked=\"checked\"");
             else if (!ch.equalsIgnoreCase("false")) {
-                ExpressionHolder checked = new ExpressionHolder<>(ch, true);
+                ExpressionHolder checked = asExpression(ch, true);
                 append((model) -> new RenderResult(AsBooleanExpression.toBoolean(checked.getRaw(model)) ? " checked=\"checked\"" : ""));
             }
         }

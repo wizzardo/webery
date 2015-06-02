@@ -17,8 +17,7 @@ public class If extends Tag {
     public Tag init(Map<String, String> attrs, Body body, String offset) {
         this.body = body;
 
-        String test = attrs.remove("test");
-        exp = new ExpressionHolder<>(test);
+        exp = asExpression(attrs, "test", false, true);
         return this;
     }
 

@@ -2,6 +2,7 @@ package com.wizzardo.http.framework.template;
 
 import com.wizzardo.tools.xml.Node;
 
+import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
 
@@ -10,6 +11,8 @@ import java.util.function.Supplier;
  * Date: 7/3/13
  */
 public abstract class Tag extends RenderableList {
+
+    protected List<String> imports;
 
     public Tag init(Node node, String offset, String dir) {
         return init(node.attributes(), new Body(node, getBodyOffset(offset), dir), offset);
@@ -32,9 +35,9 @@ public abstract class Tag extends RenderableList {
     protected void prepareAttrs(Map<String, String> attrs) {
         for (Map.Entry<String, String> attr : attrs.entrySet()) {
             append(" ");
-            ViewRenderer.prepare(attr.getKey(), this);
+            ViewRenderer.prepare(attr.getKey(), this, imports);
             append("=\"");
-            ViewRenderer.prepare(attr.getValue(), this);
+            ViewRenderer.prepare(attr.getValue(), this, imports);
             append("\"");
         }
     }
@@ -70,6 +73,14 @@ public abstract class Tag extends RenderableList {
         if (s == null)
             return null;
 
-        return new ExpressionHolder<>(s, template);
+        return new ExpressionHolder<>(s, imports, template);
+    }
+
+    protected <T> ExpressionHolder<T> asExpression(String value, boolean template) {
+        return new ExpressionHolder<>(value, imports, template);
+    }
+
+    public void setImports(List<String> imports) {
+        this.imports = imports;
     }
 }

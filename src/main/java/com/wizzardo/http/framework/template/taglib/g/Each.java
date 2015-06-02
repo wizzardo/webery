@@ -16,7 +16,7 @@ import java.util.Map;
 public class Each extends Tag {
 
     public Tag init(Map<String, String> attrs, final Body body, String offset) {
-        ExpressionHolder<Collection> raw = new ExpressionHolder<>(remove(attrs, "in"));
+        ExpressionHolder<Collection> raw = asExpression(attrs, "in", false, true);
         String var = MapTools.getString(attrs, "var", "it");
 
         String indexName = attrs.get("status");

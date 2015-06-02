@@ -4,6 +4,7 @@ import com.wizzardo.tools.evaluation.EvalTools;
 import com.wizzardo.tools.evaluation.Expression;
 import com.wizzardo.tools.misc.Unchecked;
 
+import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -17,13 +18,15 @@ public class ExpressionHolder<T> implements Renderable {
     private String string;
     private Expression expression;
     protected boolean stringTemplate;
+    protected List<String> imports;
 
     public ExpressionHolder(String s) {
-        this(s, false);
+        this(s, null, false);
     }
 
-    public ExpressionHolder(String s, boolean stringTemplate) {
+    public ExpressionHolder(String s, List<String> imports, boolean stringTemplate) {
         string = s;
+        this.imports = imports;
         this.stringTemplate = stringTemplate;
     }
 
@@ -42,7 +45,7 @@ public class ExpressionHolder<T> implements Renderable {
                 if (!prepared) {
                     Unchecked.run(() -> {
                         if (stringTemplate)
-                            expression = EvalTools.prepare("\"" + string + "\"", model);
+                            expression = EvalTools.prepare(string, model, null, imports, true);
                         else {
                             Matcher m = p.matcher(string);
                             if (m.find()) {
@@ -53,9 +56,9 @@ public class ExpressionHolder<T> implements Renderable {
                                 if (exp == null) {
                                     exp = m.group(3);
                                 }
-                                expression = EvalTools.prepare(exp, model);
+                                expression = EvalTools.prepare(exp, model, null, imports);
                             } else
-                                expression = EvalTools.prepare(string, model);
+                                expression = EvalTools.prepare(string, model, null, imports);
                         }
                     });
                     prepared = true;

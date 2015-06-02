@@ -14,7 +14,7 @@ import java.util.Map;
  */
 public class While extends Tag {
     public Tag init(Map<String, String> attrs, Body body, String offset) {
-        ExpressionHolder<Collection> raw = new ExpressionHolder<>(remove(attrs, "test"));
+        ExpressionHolder<Collection> raw = asExpression(attrs, "test", false, true);
 
         add(model -> {
             RenderResult result = new RenderResult();

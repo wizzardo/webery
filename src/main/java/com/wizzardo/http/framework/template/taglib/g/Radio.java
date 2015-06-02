@@ -14,8 +14,8 @@ import java.util.Map;
 public class Radio extends Tag {
 
     public Tag init(Map<String, String> attrs, Body body, String offset) {
-        ExpressionHolder name = new ExpressionHolder<>(remove(attrs, "name"), true);
-        ExpressionHolder value = new ExpressionHolder<>(remove(attrs, "value"), true);
+        ExpressionHolder name = asExpression(remove(attrs, "name"), true);
+        ExpressionHolder value = asExpression(remove(attrs, "value"), true);
 
         String id = attrs.remove("id");
 
@@ -32,7 +32,7 @@ public class Radio extends Tag {
         });
 
         if (id != null)
-            append("\" id=\"").append(new ExpressionHolder<>(id, true));
+            append("\" id=\"").append(asExpression(id, true));
 
         append("\" value=\"");
         append(value);
@@ -43,7 +43,7 @@ public class Radio extends Tag {
             if (ch.equalsIgnoreCase("true"))
                 append(" checked=\"checked\"");
             else if (!ch.equalsIgnoreCase("false")) {
-                ExpressionHolder checked = new ExpressionHolder<>(ch, true);
+                ExpressionHolder checked = asExpression(ch, true);
                 append((model) -> new RenderResult(AsBooleanExpression.toBoolean(checked.getRaw(model)) ? " checked=\"checked\"" : ""));
             }
         }
