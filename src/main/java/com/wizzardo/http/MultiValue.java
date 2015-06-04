@@ -24,7 +24,7 @@ public class MultiValue {
 
     public List<String> getValues() {
         if (values == null) {
-            values = new ArrayList<String>();
+            values = new ArrayList<>();
             values.add(value);
         }
         return values;
@@ -47,5 +47,12 @@ public class MultiValue {
             return value;
         else
             return values.toString();
+    }
+
+    public int size() {
+        if (values == null)
+            return value == null ? 0 : 1;
+        else
+            return values.size();
     }
 }
