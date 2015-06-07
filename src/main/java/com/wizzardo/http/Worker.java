@@ -10,7 +10,7 @@ import java.util.concurrent.BlockingQueue;
  * @author: moxa
  * Date: 4/13/13
  */
-public abstract class Worker<T extends HttpConnection> extends Thread implements ByteBufferProvider {
+public abstract class Worker<T> extends Thread implements ByteBufferProvider {
     protected BlockingQueue<T> queue;
     protected ByteBufferWrapper byteBufferWrapper = new ByteBufferWrapper(1024 * 50);
 
@@ -40,5 +40,5 @@ public abstract class Worker<T extends HttpConnection> extends Thread implements
         return byteBufferWrapper;
     }
 
-    protected abstract void process(T connection);
+    protected abstract void process(T item);
 }
