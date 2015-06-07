@@ -128,7 +128,7 @@ public class IfTest implements TagTest {
             Assert.assertEquals("If tag must be before Else tag", e.getMessage());
         }
 
-        n = Node.parse("<div><g:if test=\"${flag}\">text</g:if>error<g:elseif>foo</g:elseif></div>", true);
+        n = Node.parse("<div><g:if test=\"${flag}\">text</g:if>error<g:elseif test=\"${flag}\">foo</g:elseif></div>", true);
         try {
             ViewRenderer.prepare(n.children(), new RenderableList(), "", "");
             assert false;
