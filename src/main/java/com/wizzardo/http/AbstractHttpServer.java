@@ -128,11 +128,11 @@ public abstract class AbstractHttpServer<T extends HttpConnection> extends Epoll
     }
 
     protected void finishHandling(T connection) throws IOException {
+        if (connection.getResponse().isAsync())
+            return;
+
+        connection.getResponse().commit(connection);
         connection.flushOutputStream();
-
-        if (!connection.getResponse().isCommitted())
-            connection.write(connection.getResponse().toReadableBytes(), (ByteBufferProvider) Thread.currentThread());
-
         connection.onFinishingHandling();
     }
 

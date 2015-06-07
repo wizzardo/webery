@@ -39,6 +39,7 @@ public class Response {
     private boolean hasBody = true;
 
     protected static final StringBuilderThreadLocalHolder stringBuilder = new StringBuilderThreadLocalHolder();
+    protected boolean async;
 
     public Response body(String s) {
         return body(s.getBytes());
@@ -296,14 +297,14 @@ public class Response {
     }
 
     public <H extends AbstractHttpServer, Q extends Request, S extends Response, I extends EpollInputStream, O extends EpollOutputStream> O getOutputStream(HttpConnection<H, Q, S, I, O> connection) {
+        connection.getOutputStream();
         commit(connection);
 
         return connection.getOutputStream();
     }
 
-    protected void commit(HttpConnection connection) {
+    public void commit(HttpConnection connection) {
         if (!committed) {
-            connection.getOutputStream();
             connection.write(toReadableBytes(), (ByteBufferProvider) Thread.currentThread());
             committed = true;
         }
@@ -334,5 +335,13 @@ public class Response {
     public void setRedirectPermanently(String location) {
         status(Status._301);
         header(Header.KEY_LOCATION, location);
+    }
+
+    public void async() {
+        async = true;
+    }
+
+    public boolean isAsync() {
+        return async;
     }
 }
