@@ -28,9 +28,17 @@ public class CheckBoxTest implements TagTest {
     @Test
     public void test_2() {
         RenderResult result = prepare("<g:checkBox name=\"myCheckbox\" id=\"myCheckbox_${i}\" checked=\"${true}\"/>")
-                .get(new Model().append("i", 1));
+                .get(new Model().append("i", 2));
 
-        Assert.assertEquals("<input type=\"checkbox\" name=\"myCheckbox\" id=\"myCheckbox_1\" checked=\"checked\"/>\n", result.toString());
+        Assert.assertEquals("<input type=\"checkbox\" name=\"myCheckbox\" id=\"myCheckbox_2\" checked=\"checked\"/>\n", result.toString());
+    }
+
+    @Test
+    public void test_3() {
+        RenderResult result = prepare("<g:checkBox name=\"myCheckbox\" id=\"myCheckbox_${i}\" checked=\"true\"/>")
+                .get(new Model().append("i", 3));
+
+        Assert.assertEquals("<input type=\"checkbox\" name=\"myCheckbox\" id=\"myCheckbox_3\" checked=\"checked\"/>\n", result.toString());
     }
 
 }
