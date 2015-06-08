@@ -31,10 +31,20 @@ public class TextAreaTest implements TagTest {
     @Test
     public void test_2() {
         RenderResult result = prepare("<g:textArea name=\"myField\">$myValue</g:textArea>")
-                .get(new Model().append("myValue", 1));
+                .get(new Model().append("myValue", 2));
 
         Assert.assertEquals("<textarea name=\"myField\" id=\"myField\">" +
-                "1" +
+                "2" +
+                "</textarea>\n", result.toString());
+    }
+
+    @Test
+    public void test_3() {
+        RenderResult result = prepare("<g:textArea name=\"myField\" id=\"myId\">$myValue</g:textArea>")
+                .get(new Model().append("myValue", 3));
+
+        Assert.assertEquals("<textarea name=\"myField\" id=\"myId\">" +
+                "3" +
                 "</textarea>\n", result.toString());
     }
 
