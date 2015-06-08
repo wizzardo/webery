@@ -1,6 +1,7 @@
 package com.wizzardo.http.framework.template.taglib;
 
 import com.wizzardo.http.framework.WebApplicationTest;
+import com.wizzardo.http.framework.message.MessageBundle;
 import com.wizzardo.http.framework.template.*;
 import com.wizzardo.http.framework.template.taglib.g.FormatBoolean;
 import org.junit.Assert;
@@ -19,14 +20,19 @@ public class FormatBooleanTest extends WebApplicationTest implements TagTest {
         TagLib.findTags(Collections.singletonList(FormatBoolean.class));
     }
 
+    @Override
+    protected MessageBundle initMessageSource(MessageBundle bundle) {
+        return bundle.load("messages");
+    }
+
     @Test
     public void test_1() {
         RenderResult result = prepare("<div><g:formatBoolean boolean=\"${myBoolean}\"/></div>")
-                .get(new Model().append("myBoolean", true));
+                .get(new Model().append("myBoolean", false));
 
         Assert.assertEquals("" +
                 "<div>\n" +
-                "    true\n" +
+                "    false\n" +
                 "</div>\n", result.toString());
     }
 
@@ -40,5 +46,16 @@ public class FormatBooleanTest extends WebApplicationTest implements TagTest {
 
         model.put("i", -1);
         Assert.assertEquals("-1 <= 0\n", l.get(model).toString());
+    }
+
+    @Test
+    public void test_3() {
+        RenderResult result = prepare("<div><g:formatBoolean boolean=\"${myBoolean}\"/></div>")
+                .get(new Model().append("myBoolean", true));
+
+        Assert.assertEquals("" +
+                "<div>\n" +
+                "    ok\n" +
+                "</div>\n", result.toString());
     }
 }
