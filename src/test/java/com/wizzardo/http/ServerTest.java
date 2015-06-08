@@ -8,6 +8,7 @@ import com.wizzardo.tools.http.HttpClient;
 import com.wizzardo.tools.http.HttpSession;
 import com.wizzardo.tools.io.IOTools;
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.rules.TestName;
@@ -123,5 +124,17 @@ public class ServerTest<S extends HttpServer> {
             e.printStackTrace();
         }
         return null;
+    }
+
+    protected void checkException(Runnable runnable, Class<? extends Exception> exceptionClass, String message) {
+        boolean b = false;
+        try {
+            runnable.run();
+            b = true;
+        } catch (Exception e) {
+            Assert.assertEquals(exceptionClass, e.getClass());
+            Assert.assertEquals(message, e.getMessage());
+        }
+        Assert.assertFalse(b);
     }
 }
