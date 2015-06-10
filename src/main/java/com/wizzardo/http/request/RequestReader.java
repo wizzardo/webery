@@ -108,14 +108,14 @@ public class RequestReader {
         return read(bytes, 0, bytes.length);
     }
 
-    private void parsePath(byte[] chars, int offset, int length) {
+    protected void parsePath(byte[] chars, int offset, int length) {
         chars = getCharsValue(chars, offset, length);
         if (chars.length == 0)
             return;
         path = Path.parse(chars, 0, chars.length, UrlMapping.SEGMENT_CACHE);
     }
 
-    private void parseQueryString(byte[] chars, int offset, int length) {
+    protected void parseQueryString(byte[] chars, int offset, int length) {
         chars = getCharsValue(chars, offset, length);
         length = chars.length;
         offset = 0;
@@ -130,7 +130,7 @@ public class RequestReader {
             queryString = "";
     }
 
-    void parseParameters(byte[] chars, int offset, int length) {
+    protected void parseParameters(byte[] chars, int offset, int length) {
         int from = offset;
         int to = offset + length;
         String key = null;
@@ -166,13 +166,13 @@ public class RequestReader {
         }
     }
 
-    private void putParameter(String key, String value) {
+    protected void putParameter(String key, String value) {
         MultiValue multiValue = params.putIfAbsent(key, new MultiValue(value));
         if (multiValue != null)
             multiValue.append(value);
     }
 
-    private String decodeParameter(String s) {
+    protected String decodeParameter(String s) {
         try {
             return URLDecoder.decode(s, "utf-8");
         } catch (UnsupportedEncodingException e) {
@@ -181,37 +181,52 @@ public class RequestReader {
         return null;
     }
 
-    private int parseHeaders(byte[] chars, int offset, int length) {
+    protected int parseFirstLine(byte[] chars, int offset, int length) {
+        if (protocol != null)
+            return offset;
+
         int l = offset + length;
-        if (protocol == null) {
-            for (int i = offset; i < l; i++) {
-                byte b = chars[i];
-                if (b == ' ' || b == '?') {
-                    if (method == null) {
-                        method = getValue(chars, offset, i - offset);
-                        if (method.isEmpty())
-                            method = null;
-
-                        i++;
-                        return parseHeaders(chars, i, length - (i - offset));
-                    } else if (path == null) {
-                        parsePath(chars, offset, i - offset);
-                        i++;
-                        return parseHeaders(chars, i, length - (i - offset));
-                    } else if (queryString == null) {
-                        parseQueryString(chars, offset, i - offset);
-                        i++;
-                        return parseHeaders(chars, i, length - (i - offset));
-                    }
-
-                } else if (b == '\n') {
-                    protocol = getValue(chars, offset, i - offset);
+        for (int i = offset; i < l; i++) {
+            byte b = chars[i];
+            if (b == ' ' || b == '?') {
+                if (method == null) {
+                    method = getValue(chars, offset, i - offset);
+                    if (method.isEmpty())
+                        method = null;
 
                     i++;
-                    return parseHeaders(chars, i, length - (i - offset));
+                    return parseFirstLine(chars, i, length - (i - offset));
+                } else if (path == null) {
+                    parsePath(chars, offset, i - offset);
+                    i++;
+                    return parseFirstLine(chars, i, length - (i - offset));
+                } else if (queryString == null) {
+                    parseQueryString(chars, offset, i - offset);
+                    i++;
+                    return parseFirstLine(chars, i, length - (i - offset));
                 }
+
+            } else if (b == '\n') {
+                protocol = getValue(chars, offset, i - offset);
+
+                i++;
+                return i;
             }
         }
+        return offset;
+    }
+
+    protected int parseHeadersWithFirstLine(byte[] chars, int offset, int length) {
+        int newOffset = parseFirstLine(chars, offset, length);
+        length -= (newOffset - offset);
+        if (length > 0)
+            return parseHeaders(chars, newOffset, length);
+        else
+            return -1;
+    }
+
+    protected int parseHeaders(byte[] chars, int offset, int length) {
+        int l = offset + length;
 
         if (waitForNewLine) {
             for (int i = offset; i < l; i += 2) {
@@ -307,22 +322,26 @@ public class RequestReader {
         if (complete || length == 0)
             return -1;
 
-        return parseHeaders(bytes, offset, length);
+        return parseHeadersWithFirstLine(bytes, offset, length);
     }
 
-    private void put(String key, String value) {
+    protected void put(String key, String value) {
         MultiValue hv = headers.putIfAbsent(key, new MultiValue(value));
         if (hv != null)
             hv.append(value);
     }
 
-    private void putIntoBuffer(byte[] bytes, int offset, int length) {
+    protected void putIntoBuffer(byte[] bytes, int offset, int length) {
+        if (length == 0)
+            return;
+
         if (buffer == null) {
             buffer = new byte[length];
 
         } else if (buffer.length - r < length) {
             byte[] b = new byte[r + length];
-            System.arraycopy(buffer, 0, b, 0, r);
+            if (r != 0)
+                System.arraycopy(buffer, 0, b, 0, r);
             buffer = b;
         }
 
@@ -330,7 +349,7 @@ public class RequestReader {
         r += length;
     }
 
-    private byte[] getCharsValue(byte[] chars, int offset, int length) {
+    protected byte[] getCharsValue(byte[] chars, int offset, int length) {
         if (r > 0) {
             int bo = 0;
             while (bo < buffer.length && buffer[bo] <= ' ') {
@@ -362,7 +381,7 @@ public class RequestReader {
         return b;
     }
 
-    private String getValue(byte[] chars, int offset, int length) {
+    protected String getValue(byte[] chars, int offset, int length) {
         ByteTree.Node byteTree = headersTree.getRoot();
 
         if (r > 0) {
