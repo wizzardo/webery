@@ -93,7 +93,6 @@ public class HeadersTest {
         test2(src, checker);
         test3(src, checker);
         test4(src, checker);
-        test6(src, checker);
         testAll(src, checker);
     }
 
@@ -104,62 +103,42 @@ public class HeadersTest {
         checker.check(reader, end);
     }
 
-    public void test2(String src, Checker checker) {
-        RequestReader reader = new RequestReader();
+    protected int readStepByStep(String src, RequestReader reader, int step) {
         byte[] bytes = src.getBytes();
         int end = 0;
-        for (int i = 0; i < bytes.length && !reader.complete; i++) {
-            end = reader.read(bytes, i, 1);
+        byte[] buffer = new byte[step];
+        for (int i = 0; i < bytes.length && !reader.complete; i += step) {
+            int l = Math.min(step, bytes.length - i);
+            System.arraycopy(bytes, i, buffer, 0, l);
+            int t = reader.read(buffer, 0, l);
+            if (t < 0)
+                end += l;
+            else
+                end += t;
         }
+        return end;
+    }
 
-        checker.check(reader, end);
+    public void test2(String src, Checker checker) {
+        RequestReader reader = new RequestReader();
+        checker.check(reader, readStepByStep(src, reader, 1));
     }
 
     public void test3(String src, Checker checker) {
         RequestReader reader = new RequestReader();
-        byte[] bytes = src.getBytes();
-        int end = 0;
-        for (int i = 0; i < bytes.length && !reader.complete; i += 2) {
-            end = reader.read(bytes, i, 2);
-        }
-
-        checker.check(reader, end);
+        checker.check(reader, readStepByStep(src, reader, 2));
     }
 
     public void test4(String src, Checker checker) {
         RequestReader reader = new RequestReader();
-        byte[] bytes = src.getBytes();
-        int end = 0;
-        for (int i = 0; i < bytes.length && !reader.complete; i += 3) {
-            end = reader.read(bytes, i, 3);
-        }
-
-        checker.check(reader, end);
-    }
-
-    public void test6(String src, Checker checker) {
-        RequestReader reader = new RequestReader();
-        byte[] bytes = src.getBytes();
-        int j = 7;
-        int end = 0;
-        for (int i = 0; i < bytes.length && !reader.complete; i += j) {
-            end = reader.read(bytes, i, i + j > bytes.length ? bytes.length - i : j);
-        }
-
-        checker.check(reader, end);
+        checker.check(reader, readStepByStep(src, reader, 3));
     }
 
     public void testAll(String src, Checker checker) {
-        RequestReader reader;
         byte[] bytes = src.getBytes();
         for (int j = 1; j < bytes.length; j++) {
-            reader = new RequestReader();
-//            System.out.println(j);
-            int end = 0;
-            for (int i = 0; i < bytes.length && !reader.complete; i += j) {
-                end = reader.read(bytes, i, i + j > bytes.length ? bytes.length - i : j);
-            }
-            checker.check(reader, end);
+            RequestReader reader = new RequestReader();
+            checker.check(reader, readStepByStep(src, reader, j));
         }
     }
 
