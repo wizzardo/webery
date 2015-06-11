@@ -10,7 +10,7 @@ import java.util.Map;
 /**
  * Created by wizzardo on 24.05.15.
  */
-public class FormatBoolean extends Tag {
+public class FormatBoolean extends Tag implements RenderableString {
 
     protected MessageSource messageSource = DependencyFactory.getDependency(MessageSource.class);
 
@@ -18,8 +18,8 @@ public class FormatBoolean extends Tag {
     public Tag init(Map<String, String> attrs, Body body, String offset) {
         ExpressionHolder raw = asExpression(attrs, "boolean", false, true);
 
-        Renderable trueString = getValueString("true", attrs);
-        Renderable falseString = getValueString("false", attrs);
+        Renderable trueString = getValueRenderable("true", attrs);
+        Renderable falseString = getValueRenderable("false", attrs);
 
         append(offset);
         append(model -> {
@@ -33,7 +33,7 @@ public class FormatBoolean extends Tag {
         return this;
     }
 
-    protected Renderable getValueString(String name, Map<String, String> attrs) {
+    protected Renderable getValueRenderable(String name, Map<String, String> attrs) {
         String value = attrs.remove(name);
         if (value != null)
             return asExpression(value, true);
@@ -44,5 +44,26 @@ public class FormatBoolean extends Tag {
 
         value = messageSource.get("default.boolean." + name);
         return Renderable.create(value);
+    }
+
+    protected String getValueString(String name, Map<String, Object> attrs) {
+        Object value = attrs.remove(name);
+        if (value != null)
+            return String.valueOf(value);
+
+        String message = messageSource.get("boolean." + name);
+        if (message != null)
+            return message;
+
+        message = messageSource.get("default.boolean." + name);
+        return message;
+    }
+
+    @Override
+    public String render(Map<String, Object> model) {
+        if ((Boolean) model.get("boolean"))
+            return getValueString("true", model);
+        else
+            return getValueString("false", model);
     }
 }
