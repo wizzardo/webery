@@ -45,10 +45,10 @@ public class ExpressionHolder<T> implements Renderable {
                 if (!prepared) {
                     Unchecked.run(() -> {
                         if (stringTemplate)
-                            expression = EvalTools.prepare(string, model, null, imports, true);
+                            expression = EvalTools.prepare(string, model, TagLib.getTagFunctions(), imports, true);
                         else {
                             Matcher m = p.matcher(string);
-                            if (m.find()) {
+                            if (m.matches()) {
                                 String exp = m.group(1);
                                 if (exp == null) {
                                     exp = m.group(2);
@@ -56,9 +56,9 @@ public class ExpressionHolder<T> implements Renderable {
                                 if (exp == null) {
                                     exp = m.group(3);
                                 }
-                                expression = EvalTools.prepare(exp, model, null, imports);
+                                expression = EvalTools.prepare(exp, model, TagLib.getTagFunctions(), imports);
                             } else
-                                expression = EvalTools.prepare(string, model, null, imports);
+                                expression = EvalTools.prepare(string, model, TagLib.getTagFunctions(), imports);
                         }
                     });
                     prepared = true;
