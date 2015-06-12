@@ -43,17 +43,17 @@ public class HeadersTest {
             Assert.assertEquals("/http/", hhr.path.toString());
             Assert.assertEquals("HTTP/1.1", hhr.protocol);
             Assert.assertEquals("foo=bar", hhr.queryString);
-            Assert.assertEquals(true, hhr.complete);
+            Assert.assertEquals(true, hhr.isComplete());
 
-            Assert.assertEquals("example.com", hhr.headers.get("Host").getValue());
-            Assert.assertEquals("Keep-Alive", hhr.headers.get("Connection").getValue());
-            Assert.assertEquals("no-cache", hhr.headers.get("Cache-Control").getValue());
-            Assert.assertEquals("text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8", hhr.headers.get("Accept").getValue());
-            Assert.assertEquals("no-cache", hhr.headers.get("Pragma").getValue());
-            Assert.assertEquals("Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/30.0.1599.114 Safari/537.36", hhr.headers.get("User-Agent").getValue());
-            Assert.assertEquals("gzip,deflate,sdch", hhr.headers.get("Accept-Encoding").getValue());
-            Assert.assertEquals("en-US,en;q=0.8,ru;q=0.6", hhr.headers.get("Accept-Language").getValue());
-            Assert.assertEquals("JSESSIONID=1dt8eiw5zc9t4j2o9asxcgmzq; __utma=107222046.2138525965.1372169768.1372169768.1372685422.2; __utmz=107222046.1372169768.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none)", hhr.headers.get("Cookie").getValue());
+            Assert.assertEquals("example.com", hhr.getHeaders().get("Host").getValue());
+            Assert.assertEquals("Keep-Alive", hhr.getHeaders().get("Connection").getValue());
+            Assert.assertEquals("no-cache", hhr.getHeaders().get("Cache-Control").getValue());
+            Assert.assertEquals("text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8", hhr.getHeaders().get("Accept").getValue());
+            Assert.assertEquals("no-cache", hhr.getHeaders().get("Pragma").getValue());
+            Assert.assertEquals("Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/30.0.1599.114 Safari/537.36", hhr.getHeaders().get("User-Agent").getValue());
+            Assert.assertEquals("gzip,deflate,sdch", hhr.getHeaders().get("Accept-Encoding").getValue());
+            Assert.assertEquals("en-US,en;q=0.8,ru;q=0.6", hhr.getHeaders().get("Accept-Language").getValue());
+            Assert.assertEquals("JSESSIONID=1dt8eiw5zc9t4j2o9asxcgmzq; __utma=107222046.2138525965.1372169768.1372169768.1372685422.2; __utmz=107222046.1372169768.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none)", hhr.getHeaders().get("Cookie").getValue());
         };
         complexTest(src, checker);
 
@@ -66,9 +66,9 @@ public class HeadersTest {
             Assert.assertEquals("/http/", hhr.path.toString());
             Assert.assertEquals("HTTP/1.1", hhr.protocol);
             Assert.assertEquals("", hhr.queryString);
-            Assert.assertEquals(true, hhr.complete);
+            Assert.assertEquals(true, hhr.isComplete());
 
-            Assert.assertEquals("example.com", hhr.headers.get("Host").getValue());
+            Assert.assertEquals("example.com", hhr.getHeaders().get("Host").getValue());
         };
         complexTest(src, checker);
 
@@ -81,9 +81,9 @@ public class HeadersTest {
             Assert.assertEquals("/http/", hhr.path.toString());
             Assert.assertEquals("HTTP/1.1", hhr.protocol);
             Assert.assertEquals(null, hhr.queryString);
-            Assert.assertEquals(true, hhr.complete);
+            Assert.assertEquals(true, hhr.isComplete());
 
-            Assert.assertEquals("example.com", hhr.headers.get("Host").getValue());
+            Assert.assertEquals("example.com", hhr.getHeaders().get("Host").getValue());
         };
         complexTest(src, checker);
     }
@@ -107,7 +107,7 @@ public class HeadersTest {
         byte[] bytes = src.getBytes();
         int end = 0;
         byte[] buffer = new byte[step];
-        for (int i = 0; i < bytes.length && !reader.complete; i += step) {
+        for (int i = 0; i < bytes.length && !reader.isComplete(); i += step) {
             int l = Math.min(step, bytes.length - i);
             System.arraycopy(bytes, i, buffer, 0, l);
             int t = reader.read(buffer, 0, l);
@@ -152,9 +152,9 @@ public class HeadersTest {
                     Assert.assertEquals("/http", reader.path.toString());
                     Assert.assertEquals("HTTP/1.1", reader.protocol);
                     Assert.assertEquals(null, reader.queryString);
-                    Assert.assertEquals(true, reader.complete);
+                    Assert.assertEquals(true, reader.isComplete());
 
-                    Assert.assertEquals("localhost:8084", reader.headers.get("Host").getValue());
+                    Assert.assertEquals("localhost:8084", reader.getHeaders().get("Host").getValue());
                 }
         );
     }
@@ -180,7 +180,7 @@ public class HeadersTest {
                 bytes = data[j % 100];
                 totalBytes += bytes.length;
                 reader.read(bytes);
-                assert reader.complete;
+                assert reader.isComplete();
             }
 
             time = System.currentTimeMillis() - time;
@@ -245,12 +245,12 @@ public class HeadersTest {
         RequestReader reader = new RequestReader();
         reader.read(data.getBytes());
 
-        Assert.assertEquals(true, reader.complete);
+        Assert.assertEquals(true, reader.isComplete());
         Assert.assertEquals("GET", reader.method);
         Assert.assertEquals("/http/", reader.path.toString());
         Assert.assertEquals("HTTP/1.1", reader.protocol);
 
-        Assert.assertEquals("example.com", reader.headers.get("Host").getValue());
+        Assert.assertEquals("example.com", reader.getHeaders().get("Host").getValue());
     }
 
     //    @Test
