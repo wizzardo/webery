@@ -69,4 +69,26 @@ public class FormatBooleanTest extends WebApplicationTest implements TagTest {
                 "    ok\n" +
                 "</div>\n", result.toString());
     }
+
+    @Test
+    public void test_5() {
+        RenderResult result = prepare("<div>${formatBoolean([boolean:false])}</div>")
+                .get(new Model());
+
+        Assert.assertEquals("" +
+                "<div>\n" +
+                "    false\n" +
+                "</div>\n", result.toString());
+    }
+
+    @Test
+    public void test_6() {
+        RenderResult result = prepare("<div>${formatBoolean([boolean:true, true:'foo'])}</div>")
+                .get(new Model());
+
+        Assert.assertEquals("" +
+                "<div>\n" +
+                "    foo\n" +
+                "</div>\n", result.toString());
+    }
 }
