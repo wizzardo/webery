@@ -224,6 +224,11 @@ public abstract class HttpHeadersReader {
         return b;
     }
 
+    protected String getValue(byte[] chars, int offset, int length, String ifEmpty) {
+        String s = getValue(chars, offset, length);
+        return s.isEmpty() ? ifEmpty : s;
+    }
+
     protected String getValue(byte[] chars, int offset, int length) {
         ByteTree.Node byteTree = headersTree.getRoot();
 
