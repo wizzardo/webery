@@ -1,5 +1,6 @@
 package com.wizzardo.http.request;
 
+import com.wizzardo.http.ResponseReader;
 import com.wizzardo.tools.io.FileTools;
 import com.wizzardo.tools.security.MD5;
 import org.junit.Assert;
@@ -251,6 +252,30 @@ public class HeadersTest {
         Assert.assertEquals("HTTP/1.1", reader.protocol);
 
         Assert.assertEquals("example.com", reader.getHeaders().get("Host").getValue());
+    }
+
+    @Test
+    public void testResponse() {
+        String data = "HTTP/1.1 200 OK\r\n" +
+                "Connection: Keep-Alive\r\n" +
+                "Content-Type: text/html;charset=UTF-8\r\n" +
+                "Content-Length: 13\r\n\r\n" +
+                "Hello, World!";
+
+        ResponseReader reader = new ResponseReader();
+        byte[] bytes = data.getBytes();
+        int offset = reader.read(bytes);
+
+        Assert.assertEquals(true, reader.isComplete());
+        Assert.assertEquals("HTTP/1.1", reader.getProtocol());
+        Assert.assertEquals("200", reader.getStatus());
+        Assert.assertEquals("OK", reader.getMessage());
+
+        Assert.assertEquals("Keep-Alive", reader.getHeaders().get("Connection").getValue());
+        Assert.assertEquals("text/html;charset=UTF-8", reader.getHeaders().get("Content-Type").getValue());
+        Assert.assertEquals("13", reader.getHeaders().get("Content-Length").getValue());
+
+        Assert.assertEquals("Hello, World!", new String(bytes, offset, bytes.length - offset));
     }
 
     //    @Test
