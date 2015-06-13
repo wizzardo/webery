@@ -25,7 +25,7 @@ public class CreateLink extends Tag implements RenderableString {
         boolean absolute = Boolean.valueOf(attrs.remove("absolute"));
 
         append(offset);
-        beforeAppendUrl();
+        beforeAppendUrl(attrs, body, offset);
 
         ExpressionHolder<Map<String, Object>> params = asExpression(remove(attrs, "params", "[:]"), false);
 
@@ -45,16 +45,16 @@ public class CreateLink extends Tag implements RenderableString {
             append("#").append(fragment);
         }
 
-        afterAppendUrl();
+        afterAppendUrl(attrs, body, offset);
         append("\n");
 
         return this;
     }
 
-    protected void beforeAppendUrl() {
+    protected void beforeAppendUrl(Map<String, String> attrs, Body body, String offset) {
     }
 
-    protected void afterAppendUrl() {
+    protected void afterAppendUrl(Map<String, String> attrs, Body body, String offset) {
     }
 
     @Override
