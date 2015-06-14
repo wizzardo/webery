@@ -86,10 +86,32 @@ public class CreateLinkTest extends WebApplicationTest implements TagTest {
     public void testRenderableString() {
         RenderResult result = prepare("<a href=\"${createLink([controller:'book', action:'show', id: 1])}\">link</a>")
                 .get(new Model());
-
         Assert.assertEquals("<a href=\"/book/1\">\n" +
                 "    link\n" +
                 "</a>\n", result.toString());
+
+        result = prepare("${createLink([controller:'book', action:'show', id: 1, params: [foo: 'bar', boo: 'far']])}")
+                .get(new Model());
+        Assert.assertEquals("/book/1?foo=bar&boo=far\n", result.toString());
+
+        result = prepare("${createLink([controller:'book', action:'list', params: [foo: 'bar']])}")
+                .get(new Model());
+        Assert.assertEquals("/book/list?foo=bar\n", result.toString());
+
+        result = prepare("${createLink([controller:'book', action:'list', absolute: true])}")
+                .get(new Model());
+        Assert.assertEquals("http://localhost:9999/book/list\n", result.toString());
+
+        result = prepare("${createLink([controller:'book', action:'list', base: 'http://ya.ru', params: [foo: 'bar']])}")
+                .get(new Model());
+        Assert.assertEquals("http://ya.ru/book/list?foo=bar\n", result.toString());
+
+        result = prepare("${createLink([controller:'book', action:'list', fragment: 'foo'])}")
+                .get(new Model());
+        Assert.assertEquals("/book/list#foo\n", result.toString());
+
+        checkException(() -> prepare("${createLink([controller:'none', action:'list'])}").get(new Model()),
+                IllegalStateException.class, "can not find mapping for controller 'none' and action:'list'");
     }
 
     @Test
