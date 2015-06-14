@@ -3,6 +3,7 @@ package com.wizzardo.http.framework.template.taglib;
 import com.wizzardo.http.framework.Controller;
 import com.wizzardo.http.framework.WebApplicationTest;
 import com.wizzardo.http.framework.template.Model;
+import com.wizzardo.http.framework.template.RenderResult;
 import com.wizzardo.http.framework.template.Renderer;
 import com.wizzardo.http.framework.template.TagLib;
 import com.wizzardo.http.framework.template.taglib.g.CreateLink;
@@ -79,6 +80,16 @@ public class CreateLinkTest extends WebApplicationTest implements TagTest {
         model.put("id", 1);
         Assert.assertEquals("/book/1\n", new CreateLink().init(new LinkedHashMap<>(attrs)).get(model).toString());
 
+    }
+
+    @Test
+    public void testRenderableString() {
+        RenderResult result = prepare("<a href=\"${createLink([controller:'book', action:'show', id: 1])}\">link</a>")
+                .get(new Model());
+
+        Assert.assertEquals("<a href=\"/book/1\">\n" +
+                "    link\n" +
+                "</a>\n", result.toString());
     }
 
     @Test
