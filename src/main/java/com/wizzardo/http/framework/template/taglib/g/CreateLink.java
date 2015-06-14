@@ -7,6 +7,7 @@ import com.wizzardo.http.mapping.UrlMapping;
 import com.wizzardo.http.mapping.UrlTemplate;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -64,10 +65,19 @@ public class CreateLink extends Tag implements RenderableString {
         String base = (String) attrs.remove("base");
         String fragment = (String) attrs.remove("fragment");
         boolean absolute = Boolean.valueOf((String) attrs.remove("absolute"));
+        Object id = attrs.remove("id");
 
         Map<String, Object> params = (Map) attrs.remove("params");
-        if (params == null)
-            params = Collections.emptyMap();
+        if (params == null) {
+            if (id == null) {
+                params = Collections.emptyMap();
+            } else {
+                params = new HashMap<>();
+                params.put("id", id);
+            }
+        } else if (id != null) {
+            params.put("id", id);
+        }
 
         UrlTemplate template = getUrlTemplate(controller, action);
         if (template == null)
