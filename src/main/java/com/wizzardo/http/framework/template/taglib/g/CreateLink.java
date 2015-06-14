@@ -64,7 +64,7 @@ public class CreateLink extends Tag implements RenderableString {
         String action = (String) attrs.remove("action");
         String base = (String) attrs.remove("base");
         String fragment = (String) attrs.remove("fragment");
-        boolean absolute = Boolean.valueOf((String) attrs.remove("absolute"));
+        Boolean absolute = (Boolean) attrs.remove("absolute");
         Object id = attrs.remove("id");
 
         Map<String, Object> params = (Map) attrs.remove("params");
@@ -87,7 +87,7 @@ public class CreateLink extends Tag implements RenderableString {
 
         if (base != null) {
             url = template.getUrl(base, params);
-        } else if (absolute)
+        } else if (absolute != null && absolute)
             url = template.getAbsoluteUrl(params);
         else
             url = template.getRelativeUrl(params);
