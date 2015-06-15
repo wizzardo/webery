@@ -53,6 +53,14 @@ public class CreateLinkTest extends WebApplicationTest implements TagTest {
         attrs.put("absolute", "true");
         Assert.assertEquals("http://localhost:9999/book/list\n", new CreateLink().init(new LinkedHashMap<>(attrs)).get(model).toString());
 
+        attrs.put("absolute", "${i>0}");
+        model.put("i", 1);
+        Assert.assertEquals("http://localhost:9999/book/list\n", new CreateLink().init(new LinkedHashMap<>(attrs)).get(model).toString());
+
+        attrs.put("absolute", "${i>0}");
+        model.put("i", -1);
+        Assert.assertEquals("/book/list\n", new CreateLink().init(new LinkedHashMap<>(attrs)).get(model).toString());
+
         attrs.put("base", "http://ya.ru");
         Assert.assertEquals("http://ya.ru/book/list\n", new CreateLink().init(new LinkedHashMap<>(attrs)).get(model).toString());
 
