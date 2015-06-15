@@ -5,6 +5,7 @@ import com.wizzardo.http.framework.di.DependencyFactory;
 import com.wizzardo.http.framework.template.*;
 import com.wizzardo.http.mapping.UrlMapping;
 import com.wizzardo.http.mapping.UrlTemplate;
+import com.wizzardo.tools.evaluation.AsBooleanExpression;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -21,9 +22,9 @@ public class CreateLink extends Tag implements RenderableString {
     public Tag init(Map<String, String> attrs, Body body, String offset) {
         String controller = attrs.remove("controller");
         String action = attrs.remove("action");
-        String base = attrs.remove("base");
-        String fragment = attrs.remove("fragment");
-        boolean absolute = Boolean.valueOf(attrs.remove("absolute"));
+        ExpressionHolder base = asExpression(attrs, "base", true, false);
+        ExpressionHolder fragment = asExpression(attrs, "fragment", true, false);
+        ExpressionHolder absolute = asExpression(attrs, "absolute", false, false);
 
         append(offset);
         beforeAppendUrl(attrs, body, offset);
@@ -36,13 +37,18 @@ public class CreateLink extends Tag implements RenderableString {
             throw new IllegalStateException("can not find mapping for controller '" + controller + "' and action:'" + action + "'");
 
         if (base != null) {
-            add(model -> new RenderResult(template.getUrl(base, params.getRaw(model))));
-        } else if (absolute)
-            add(model -> new RenderResult(template.getAbsoluteUrl(params.getRaw(model))));
+            add(model -> new RenderResult(template.getUrl(String.valueOf(base.getRaw(model)), params.getRaw(model))));
+        } else if (absolute != null)
+            add(model -> {
+                if (AsBooleanExpression.toBoolean(absolute.getRaw(model)))
+                    return new RenderResult(template.getAbsoluteUrl(params.getRaw(model)));
+                else
+                    return new RenderResult(template.getRelativeUrl(params.getRaw(model)));
+            });
         else
             add(model -> new RenderResult(template.getRelativeUrl(params.getRaw(model))));
 
-        if (fragment != null && fragment.length() > 0) {
+        if (fragment != null) {
             append("#").append(fragment);
         }
 
