@@ -235,6 +235,10 @@ public class Response {
         return l;
     }
 
+    public void headersReset() {
+        headersCount = 0;
+    }
+
     public boolean containsHeader(String key) {
         return containsHeader(key.getBytes());
     }
