@@ -8,6 +8,7 @@ import com.wizzardo.http.mapping.Path;
 import com.wizzardo.http.request.Header;
 import com.wizzardo.http.request.Request;
 import com.wizzardo.http.response.Response;
+import com.wizzardo.http.response.Status;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -71,43 +72,57 @@ public class ProxyHandler implements Handler {
         }
 
         protected void read(ByteBufferProvider byteBufferProvider) throws IOException {
-            int r = read(buffer, byteBufferProvider);
-            int offset = 0;
-            if (!responseReader.isComplete()) {
-                int k = responseReader.read(buffer, 0, r);
-                if (k < 0)
-                    return;
+            int r;
+            while ((r = read(buffer, byteBufferProvider)) > 0) {
+                int offset = 0;
+                if (!responseReader.isComplete()) {
+                    int k = responseReader.read(buffer, 0, r);
+                    if (k < 0)
+                        return;
 
-                srcResponse.headersReset();
-                for (Map.Entry<String, MultiValue> entry : responseReader.headers.entrySet()) {
-                    String name = entry.getKey();
-                    if (entry.getValue().size() > 1)
-                        for (String value : entry.getValue().getValues()) {
-                            srcResponse.appendHeader(name, value);
-                        }
-                    else
-                        srcResponse.appendHeader(name, entry.getValue().getValue());
+                    srcResponse.headersReset();
+                    for (Map.Entry<String, MultiValue> entry : responseReader.headers.entrySet()) {
+                        String name = entry.getKey();
+                        if (entry.getValue().size() > 1)
+                            for (String value : entry.getValue().getValues()) {
+                                srcResponse.appendHeader(name, value);
+                            }
+                        else
+                            srcResponse.appendHeader(name, entry.getValue().getValue());
+                    }
+
+                    offset = k;
+                    MultiValue length = responseReader.getHeaders().get(Header.KEY_CONTENT_LENGTH.value);
+                    if (!responseReader.status.equals("200"))
+                        srcResponse.setStatus(Status.valueOf(Integer.parseInt(responseReader.getStatus())));
+
+                    srcResponse.commit(srcRequest.connection());
+                    if (length == null) {
+                        end();
+                        break;
+                    }
+                    limit = Long.valueOf(length.getValue());
                 }
 
-                srcResponse.commit(srcRequest.connection());
-                offset = k;
+                limit -= r - offset;
+                if (limit == 0)
+                    srcRequest.connection().write(buffer, offset, r - offset, byteBufferProvider);
+                else
+                    srcRequest.connection().write(Arrays.copyOfRange(buffer, offset, r), byteBufferProvider);
 
-                limit = Long.valueOf(responseReader.getHeaders().get(Header.KEY_CONTENT_LENGTH.value).getValue());
+
+//                System.out.println("response: " + new String(buffer, offset, r - offset));
+//                System.out.println("need to read: " + limit + "; r:" + r + " ,offset:" + offset);
+                if (limit == 0) {
+                    end();
+                    break;
+                }
             }
+        }
 
-            limit -= r - offset;
-            if (limit == 0)
-                srcRequest.connection().write(buffer, offset, r - offset, byteBufferProvider);
-            else
-                srcRequest.connection().write(Arrays.copyOfRange(buffer, offset, r), byteBufferProvider);
-
-
-//            System.out.println("response: " + new String(buffer, offset, r - offset));
-//            System.out.println("need to read: " + limit + "; r:" + r + " ,offset:" + offset);
-            if (limit == 0) {
-                srcRequest.connection().onFinishingHandling();
-                connections.add(this);
-            }
+        protected void end() {
+            srcRequest.connection().onFinishingHandling();
+            connections.add(this);
         }
     }
 
@@ -145,7 +160,7 @@ public class ProxyHandler implements Handler {
         requestBuilder.append("\r\n");
         //todo: post request
 
-//        System.out.println("request: " + requestBuilder);
+//        System.out.println("send request: " + requestBuilder);
         connection.write(requestBuilder.toString().getBytes(), (ByteBufferProvider) Thread.currentThread());
 
         response.async();
