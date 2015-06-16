@@ -80,4 +80,36 @@ public enum Status {
         this.message = message;
         this.bytes = ("HTTP/1.1 " + code + " " + message + "\r\n").getBytes();
     }
+
+    public static Status valueOf(int status) {
+        switch (status) {
+            case 101:
+                return _101;
+            case 200:
+                return _200;
+            case 206:
+                return _206;
+            case 301:
+                return _301;
+            case 302:
+                return _302;
+            case 304:
+                return _304;
+            case 400:
+                return _400;
+            case 401:
+                return _401;
+            case 403:
+                return _403;
+            case 404:
+                return _404;
+            case 405:
+                return _405;
+            case 416:
+                return _416;
+            case 500:
+                return _500;
+        }
+        return null;
+    }
 }
