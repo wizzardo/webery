@@ -53,14 +53,15 @@ public enum Status {
     _403(403, "Forbidden"),
 
     /**
+     * Not Found
+     */
+    _404(404, "Not Found"),
+
+    /**
      * Method Not Allowed
      */
     _405(405, "Method Not Allowed"),
 
-    /**
-     * Not Found
-     */
-    _404(404, "Not Found"),
     /**
      * Requested range not satisfiable
      */
@@ -75,7 +76,15 @@ public enum Status {
     public final int code;
     public final String message;
 
-    private Status(int code, String message) {
+    static {
+        //self check
+        for (Status status : values()) {
+            if (status != valueOf(status.code))
+                throw new IllegalStateException("valueOf(code) returns wrong status for code " + status.code);
+        }
+    }
+
+    Status(int code, String message) {
         this.code = code;
         this.message = message;
         this.bytes = ("HTTP/1.1 " + code + " " + message + "\r\n").getBytes();
