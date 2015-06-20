@@ -114,29 +114,33 @@ public class HttpConnection<H extends AbstractHttpServer, Q extends Request, S e
             this.requestReader = requestReader;
         }
 
-        int limit, i;
+        int limit;
         byte[] buffer = this.buffer;
         do {
             limit = readFromByteBuffer(bb);
-            i = requestReader.read(buffer, 0, limit);
-            if (i > 0)
-                break;
+            if (handleHeaders(buffer, 0, limit))
+                return true;
         } while (bb.hasRemaining());
 
-        if (i < 0)
+        return ready && checkData(bb);
+    }
+
+    private boolean handleHeaders(byte[] bytes, int offset, int length) {
+        int i = requestReader.read(bytes, offset, length);
+        if (i == -1)
             return false;
 
-//        this.requestReader = null;
         position = i;
-        r = limit;
+        r = length + offset;
         request = createRequest();
         response = createResponse();
         requestReader.fillRequest(request);
+        requestReader.clear();
         if (request.method() == Request.Method.HEAD)
             response.setHasBody(false);
         keepAlive = prepareKeepAlive();
         ready = true;
-        return checkData(bb);
+        return true;
     }
 
     protected boolean prepareKeepAlive() {
@@ -198,15 +202,18 @@ public class HttpConnection<H extends AbstractHttpServer, Q extends Request, S e
             return;
         }
 
-        position = 0;
         ready = false;
-        state = State.READING_HEADERS;
         inputStream = null;
         outputStream = null;
         inputListener = null;
         outputListener = null;
-        requestReader.clear();
-        r = 0;
+        state = State.READING_HEADERS;
+        if (r - position > 0) {
+            handleHeaders(buffer, position, r - position);
+        } else {
+            position = 0;
+            r = 0;
+        }
     }
 
     @Override
