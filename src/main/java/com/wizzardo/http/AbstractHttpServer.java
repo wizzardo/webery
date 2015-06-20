@@ -72,32 +72,7 @@ public abstract class AbstractHttpServer<T extends HttpConnection> extends Epoll
 
         @Override
         public void onRead(T connection) {
-            if (connection.processInputListener())
-                return;
-
-            ByteBuffer b;
-            try {
-                while ((b = connection.read(connection.getBufferSize(), this)).limit() > 0) {
-                    if (connection.check(b))
-                        break;
-                }
-                if (!connection.isRequestReady())
-                    return;
-
-            } catch (IOException e) {
-                e.printStackTrace();
-                try {
-                    connection.close();
-                } catch (IOException e1) {
-                    e1.printStackTrace();
-                }
-                return;
-            }
-
-            if (workersCount > 0)
-                queue.add(connection);
-            else
-                processConnection(connection);
+            checkData(connection, this);
         }
 
         @Override
@@ -105,6 +80,39 @@ public abstract class AbstractHttpServer<T extends HttpConnection> extends Epoll
             super.onDisconnect(connection);
 //            System.out.println("close " + connection);
         }
+    }
+
+    protected void checkData(T connection, ByteBufferProvider bufferProvider) {
+        if (connection.processInputListener())
+            return;
+
+        ByteBuffer b;
+        try {
+            while ((b = connection.read(connection.getBufferSize(), bufferProvider)).limit() > 0) {
+                if (connection.check(b))
+                    break;
+            }
+            if (!connection.isRequestReady())
+                return;
+
+        } catch (IOException e) {
+            e.printStackTrace();
+            try {
+                connection.close();
+            } catch (IOException e1) {
+                e1.printStackTrace();
+            }
+            return;
+        }
+
+        process(connection);
+    }
+
+    private void process(T connection) {
+        if (workersCount > 0)
+            queue.add(connection);
+        else
+            processConnection(connection);
     }
 
     protected void processConnection(T connection) {
@@ -134,6 +142,11 @@ public abstract class AbstractHttpServer<T extends HttpConnection> extends Epoll
         connection.getResponse().commit(connection);
         connection.flushOutputStream();
         connection.onFinishingHandling();
+
+        if (connection.isRequestReady())
+            process(connection);
+        else if (connection.isReadyToRead())
+            checkData(connection, (ByteBufferProvider) Thread.currentThread());
     }
 
     public void setSessionTimeout(int sec) {
