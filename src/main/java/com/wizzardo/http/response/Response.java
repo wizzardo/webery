@@ -14,6 +14,7 @@ import com.wizzardo.http.html.Renderer;
 import com.wizzardo.http.html.Tag;
 import com.wizzardo.http.request.Header;
 import com.wizzardo.http.request.Request;
+import com.wizzardo.http.utils.AsciiReader;
 import com.wizzardo.http.utils.StringBuilderThreadLocalHolder;
 import com.wizzardo.tools.misc.ExceptionDrivenStringBuilder;
 
@@ -156,11 +157,11 @@ public class Response {
     }
 
     public Response appendHeader(String key, String value) {
-        return appendHeader(key.getBytes(), value.getBytes());
+        return appendHeader(AsciiReader.write(key), AsciiReader.write(value));
     }
 
     public Response appendHeader(Header key, String value) {
-        return appendHeader(key.bytes, value.getBytes());
+        return appendHeader(key.bytes, AsciiReader.write(value));
     }
 
     public Response appendHeader(Header key, Header value) {
@@ -276,6 +277,7 @@ public class Response {
 
     protected ReadableBuilder buildResponse() {
         ReadableBuilder builder = new ReadableBuilder(statusToBytes());
+        byte[][] headers = this.headers;
         for (int i = 0; i < headersCount; i += 2) {
             if (headers[i + 1] == EMPTY)
                 builder.append(headers[i]);
