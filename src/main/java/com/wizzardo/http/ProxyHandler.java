@@ -9,6 +9,12 @@ import com.wizzardo.http.request.Header;
 import com.wizzardo.http.request.Request;
 import com.wizzardo.http.response.Response;
 import com.wizzardo.http.response.Status;
+import com.wizzardo.http.utils.AsciiReader;
+import com.wizzardo.tools.misc.ExceptionDrivenStringBuilder;
+import com.wizzardo.tools.misc.pool.Holder;
+import com.wizzardo.tools.misc.pool.Pool;
+import com.wizzardo.tools.misc.pool.SoftHolder;
+import com.wizzardo.tools.misc.pool.ThreadLocalPool;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -20,6 +26,25 @@ import java.util.concurrent.LinkedBlockingQueue;
  * Created by wizzardo on 28.05.15.
  */
 public class ProxyHandler implements Handler {
+
+    protected static final Pool<ExceptionDrivenStringBuilder> BUILDER_POOL = new ThreadLocalPool<ExceptionDrivenStringBuilder>() {
+        @Override
+        public ExceptionDrivenStringBuilder create() {
+            return new ExceptionDrivenStringBuilder();
+        }
+
+        @Override
+        protected Holder<ExceptionDrivenStringBuilder> createHolder(ExceptionDrivenStringBuilder builder) {
+            return new SoftHolder<ExceptionDrivenStringBuilder>(this, builder) {
+                @Override
+                public ExceptionDrivenStringBuilder get() {
+                    ExceptionDrivenStringBuilder builder = super.get();
+                    builder.setLength(0);
+                    return builder;
+                }
+            };
+        }
+    };
 
     protected Queue<ProxyConnection> connections = new LinkedBlockingQueue<>();
     protected EpollCore<ProxyConnection> epoll = new EpollCore<ProxyConnection>() {
@@ -137,32 +162,33 @@ public class ProxyHandler implements Handler {
         connection.srcRequest = request;
         connection.srcResponse = response;
         connection.responseReader = new ResponseReader();
+        try (Holder<ExceptionDrivenStringBuilder> holder = BUILDER_POOL.holder()) {
+            ExceptionDrivenStringBuilder requestBuilder = holder.get();
 
-        StringBuilder requestBuilder = new StringBuilder();
-        //todo: append params
-        requestBuilder.append(request.method().name()).append(" ").append(rewritePath(request.path())).append(" HTTP/1.1\r\n");
-        requestBuilder.append("Host: " + host);
-        if (port != 80)
-            requestBuilder.append(":").append(port);
-        requestBuilder.append("\r\n");
-        requestBuilder.append("X-Real-IP: ").append(request.connection().getIp()).append("\r\n");
-        requestBuilder.append("X-Forwarded-for: ").append(request.connection().getServer().getHost()).append("\r\n");
-        Map<String, MultiValue> headers = request.headers();
-        for (Map.Entry<String, MultiValue> header : headers.entrySet()) {
-            if (header.getKey().equalsIgnoreCase("Host"))
-                continue;
+            //todo: append params
+            requestBuilder.append(request.method().name()).append(" ").append(rewritePath(request.path())).append(" HTTP/1.1\r\n");
+            requestBuilder.append("Host: " + host);
+            if (port != 80)
+                requestBuilder.append(":").append(port);
+            requestBuilder.append("\r\n");
+            requestBuilder.append("X-Real-IP: ").append(request.connection().getIp()).append("\r\n");
+            requestBuilder.append("X-Forwarded-for: ").append(request.connection().getServer().getHost()).append("\r\n");
+            Map<String, MultiValue> headers = request.headers();
+            for (Map.Entry<String, MultiValue> header : headers.entrySet()) {
+                if (header.getKey().equalsIgnoreCase("Host"))
+                    continue;
 
-            if (header.getValue().size() == 1)
-                requestBuilder.append(header.getKey()).append(": ").append(header.getValue().getValue()).append("\r\n");
-            else for (String value : header.getValue().getValues())
-                requestBuilder.append(header.getKey()).append(": ").append(value).append("\r\n");
-        }
-        requestBuilder.append("\r\n");
-        //todo: post request
+                if (header.getValue().size() == 1)
+                    requestBuilder.append(header.getKey()).append(": ").append(header.getValue().getValue()).append("\r\n");
+                else for (String value : header.getValue().getValues())
+                    requestBuilder.append(header.getKey()).append(": ").append(value).append("\r\n");
+            }
+            requestBuilder.append("\r\n");
+            //todo: post request
 
 //        System.out.println("send request: " + requestBuilder);
-        connection.write(requestBuilder.toString().getBytes(), (ByteBufferProvider) Thread.currentThread());
-
+            connection.write(AsciiReader.write(requestBuilder.toString()), (ByteBufferProvider) Thread.currentThread());
+        }
         response.async();
 
 

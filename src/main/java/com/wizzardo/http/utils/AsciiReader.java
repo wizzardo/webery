@@ -3,8 +3,8 @@ package com.wizzardo.http.utils;
 import com.wizzardo.tools.reflection.StringReflection;
 
 /**
-* Created by wizzardo on 29.12.14.
-*/
+ * Created by wizzardo on 29.12.14.
+ */
 public class AsciiReader {
 
     public static String read(byte[] bytes) {
@@ -53,5 +53,15 @@ public class AsciiReader {
             h = 31 * h + k;
         }
         return StringReflection.createString(data, h);
+    }
+
+    public static byte[] write(String s) {
+        byte[] bytes = new byte[s.length()];
+        char[] chars = StringReflection.chars(s);
+        int l = chars.length;
+        for (int i = 0; i < l; i++) {
+            bytes[i] = (byte) chars[i];
+        }
+        return bytes;
     }
 }
