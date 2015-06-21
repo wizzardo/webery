@@ -13,6 +13,11 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * Created by wizzardo on 20.06.15.
  */
 public class PipeliningTest extends ServerTest {
+    @Override
+    public void setUp() throws NoSuchMethodException, ClassNotFoundException, NoSuchFieldException {
+        workers = 0; // todo: fix multithreading
+        super.setUp();
+    }
 
     @Test
     public void test_1() throws IOException {
@@ -28,6 +33,21 @@ public class PipeliningTest extends ServerTest {
         Assert.assertTrue(response.contains("\r\n\r\nok"));
         Assert.assertTrue(response.contains("\r\n\r\nfoo"));
         Assert.assertTrue(response.endsWith("\r\n\r\nfoobar"));
+    }
+
+    @Test
+    public void test_2() throws IOException {
+        handler = new UrlHandler()
+                .append("/", (request, response) -> response.setBody("ok")) //length = 123
+        ;
+
+        StringBuilder sb = new StringBuilder();
+        int n = 4000;
+        for (int i = 0; i < n; i++) {
+            sb.append(request("/"));
+        }
+        String response = response(sb.toString(), n * 123);
+        Assert.assertEquals(n, response.split("\r\n\r\nok").length);
     }
 
     protected String response(String request, int limit) {
