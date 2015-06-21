@@ -119,7 +119,7 @@ public class HttpConnection<H extends AbstractHttpServer, Q extends Request, S e
         do {
             limit = readFromByteBuffer(bb);
             if (handleHeaders(buffer, 0, limit))
-                return true;
+                break;
         } while (bb.hasRemaining());
 
         return ready && checkData(bb);

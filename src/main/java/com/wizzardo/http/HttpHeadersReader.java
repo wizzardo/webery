@@ -44,7 +44,7 @@ public abstract class HttpHeadersReader {
     }
 
     public void clear() {
-        headers.clear();
+        headers = new LinkedHashMap<>(16);
         tempKey = null;
         complete = false;
         waitForNewLine = false;

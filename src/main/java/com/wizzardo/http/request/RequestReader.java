@@ -54,7 +54,7 @@ public class RequestReader extends HttpHeadersReader {
 
     public void clear() {
         super.clear();
-        params.clear();
+        params = new Parameters();
         method = null;
         queryString = null;
         protocol = null;
