@@ -15,7 +15,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class PipeliningTest extends ServerTest {
     @Override
     public void setUp() throws NoSuchMethodException, ClassNotFoundException, NoSuchFieldException {
-        workers = 0; // todo: fix multithreading
         super.setUp();
     }
 
