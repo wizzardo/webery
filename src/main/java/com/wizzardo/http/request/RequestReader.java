@@ -36,6 +36,10 @@ public class RequestReader extends HttpHeadersReader {
         return protocol;
     }
 
+    public RequestReader() {
+        this(null, null);
+    }
+
     public RequestReader(Map<String, MultiValue> headers) {
         this(headers, null);
     }
