@@ -10,6 +10,7 @@ import com.wizzardo.http.response.Response;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.LinkedHashMap;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * @author: wizzardo
@@ -35,6 +36,8 @@ public class HttpConnection<H extends AbstractHttpServer, Q extends Request, S e
     protected S response;
     protected Q request;
     protected H server;
+
+    volatile AtomicReference<Worker> processingBy = new AtomicReference<>();
 
     static enum State {
         READING_HEADERS,

@@ -43,7 +43,11 @@ public abstract class AbstractHttpServer<T extends HttpConnection> extends Epoll
         return new Worker<T>(queue, name) {
             @Override
             protected void process(T connection) {
+                if (!connection.processingBy.compareAndSet(null, this))
+                    return;
+
                 processConnection(connection);
+                connection.processingBy.set(null);
             }
         };
     }
@@ -72,7 +76,14 @@ public abstract class AbstractHttpServer<T extends HttpConnection> extends Epoll
 
         @Override
         public void onRead(T connection) {
-            checkData(connection, this);
+            if (connection.processInputListener())
+                return;
+
+            if (connection.processingBy.get() != null)
+                return;
+
+            if (checkData(connection, this))
+                process(connection);
         }
 
         @Override
@@ -82,10 +93,7 @@ public abstract class AbstractHttpServer<T extends HttpConnection> extends Epoll
         }
     }
 
-    protected void checkData(T connection, ByteBufferProvider bufferProvider) {
-        if (connection.processInputListener())
-            return;
-
+    protected boolean checkData(T connection, ByteBufferProvider bufferProvider) {
         ByteBuffer b;
         try {
             while ((b = connection.read(connection.getBufferSize(), bufferProvider)).limit() > 0) {
@@ -93,7 +101,7 @@ public abstract class AbstractHttpServer<T extends HttpConnection> extends Epoll
                     break;
             }
             if (!connection.isRequestReady())
-                return;
+                return false;
 
         } catch (IOException e) {
             e.printStackTrace();
@@ -102,16 +110,16 @@ public abstract class AbstractHttpServer<T extends HttpConnection> extends Epoll
             } catch (IOException e1) {
                 e1.printStackTrace();
             }
-            return;
+            return false;
         }
 
-        process(connection);
+        return true;
     }
 
     private void process(T connection) {
-        if (workersCount > 0)
+        if (workersCount > 0) {
             queue.add(connection);
-        else
+        } else
             processConnection(connection);
     }
 
@@ -144,9 +152,9 @@ public abstract class AbstractHttpServer<T extends HttpConnection> extends Epoll
         connection.onFinishingHandling();
 
         if (connection.isRequestReady())
-            process(connection);
-        else if (connection.isReadyToRead())
-            checkData(connection, (ByteBufferProvider) Thread.currentThread());
+            processConnection(connection);
+        else if (connection.isReadyToRead() && checkData(connection, (ByteBufferProvider) Thread.currentThread()))
+            processConnection(connection);
     }
 
     public void setSessionTimeout(int sec) {
