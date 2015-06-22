@@ -16,7 +16,7 @@ public class ResponseReader extends HttpHeadersReader {
     }
 
     public ResponseReader() {
-        super(null);
+        super();
     }
 
     @Override

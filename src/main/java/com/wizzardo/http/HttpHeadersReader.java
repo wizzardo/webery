@@ -43,6 +43,10 @@ public abstract class HttpHeadersReader {
         this.headers = headers;
     }
 
+    public HttpHeadersReader() {
+        headers = new LinkedHashMap<>(16);
+    }
+
     public void clear() {
         headers = new LinkedHashMap<>(16);
         tempKey = null;

@@ -24,10 +24,6 @@ public class RequestReader extends HttpHeadersReader {
     protected String queryString;
     protected String protocol;
 
-    public RequestReader() {
-        this(null);
-    }
-
     public String getMethod() {
         return method;
     }
