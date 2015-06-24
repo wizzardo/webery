@@ -61,6 +61,7 @@ public class ProxyHandlerTest extends ServerTest {
             Assert.assertTrue(writeSocket(data, 1) > 10);
         } catch (Exception e) {
             e.printStackTrace();
+            assert false;
         } finally {
             proxy.stopEpoll();
         }
@@ -92,5 +93,34 @@ public class ProxyHandlerTest extends ServerTest {
         return pauses.getAndSet(0);
     }
 
+    @Test
+    public void test_simple() {
+        handler = new UrlHandler()
+                .append("/", (request, response) -> response.setBody("ok"));
+
+        HttpServer<ObservedConnection> proxy = new HttpServer<ObservedConnection>(null, port + 1, context, 0) {
+            @Override
+            protected ObservedConnection createConnection(int fd, int ip, int port) {
+                return new ObservedConnection(fd, ip, port, this);
+            }
+        };
+        proxy.getUrlMapping()
+                .append("/", new ProxyHandler("localhost", port));
+
+        proxy.setIoThreadsCount(1);
+        proxy.start();
+
+        try {
+            Assert.assertEquals("ok", makeRequest("/").header("Connection", "Close").get().asString());
+            Assert.assertEquals("ok", makeRequest("/").header("Connection", "Keep-Alive").get().asString());
+            Assert.assertEquals("ok", makeRequest("/", port + 1).header("Connection", "Close").get().asString());
+            Assert.assertEquals("ok", makeRequest("/", port + 1).header("Connection", "Keep-Alive").get().asString());
+        } catch (Exception e) {
+            e.printStackTrace();
+            assert false;
+        } finally {
+            proxy.stopEpoll();
+        }
+    }
 
 }

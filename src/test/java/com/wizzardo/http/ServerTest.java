@@ -89,7 +89,11 @@ public class ServerTest<S extends HttpServer> {
     }
 
     protected com.wizzardo.tools.http.Request makeRequest(String path) {
-        return fillRequest(HttpClient.createRequest(makeUrl(path)));
+        return makeRequest(path, port);
+    }
+
+    protected com.wizzardo.tools.http.Request makeRequest(String path, int port) {
+        return fillRequest(HttpClient.createRequest(makeUrl(path, port)));
     }
 
     protected com.wizzardo.tools.http.Request makeRequest(String path, HttpSession session) {
@@ -97,6 +101,10 @@ public class ServerTest<S extends HttpServer> {
     }
 
     protected String makeUrl(String path) {
+        return makeUrl(path, port);
+    }
+
+    protected String makeUrl(String path, int port) {
         return "http://localhost:" + port + path;
     }
 
