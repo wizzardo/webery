@@ -180,6 +180,9 @@ public class ProxyHandler implements Handler {
         }
 
         protected void end() {
+            if (srcRequest.header(Header.KEY_CONNECTION).equalsIgnoreCase(Header.VALUE_CLOSE.value))
+                srcRequest.connection().setCloseOnFinishWriting(true);
+
             srcRequest.connection().onFinishingHandling();
             limit = -1;
             connections.add(this);

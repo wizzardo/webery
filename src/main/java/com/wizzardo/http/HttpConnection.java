@@ -229,7 +229,7 @@ public class HttpConnection<H extends AbstractHttpServer, Q extends Request, S e
         if (processOutputListener())
             return;
 
-        if (state != State.UPGRADED && !keepAlive) {
+        if (!keepAlive && state != State.UPGRADED && !response.isAsync()) {
             try {
                 close();
             } catch (IOException e) {
