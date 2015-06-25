@@ -10,6 +10,7 @@ import com.wizzardo.http.framework.message.MessageBundle;
 import com.wizzardo.http.framework.message.MessageSource;
 import com.wizzardo.http.framework.template.DecoratorLib;
 import com.wizzardo.http.framework.template.LocalResourcesTools;
+import com.wizzardo.http.framework.template.TagLib;
 import com.wizzardo.http.mapping.UrlMapping;
 import com.wizzardo.http.request.Request;
 import com.wizzardo.http.response.Response;
@@ -48,6 +49,7 @@ public class WebApplication extends HttpServer<HttpConnection> {
         List<Class> classes = new LocalResourcesTools().getClasses();
         DependencyFactory.get().setClasses(classes);
 
+        TagLib.findTags(classes);
         DependencyFactory.get().register(UrlMapping.class, new SingletonDependency<>(urlMapping));
 
         MessageBundle bundle = initMessageSource();
