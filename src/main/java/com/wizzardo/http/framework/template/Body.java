@@ -12,8 +12,8 @@ import java.util.Map;
 public class Body extends RenderableList {
     private Node node;
 
-    public Body(Node node, String offset, String dir) {
-        this(node, offset, dir, true, null);
+    public Body(Node node, String offset, String dir, List<String> imports) {
+        this(node, offset, dir, true, imports);
     }
 
     public Body(Node node, String offset, String dir, boolean addNewLine, List<String> imports) {
