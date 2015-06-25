@@ -114,20 +114,19 @@ public class RenderResult {
     }
 
     public void toString(StringBuilder sb, Charset charset) {
-        if (bytes != null) {
+        if (bytes != null)
             sb.append(new String(bytes, charset));
-        } else {
-            if (renders != null)
-                for (RenderResult r : renders) {
-                    r.toString(sb, charset);
-                }
-        }
+        else if (renders != null)
+            for (RenderResult r : renders) {
+                r.toString(sb, charset);
+            }
+
     }
 
     public void provideBytes(Consumer<byte[]> consumer) {
         if (bytes != null)
             consumer.accept(bytes);
-        else
+        else if (renders != null)
             for (RenderResult render : renders) {
                 render.provideBytes(consumer);
             }
