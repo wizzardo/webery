@@ -82,10 +82,4 @@ public class WebApplication extends HttpServer<HttpConnection> {
     protected ControllerUrlMapping createUrlMapping(String host, int port, String context) {
         return new ControllerUrlMapping(host, port, context);
     }
-
-    @Override
-    protected Response handle(Request request, Response response) throws IOException {
-        ((WebWorker) Thread.currentThread()).setRequestHolder(new RequestHolder(request, response));
-        return super.handle(request, response);
-    }
 }

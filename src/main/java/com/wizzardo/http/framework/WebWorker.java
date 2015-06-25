@@ -10,6 +10,8 @@ import java.util.concurrent.BlockingQueue;
  */
 public abstract class WebWorker<T extends HttpConnection> extends Worker<T> {
     protected RequestHolder requestHolder;
+    protected String controller;
+    protected String action;
 
     public WebWorker(BlockingQueue queue, String name) {
         super(queue, name);
@@ -23,7 +25,11 @@ public abstract class WebWorker<T extends HttpConnection> extends Worker<T> {
         return requestHolder;
     }
 
-    public void setRequestHolder(RequestHolder requestHolder) {
-        this.requestHolder = requestHolder;
+    public String controller() {
+        return controller;
+    }
+
+    public String action() {
+        return action;
     }
 }

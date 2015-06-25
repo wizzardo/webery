@@ -20,10 +20,14 @@ public class ControllerHandler implements Handler {
 
     protected Class<? extends Controller> controller;
     protected Method action;
+    protected String controllerName;
+    protected String actionName;
 
     public ControllerHandler(Class<? extends Controller> controller, String action) {
         this.controller = controller;
         this.action = findAction(controller, action);
+        controllerName = Controller.getControllerName(controller);
+        actionName = action;
     }
 
 
@@ -31,6 +35,11 @@ public class ControllerHandler implements Handler {
     public Response handle(Request request, Response response) throws IOException {
 //        request.controller(controllerName);
 //        request.action(actionName);
+
+        WebWorker webWorker = (WebWorker) Thread.currentThread();
+        webWorker.requestHolder = new RequestHolder(request, response);
+        webWorker.controller = controllerName;
+        webWorker.action = actionName;
 
         Controller c = DependencyFactory.getDependency(controller);
         c.request = request;
@@ -60,6 +69,6 @@ public class ControllerHandler implements Handler {
     }
 
     public String getControllerName() {
-        return Controller.getControllerName(controller);
+        return controllerName;
     }
 }
