@@ -1,6 +1,7 @@
 package com.wizzardo.http.framework.template.taglib.g;
 
 import com.wizzardo.http.Handler;
+import com.wizzardo.http.framework.WebWorker;
 import com.wizzardo.http.framework.di.DependencyFactory;
 import com.wizzardo.http.framework.template.*;
 import com.wizzardo.http.mapping.UrlMapping;
@@ -21,7 +22,13 @@ public class CreateLink extends Tag implements RenderableString {
     @Override
     public Tag init(Map<String, String> attrs, Body body, String offset) {
         String controller = attrs.remove("controller");
+        if (controller == null)
+            controller = ((WebWorker) Thread.currentThread()).controller();
+
         String action = attrs.remove("action");
+        if (action == null)
+            action = ((WebWorker) Thread.currentThread()).action();
+
         ExpressionHolder base = asExpression(attrs, "base", true, false);
         ExpressionHolder fragment = asExpression(attrs, "fragment", true, false);
         ExpressionHolder absolute = asExpression(attrs, "absolute", false, false);
