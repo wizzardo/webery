@@ -10,6 +10,7 @@ import com.wizzardo.http.framework.message.MessageBundle;
 import com.wizzardo.http.framework.message.MessageSource;
 import com.wizzardo.http.framework.template.DecoratorLib;
 import com.wizzardo.http.framework.template.LocalResourcesTools;
+import com.wizzardo.http.framework.template.ResourceTools;
 import com.wizzardo.http.framework.template.TagLib;
 import com.wizzardo.http.mapping.UrlMapping;
 import com.wizzardo.http.request.Request;
@@ -25,19 +26,19 @@ import java.util.concurrent.BlockingQueue;
 public class WebApplication extends HttpServer<HttpConnection> {
 
     public WebApplication(int port) {
-        super(port);
+        this(null, port);
     }
 
     public WebApplication(String host, int port) {
-        super(host, port);
+        this(host, port, null, 4);
     }
 
     public WebApplication(String host, int port, String context) {
-        super(host, port, context);
+        this(host, port, context, 4);
     }
 
     public WebApplication(String host, int port, int workersCount) {
-        super(host, port, workersCount);
+        this(host, port, null, workersCount);
     }
 
     public WebApplication(String host, int port, String context, int workersCount) {
@@ -46,11 +47,13 @@ public class WebApplication extends HttpServer<HttpConnection> {
 
     protected void init() {
         super.init();
-        List<Class> classes = new LocalResourcesTools().getClasses();
+        ResourceTools localResources = new LocalResourcesTools();
+        List<Class> classes = localResources.getClasses();
         DependencyFactory.get().setClasses(classes);
 
         TagLib.findTags(classes);
         DependencyFactory.get().register(UrlMapping.class, new SingletonDependency<>(urlMapping));
+        DependencyFactory.get().register(ResourceTools.class, new SingletonDependency<>(localResources));
 
         MessageBundle bundle = initMessageSource();
         DependencyFactory.get().register(MessageSource.class, new SingletonDependency<>(bundle));
