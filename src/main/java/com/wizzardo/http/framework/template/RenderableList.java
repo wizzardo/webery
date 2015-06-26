@@ -40,7 +40,10 @@ public class RenderableList extends ArrayList<Renderable> implements Renderable 
     public boolean add(Renderable renderable) {
         if (lastStatic != null && lastStatic == renderable)
             return true;
-        else
+        else if (lastStatic != null && renderable instanceof BytesHolder) {
+            lastStatic.append(((BytesHolder) renderable).bytes);
+            return true;
+        } else
             lastStatic = null;
 
         return super.add(renderable);

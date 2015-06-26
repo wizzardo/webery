@@ -8,7 +8,7 @@ import java.util.Map;
  * Date: 2/11/13
  */
 public class BytesHolder implements Renderable {
-    private byte[] bytes;
+    protected byte[] bytes;
 
     public BytesHolder(byte[] bytes) {
         this.bytes = bytes;
