@@ -154,9 +154,7 @@ public class ViewRenderer extends Renderer {
                 l.append("\"");
             }
         }
-        if (n.isEmpty()) {
-            l.append("/>");
-        } else {
+        if (!n.isEmpty()) {
             l.append(">");
             if (addNewLine)
                 l.append("\n");
@@ -165,7 +163,11 @@ public class ViewRenderer extends Renderer {
             }
             l.append(offset);
             l.append("</").append(n.name()).append(">");
-        }
+        } else if (n.name().equalsIgnoreCase("div"))
+            l.append("></").append(n.name()).append(">");
+        else
+            l.append("/>");
+
         if (addNewLine)
             l.append("\n");
     }
