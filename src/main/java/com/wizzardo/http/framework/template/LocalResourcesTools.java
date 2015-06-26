@@ -89,6 +89,9 @@ public class LocalResourcesTools implements ResourceTools {
 
         for (String path : classpath) {
             dir = new File(path);
+            if (!filterClasspath(dir))
+                continue;
+
             System.out.println("searching for classes in " + dir.getAbsolutePath());
             if (!dir.exists())
                 continue;
@@ -99,6 +102,56 @@ public class LocalResourcesTools implements ResourceTools {
             }
         }
         return l;
+    }
+
+    protected boolean filterClasspath(File file) {
+        String abs = file.getAbsolutePath();
+        if (abs.endsWith("/jre/lib/charsets.jar"))
+            return false;
+        if (abs.endsWith("/jre/lib/jfxswt.jar"))
+            return false;
+        if (abs.endsWith("/jre/lib/resources.jar"))
+            return false;
+        if (abs.endsWith("/jre/lib/jsse.jar"))
+            return false;
+        if (abs.endsWith("/jre/lib/rt.jar"))
+            return false;
+        if (abs.endsWith("/jre/lib/jce.jar"))
+            return false;
+        if (abs.endsWith("/jre/lib/management-agent.jar"))
+            return false;
+        if (abs.endsWith("/jre/lib/javaws.jar"))
+            return false;
+        if (abs.endsWith("/jre/lib/plugin.jar"))
+            return false;
+        if (abs.endsWith("/jre/lib/jfr.jar"))
+            return false;
+        if (abs.endsWith("/jre/lib/deploy.jar"))
+            return false;
+        if (abs.endsWith("/jre/lib/ext/sunjce_provider.jar"))
+            return false;
+        if (abs.endsWith("/jre/lib/ext/sunec.jar"))
+            return false;
+        if (abs.endsWith("/jre/lib/ext/localedata.jar"))
+            return false;
+        if (abs.endsWith("/jre/lib/ext/jfxrt.jar"))
+            return false;
+        if (abs.endsWith("/jre/lib/ext/dnsns.jar"))
+            return false;
+        if (abs.endsWith("/jre/lib/ext/cldrdata.jar"))
+            return false;
+        if (abs.endsWith("/jre/lib/ext/zipfs.jar"))
+            return false;
+        if (abs.endsWith("/jre/lib/ext/nashorn.jar"))
+            return false;
+        if (abs.endsWith("/jre/lib/ext/sunpkcs11.jar"))
+            return false;
+        if (abs.endsWith("/lib/idea_rt.jar"))
+            return false;
+        if (abs.endsWith("/plugins/Groovy/lib/agent/gragent.jar"))
+            return false;
+
+        return true;
     }
 
     @Override
