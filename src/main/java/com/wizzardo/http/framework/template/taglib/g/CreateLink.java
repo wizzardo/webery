@@ -74,7 +74,13 @@ public class CreateLink extends Tag implements RenderableString {
     @Override
     public String render(Map<String, Object> attrs) {
         String controller = (String) attrs.remove("controller");
+        if (controller == null)
+            controller = ((WebWorker) Thread.currentThread()).controller();
+
         String action = (String) attrs.remove("action");
+        if (action == null)
+            action = ((WebWorker) Thread.currentThread()).action();
+
         String base = (String) attrs.remove("base");
         String fragment = (String) attrs.remove("fragment");
         Boolean absolute = (Boolean) attrs.remove("absolute");
