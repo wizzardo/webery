@@ -23,7 +23,7 @@ public class ViewRenderer extends Renderer {
     private String controller;
     private String template;
 
-    private static Pattern p = Pattern.compile("\\$\\{([^\\{\\}]+)\\}|\\$([^\\., -]+)");
+    private static Pattern p = Pattern.compile("\\$\\{([^\\{\\}]+)\\}|\\$([^\\., -\\(\\)]+)");
     private static Cache<Pair<String, String>, RenderableList> viewsCache = new Cache<>(10, s -> prepareView(s.key, s.value));
 
     public ViewRenderer(Model model, String controller, String view) {
