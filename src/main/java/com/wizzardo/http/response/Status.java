@@ -33,9 +33,19 @@ public enum Status {
     _302(302, "Found"),
 
     /**
+     * See Other
+     */
+    _303(303, "See Other"),
+
+    /**
      * Not Modified
      */
     _304(304, "Not Modified"),
+
+    /**
+     * Temporary Redirect
+     */
+    _307(307, "Temporary Redirect"),
 
     /**
      * Bad Request
@@ -102,8 +112,12 @@ public enum Status {
                 return _301;
             case 302:
                 return _302;
+            case 303:
+                return _303;
             case 304:
                 return _304;
+            case 307:
+                return _307;
             case 400:
                 return _400;
             case 401:
