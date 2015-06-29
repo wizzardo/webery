@@ -149,7 +149,8 @@ public abstract class AbstractHttpServer<T extends HttpConnection> extends Epoll
 
         connection.getResponse().commit(connection);
         connection.flushOutputStream();
-        connection.onFinishingHandling();
+        if (!connection.onFinishingHandling())
+            return;
 
         if (connection.isRequestReady())
             processConnection(connection);
