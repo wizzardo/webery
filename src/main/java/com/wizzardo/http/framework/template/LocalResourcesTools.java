@@ -60,13 +60,22 @@ public class LocalResourcesTools implements ResourceTools {
     }
 
     public File getResourceFile(String path) {
-        File f = path.startsWith("/") ? new File(path) : null;
-        if (f == null || !f.exists()) {
-            for (File dir : resourcesDirs) {
-                f = new File(dir, path);
-                if (f.exists())
-                    return f;
-            }
+        File f;
+        try {
+            f = new File(LocalResourcesTools.class.getClassLoader().getResource(path).toURI());
+            if (f.exists())
+                return f;
+        } catch (Exception ignored) {
+        }
+
+        f = path.startsWith("/") ? new File(path) : null;
+        if (f != null && f.exists())
+            return f;
+
+        for (File dir : resourcesDirs) {
+            f = new File(dir, path);
+            if (f.exists())
+                return f;
         }
         return null;
     }
