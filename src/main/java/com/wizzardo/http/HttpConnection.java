@@ -260,8 +260,15 @@ public class HttpConnection<H extends AbstractHttpServer, Q extends Request, S e
             if (request.getBody() != null) {
                 byte[] bytes = request.data();
                 inputStream = createInputStream(bytes, 0, bytes.length, bytes.length);
-            } else
+            } else {
                 inputStream = createInputStream(buffer, position, r, request.contentLength());
+                if (r - position > request.contentLength())
+                    position += request.contentLength();
+                else {
+                    r = 0;
+                    position = 0;
+                }
+            }
             setInputListener(connection -> inputStream.wakeUp());
         }
 
