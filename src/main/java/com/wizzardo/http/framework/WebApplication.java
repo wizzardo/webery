@@ -1,9 +1,6 @@
 package com.wizzardo.http.framework;
 
-import com.wizzardo.http.Handler;
-import com.wizzardo.http.HttpConnection;
-import com.wizzardo.http.HttpServer;
-import com.wizzardo.http.Worker;
+import com.wizzardo.http.*;
 import com.wizzardo.http.framework.di.DependencyFactory;
 import com.wizzardo.http.framework.di.SingletonDependency;
 import com.wizzardo.http.framework.message.MessageBundle;
@@ -50,6 +47,8 @@ public class WebApplication extends HttpServer<HttpConnection> {
         ResourceTools localResources = new LocalResourcesTools();
         List<Class> classes = localResources.getClasses();
         DependencyFactory.get().setClasses(classes);
+        urlMapping.append("/static/*", "static", new FileTreeHandler<>(localResources.getResourceFile("public"), "/static")
+                .setShowFolder(false));
 
         TagLib.findTags(classes);
         DependencyFactory.get().register(UrlMapping.class, new SingletonDependency<>(urlMapping));
