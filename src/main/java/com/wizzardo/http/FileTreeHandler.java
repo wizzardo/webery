@@ -26,6 +26,7 @@ public class FileTreeHandler<T extends FileTreeHandler.HandlerContext> implement
     private String prefix;
     private String workDirPath;
     private File workDir;
+    protected boolean showFolder = true;
 
     public FileTreeHandler(File workDir, String prefix) {
         if (prefix.endsWith("/"))
@@ -65,9 +66,17 @@ public class FileTreeHandler<T extends FileTreeHandler.HandlerContext> implement
             return response.setStatus(Status._403).setBody(path + " is forbidden");
 
         if (file.isDirectory())
-            return response.setBody(renderDirectory(request, file));
+            if (showFolder)
+                return response.setBody(renderDirectory(request, file));
+            else
+                return response.setStatus(Status._403).setBody(path + " is forbidden");
 
         return RangeResponseHelper.makeRangeResponse(request, response, file);
+    }
+
+    public FileTreeHandler<T> setShowFolder(boolean showFolder) {
+        this.showFolder = showFolder;
+        return this;
     }
 
     protected String getCanonicalPath(File file) {
