@@ -82,6 +82,17 @@ public class RenderTest {
 
 
         reset(l, model);
+        s = "abc$qwerty+$qwerty";
+        model.put("qwerty", "abc");
+        ViewRenderer.prepare(s, l);
+        Assert.assertEquals(4, l.size());
+        Assert.assertEquals("abc", l.get(0).get(null).toString());
+        Assert.assertEquals("abc", l.get(1).get(model).toString());
+        Assert.assertEquals("+", l.get(2).get(model).toString());
+        Assert.assertEquals("abc", l.get(3).get(model).toString());
+
+
+        reset(l, model);
         s = "abc${qwerty}";
         model.put("qwerty", "abc");
         ViewRenderer.prepare(s, l);
