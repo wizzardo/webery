@@ -13,10 +13,7 @@ import com.wizzardo.http.response.Status;
 import com.wizzardo.http.utils.AsciiReader;
 import com.wizzardo.tools.misc.ExceptionDrivenStringBuilder;
 import com.wizzardo.tools.misc.Unchecked;
-import com.wizzardo.tools.misc.pool.Holder;
-import com.wizzardo.tools.misc.pool.Pool;
-import com.wizzardo.tools.misc.pool.SoftHolder;
-import com.wizzardo.tools.misc.pool.ThreadLocalPool;
+import com.wizzardo.tools.misc.pool.*;
 
 import java.io.IOException;
 import java.util.*;
@@ -28,24 +25,13 @@ import java.util.concurrent.atomic.AtomicReference;
  */
 public class ProxyHandler implements Handler {
 
-    protected static final Pool<ExceptionDrivenStringBuilder> BUILDER_POOL = new ThreadLocalPool<ExceptionDrivenStringBuilder>() {
-        @Override
-        public ExceptionDrivenStringBuilder create() {
-            return new ExceptionDrivenStringBuilder();
-        }
-
-        @Override
-        protected Holder<ExceptionDrivenStringBuilder> createHolder(ExceptionDrivenStringBuilder builder) {
-            return new SoftHolder<ExceptionDrivenStringBuilder>(this, builder) {
-                @Override
-                public ExceptionDrivenStringBuilder get() {
-                    ExceptionDrivenStringBuilder builder = super.get();
-                    builder.setLength(0);
-                    return builder;
-                }
-            };
-        }
-    };
+    protected static final Pool<ExceptionDrivenStringBuilder> BUILDER_POOL = new PoolBuilder<ExceptionDrivenStringBuilder>()
+            .supplier(ExceptionDrivenStringBuilder::new)
+            .resetter(sb -> {
+                sb.setLength(0);
+                return sb;
+            })
+            .build();
 
     protected Queue<ProxyConnection> connections = new LinkedBlockingQueue<>();
     protected EpollCore<ProxyConnection> epoll = new EpollCore<ProxyConnection>() {
@@ -217,12 +203,11 @@ public class ProxyHandler implements Handler {
         connection.srcResponse = response;
         connection.responseReader = new ResponseReader();
 
-        try (Holder<ExceptionDrivenStringBuilder> holder = BUILDER_POOL.holder()) {
-            ExceptionDrivenStringBuilder requestBuilder = holder.get();
-
+        final ProxyConnection finalConnection = connection;
+        BUILDER_POOL.provide(requestBuilder -> {
             //todo: append params
             requestBuilder.append(request.method().name()).append(" ").append(rewritePath(request.path())).append(" HTTP/1.1\r\n");
-            requestBuilder.append("Host: " + host);
+            requestBuilder.append("Host: ").append(host);
             if (port != 80)
                 requestBuilder.append(":").append(port);
             requestBuilder.append("\r\n");
@@ -242,8 +227,9 @@ public class ProxyHandler implements Handler {
             //todo: post request
 
 //        System.out.println("send request: " + requestBuilder);
-            connection.write(AsciiReader.write(requestBuilder.toString()), (ByteBufferProvider) Thread.currentThread());
-        }
+            finalConnection.write(AsciiReader.write(requestBuilder.toString()), (ByteBufferProvider) Thread.currentThread());
+            return null;
+        });
         response.async();
 
         return response;
