@@ -2,14 +2,8 @@ package com.wizzardo.http.response;
 
 import com.wizzardo.epoll.ByteBufferProvider;
 import com.wizzardo.epoll.ByteBufferWrapper;
-import com.wizzardo.epoll.readable.ReadableBuilder;
-import com.wizzardo.epoll.readable.ReadableByteArray;
-import com.wizzardo.epoll.readable.ReadableByteBuffer;
-import com.wizzardo.epoll.readable.ReadableData;
-import com.wizzardo.http.AbstractHttpServer;
-import com.wizzardo.http.EpollInputStream;
-import com.wizzardo.http.EpollOutputStream;
-import com.wizzardo.http.HttpConnection;
+import com.wizzardo.epoll.readable.*;
+import com.wizzardo.http.*;
 import com.wizzardo.http.html.Renderer;
 import com.wizzardo.http.html.Tag;
 import com.wizzardo.http.request.Header;
@@ -18,6 +12,8 @@ import com.wizzardo.http.utils.AsciiReader;
 import com.wizzardo.http.utils.StringBuilderThreadLocalHolder;
 import com.wizzardo.tools.misc.ExceptionDrivenStringBuilder;
 
+import java.io.File;
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.*;
 
@@ -62,6 +58,22 @@ public class Response {
         ExceptionDrivenStringBuilder sb = stringBuilder.get();
         tag.render(Renderer.create(sb));
         return setBody(sb.toString());
+    }
+
+    public Response setBody(File file) throws IOException {
+        return setBody(file, (String) null);
+    }
+
+    public Response setBody(File file, MimeProvider mimeProvider) throws IOException {
+        return setBody(file, mimeProvider.getMimeType(file.getName()));
+    }
+
+    public Response setBody(File file, String contentType) throws IOException {
+        appendHeader(Header.KEY_CONTENT_LENGTH, String.valueOf(file.length()));
+        appendHeader(Header.KEY_LAST_MODIFIED, HttpDateFormatterHolder.get().format(new Date(file.lastModified())));
+        if (contentType != null)
+            appendHeader(Header.KEY_CONTENT_TYPE, contentType);
+        return setBody(new ReadableFile(file, 0, file.length()));
     }
 
     public Response setBody(byte[] body) {
