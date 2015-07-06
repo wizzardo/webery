@@ -230,6 +230,10 @@ public class ProxyHandler implements Handler {
 
 //        System.out.println("send request: " + requestBuilder);
             finalConnection.write(AsciiReader.write(requestBuilder.toString()), (ByteBufferProvider) Thread.currentThread());
+
+            if (request.getBody() != null)
+                finalConnection.write(request.data(), (ByteBufferProvider) Thread.currentThread());
+
             return null;
         });
         response.async();
