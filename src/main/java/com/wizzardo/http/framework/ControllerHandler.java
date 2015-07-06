@@ -45,12 +45,14 @@ public class ControllerHandler implements Handler {
         c.request = request;
         c.response = response;
 
-        RenderResult render = Unchecked.call(() -> (Renderer) action.invoke(c)).render();
+        Renderer renderer = Unchecked.call(() -> (Renderer) action.invoke(c));
 
-        ReadableBuilder builder = new ReadableBuilder();
-        render.provideBytes(builder::append);
-        response.setBody(builder);
-
+        if (renderer != null) {
+            RenderResult render = renderer.render();
+            ReadableBuilder builder = new ReadableBuilder();
+            render.provideBytes(builder::append);
+            response.setBody(builder);
+        }
         return response;
     }
 
