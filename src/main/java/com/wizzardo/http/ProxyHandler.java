@@ -202,14 +202,19 @@ public class ProxyHandler implements Handler {
 
         final ProxyConnection finalConnection = connection;
         BUILDER_POOL.provide(requestBuilder -> {
-            //todo: append params
-            requestBuilder.append(request.method().name()).append(" ").append(rewritePath(request.path())).append(" HTTP/1.1\r\n");
-            requestBuilder.append("Host: ").append(host);
-            if (port != 80)
-                requestBuilder.append(":").append(port);
-            requestBuilder.append("\r\n");
-            requestBuilder.append("X-Real-IP: ").append(request.connection().getIp()).append("\r\n");
-            requestBuilder.append("X-Forwarded-for: ").append(request.connection().getServer().getHost()).append("\r\n");
+            requestBuilder.append(request.method().name())
+                    .append(" ").append(sb -> rewritePath(sb, request.path(), request.getQueryString()))
+                    .append(" HTTP/1.1\r\n")
+
+                    .append("Host: ").append(host)
+                    .append(sb -> {
+                        if (port != 80)
+                            sb.append(":").append(port);
+                    }).append("\r\n")
+
+                    .append("X-Real-IP: ").append(request.connection().getIp()).append("\r\n")
+                    .append("X-Forwarded-for: ").append(request.connection().getServer().getHost()).append("\r\n");
+
             Map<String, MultiValue> headers = request.headers();
             for (Map.Entry<String, MultiValue> header : headers.entrySet()) {
                 if (header.getKey().equalsIgnoreCase("Host"))
@@ -232,7 +237,7 @@ public class ProxyHandler implements Handler {
         return response;
     }
 
-    public String rewritePath(Path path) {
-        return path.toString();
+    public void rewritePath(ExceptionDrivenStringBuilder requestBuilder, Path path, String query) {
+        requestBuilder.append(sb -> path.toString(sb)).append('?').append(query);
     }
 }

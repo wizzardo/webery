@@ -37,6 +37,13 @@ public class Path {
         return path;
     }
 
+    public void toString(ExceptionDrivenStringBuilder sb) {
+        if (path != null)
+            sb.append(path);
+        else
+            build(sb);
+    }
+
     List<String> parts() {
         return parts;
     }
@@ -72,13 +79,17 @@ public class Path {
     }
 
     private String build() {
-        ExceptionDrivenStringBuilder sb = stringBuilder.get();
+        return build(stringBuilder.get()).toString();
+    }
+
+    private ExceptionDrivenStringBuilder build(ExceptionDrivenStringBuilder sb) {
         for (String part : parts)
             sb.append('/').append(part);
 
         if (endsWithSlash)
             sb.append('/');
-        return sb.toString();
+
+        return sb;
     }
 
     public boolean isEndsWithSlash() {
