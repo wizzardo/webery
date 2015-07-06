@@ -123,4 +123,29 @@ public class ProxyHandlerTest extends ServerTest {
         }
     }
 
+    @Test
+    public void test_params() {
+        handler = new UrlHandler()
+                .append("/", (request, response) -> response.setBody(request.param("foo") + " " + request.param("bar")));
+
+        HttpServer<HttpConnection> proxy = new HttpServer<>(null, port + 1, context, 0);
+        proxy.getUrlMapping()
+                .append("/", new ProxyHandler("localhost", port));
+
+        proxy.setIoThreadsCount(1);
+        proxy.start();
+
+        try {
+            Assert.assertEquals("null null", makeRequest("/", port + 1).get().asString());
+            Assert.assertEquals("foo null", makeRequest("/", port + 1).param("foo", "foo").get().asString());
+            Assert.assertEquals("null bar", makeRequest("/", port + 1).param("bar", "bar").get().asString());
+            Assert.assertEquals("foo bar", makeRequest("/", port + 1).param("foo", "foo").param("bar", "bar").get().asString());
+        } catch (Exception e) {
+            e.printStackTrace();
+            assert false;
+        } finally {
+            proxy.stopEpoll();
+        }
+    }
+
 }
