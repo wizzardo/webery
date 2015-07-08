@@ -10,10 +10,7 @@ import com.wizzardo.http.framework.template.LocalResourcesTools;
 import com.wizzardo.http.framework.template.ResourceTools;
 import com.wizzardo.http.framework.template.TagLib;
 import com.wizzardo.http.mapping.UrlMapping;
-import com.wizzardo.http.request.Request;
-import com.wizzardo.http.response.Response;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
 
@@ -21,6 +18,9 @@ import java.util.concurrent.BlockingQueue;
  * Created by wizzardo on 28.04.15.
  */
 public class WebApplication extends HttpServer<HttpConnection> {
+
+    protected Environment environment = Environment.DEVELOPMENT;
+    private volatile boolean started = false;
 
     public WebApplication(int port) {
         this(null, port);
@@ -40,6 +40,24 @@ public class WebApplication extends HttpServer<HttpConnection> {
 
     public WebApplication(String host, int port, String context, int workersCount) {
         super(host, port, context, workersCount);
+    }
+
+    public WebApplication setEnvironment(Environment environment) {
+        if (started)
+            throw new IllegalStateException("Application already started, cannot set environment");
+
+        this.environment = environment;
+        return this;
+    }
+
+    public Environment getEnvironment() {
+        return environment;
+    }
+
+    @Override
+    public void run() {
+        started = true;
+        super.run();
     }
 
     protected void init() {
