@@ -52,13 +52,8 @@ public class WebApplication extends HttpServer<HttpConnection> {
     }
 
     @Override
-    public void run() {
+    public synchronized void start() {
         started = true;
-        super.run();
-    }
-
-    protected void init() {
-        super.init();
         ResourceTools localResources = environment == Environment.DEVELOPMENT ? new DevResourcesTools() : new LocalResourcesTools();
         List<Class> classes = localResources.getClasses();
         DependencyFactory.get().setClasses(classes);
@@ -66,13 +61,18 @@ public class WebApplication extends HttpServer<HttpConnection> {
                 .setShowFolder(false));
 
         TagLib.findTags(classes);
-        DependencyFactory.get().register(UrlMapping.class, new SingletonDependency<>(urlMapping));
         DependencyFactory.get().register(ResourceTools.class, new SingletonDependency<>(localResources));
+        DependencyFactory.get().register(DecoratorLib.class, new SingletonDependency<>(new DecoratorLib(classes)));
+        super.start();
+    }
+
+    protected void init() {
+        super.init();
+        DependencyFactory.get().register(UrlMapping.class, new SingletonDependency<>(urlMapping));
 
         MessageBundle bundle = initMessageSource();
         DependencyFactory.get().register(MessageSource.class, new SingletonDependency<>(bundle));
         DependencyFactory.get().register(MessageBundle.class, new SingletonDependency<>(bundle));
-        DependencyFactory.get().register(DecoratorLib.class, new SingletonDependency<>(new DecoratorLib(classes)));
     }
 
     protected MessageBundle initMessageSource() {
