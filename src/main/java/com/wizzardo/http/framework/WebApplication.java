@@ -5,10 +5,7 @@ import com.wizzardo.http.framework.di.DependencyFactory;
 import com.wizzardo.http.framework.di.SingletonDependency;
 import com.wizzardo.http.framework.message.MessageBundle;
 import com.wizzardo.http.framework.message.MessageSource;
-import com.wizzardo.http.framework.template.DecoratorLib;
-import com.wizzardo.http.framework.template.LocalResourcesTools;
-import com.wizzardo.http.framework.template.ResourceTools;
-import com.wizzardo.http.framework.template.TagLib;
+import com.wizzardo.http.framework.template.*;
 import com.wizzardo.http.mapping.UrlMapping;
 
 import java.util.List;
@@ -62,7 +59,7 @@ public class WebApplication extends HttpServer<HttpConnection> {
 
     protected void init() {
         super.init();
-        ResourceTools localResources = new LocalResourcesTools();
+        ResourceTools localResources = environment == Environment.DEVELOPMENT ? new DevResourcesTools() : new LocalResourcesTools();
         List<Class> classes = localResources.getClasses();
         DependencyFactory.get().setClasses(classes);
         urlMapping.append("/static/*", "static", new FileTreeHandler<>(localResources.getResourceFile("public"), "/static")
