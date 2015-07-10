@@ -208,7 +208,7 @@ class Frame {
         if (dataLength <= 125)
             return 2 + (masked ? 4 : 0);
         else if (dataLength < 65536)
-            return 6 + (masked ? 4 : 0);
+            return 4 + (masked ? 4 : 0);
         else
             return 10 + (masked ? 4 : 0);
     }
