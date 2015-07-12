@@ -29,7 +29,8 @@ public class WebSocketHandler implements Handler {
         if (!Header.VALUE_WEBSOCKET.value.equals(request.header(Header.KEY_UPGRADE)))
             return response.status(Status._400);
 
-        if (!Header.VALUE_UPGRADE.value.equals(request.header(Header.KEY_CONNECTION)))
+        String connection = request.header(Header.KEY_CONNECTION);
+        if (!Header.VALUE_UPGRADE.value.equals(connection) && !"keep-alive, Upgrade".equalsIgnoreCase(connection))
             return response.status(Status._400);
 
         if (request.headerLong(Header.KEY_SEC_WEBSOCKET_VERSION, -1) != 13)
