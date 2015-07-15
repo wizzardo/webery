@@ -1,5 +1,6 @@
 package com.wizzardo.http;
 
+import com.wizzardo.http.request.Header;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -37,15 +38,18 @@ public class PipeliningTest extends ServerTest {
     @Test
     public void test_2() throws IOException {
         handler = new UrlHandler()
-                .append("/", (request, response) -> response.setBody("ok")) //length = 123
+                .append("/a", (request, response) -> {
+                    response.setHeader(Header.KEY_CONNECTION, Header.VALUE_KEEP_ALIVE);
+                    return response.setBody("ok");
+                }) //length = 128
         ;
 
         StringBuilder sb = new StringBuilder();
         int n = 4000;
         for (int i = 0; i < n; i++) {
-            sb.append(request("/"));
+            sb.append(request("/a"));
         }
-        String response = response(sb.toString(), n * 123);
+        String response = response(sb.toString(), n * 128);
         Assert.assertEquals(n, response.split("\r\n\r\nok").length);
     }
 

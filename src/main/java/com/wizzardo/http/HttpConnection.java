@@ -37,7 +37,7 @@ public class HttpConnection<H extends AbstractHttpServer, Q extends Request, S e
     protected Q request;
     protected H server;
 
-    volatile AtomicReference<Worker> processingBy = new AtomicReference<>();
+    volatile AtomicReference<Thread> processingBy = new AtomicReference<>();
 
     static enum State {
         READING_HEADERS,

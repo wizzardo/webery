@@ -79,11 +79,13 @@ public abstract class AbstractHttpServer<T extends HttpConnection> extends Epoll
             if (connection.processInputListener())
                 return;
 
-            if (connection.processingBy.get() != null)
+            if (!connection.processingBy.compareAndSet(null, this))
                 return;
 
             if (checkData(connection, this))
                 process(connection);
+
+            connection.processingBy.set(null);
         }
 
         @Override
