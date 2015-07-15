@@ -40,19 +40,7 @@ public abstract class AbstractHttpServer<T extends HttpConnection> extends Epoll
     }
 
     protected Worker<T> createWorker(BlockingQueue<T> queue, String name) {
-        return new Worker<T>(queue, name) {
-            @Override
-            protected void process(T connection) {
-                if (!connection.processingBy.compareAndSet(null, this))
-                    return;
-
-                if (checkData(connection, this))
-                    while (processConnection(connection)) {
-                    }
-
-                connection.processingBy.set(null);
-            }
-        };
+        return new HttpWorker<>(this, queue, name);
     }
 
     @Override

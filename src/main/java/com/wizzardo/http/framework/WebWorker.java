@@ -1,24 +1,21 @@
 package com.wizzardo.http.framework;
 
+import com.wizzardo.http.AbstractHttpServer;
 import com.wizzardo.http.HttpConnection;
-import com.wizzardo.http.Worker;
+import com.wizzardo.http.HttpWorker;
 
 import java.util.concurrent.BlockingQueue;
 
 /**
  * Created by wizzardo on 28.04.15.
  */
-public abstract class WebWorker<T extends HttpConnection> extends Worker<T> {
+public class WebWorker<T extends HttpConnection> extends HttpWorker<T> {
     protected RequestHolder requestHolder;
     protected String controller;
     protected String action;
 
-    public WebWorker(BlockingQueue queue, String name) {
-        super(queue, name);
-    }
-
-    public WebWorker(BlockingQueue queue) {
-        super(queue);
+    public WebWorker(AbstractHttpServer<T> server, BlockingQueue<T> queue, String name) {
+        super(server, queue, name);
     }
 
     public RequestHolder getRequestHolder() {
