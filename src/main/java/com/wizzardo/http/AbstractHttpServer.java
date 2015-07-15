@@ -46,7 +46,10 @@ public abstract class AbstractHttpServer<T extends HttpConnection> extends Epoll
                 if (!connection.processingBy.compareAndSet(null, this))
                     return;
 
-                processConnection(connection);
+                if (checkData(connection, this))
+                    while (processConnection(connection)) {
+                    }
+
                 connection.processingBy.set(null);
             }
         };
@@ -79,13 +82,7 @@ public abstract class AbstractHttpServer<T extends HttpConnection> extends Epoll
             if (connection.processInputListener())
                 return;
 
-            if (!connection.processingBy.compareAndSet(null, this))
-                return;
-
-            if (checkData(connection, this))
-                process(connection);
-
-            connection.processingBy.set(null);
+            process(connection);
         }
 
         @Override
@@ -121,14 +118,15 @@ public abstract class AbstractHttpServer<T extends HttpConnection> extends Epoll
     private void process(T connection) {
         if (workersCount > 0) {
             queue.add(connection);
-        } else
-            processConnection(connection);
+        } else if (checkData(connection, this))
+            while (processConnection(connection)) {
+            }
     }
 
-    protected void processConnection(T connection) {
+    protected boolean processConnection(T connection) {
         try {
             handle(connection);
-            finishHandling(connection);
+            return finishHandling(connection);
         } catch (Exception t) {
             try {
                 onError(connection, t);
@@ -136,6 +134,7 @@ public abstract class AbstractHttpServer<T extends HttpConnection> extends Epoll
                 e.printStackTrace();
             }
         }
+        return false;
     }
 
     protected abstract void handle(T connection) throws Exception;
@@ -145,19 +144,20 @@ public abstract class AbstractHttpServer<T extends HttpConnection> extends Epoll
         //TODO render error page
     }
 
-    protected void finishHandling(T connection) throws IOException {
+    protected boolean finishHandling(T connection) throws IOException {
         if (connection.getResponse().isAsync())
-            return;
+            return false;
 
         connection.getResponse().commit(connection);
         connection.flushOutputStream();
         if (!connection.onFinishingHandling())
-            return;
+            return false;
 
         if (connection.isRequestReady())
-            processConnection(connection);
+            return true;
         else if (connection.isReadyToRead() && checkData(connection, (ByteBufferProvider) Thread.currentThread()))
-            processConnection(connection);
+            return true;
+        return false;
     }
 
     public void setSessionTimeout(int sec) {
