@@ -198,28 +198,14 @@ public abstract class HttpHeadersReader {
 
     protected byte[] getCharsValue(byte[] chars, int offset, int length) {
         if (r > 0) {
-            int bo = 0;
-            while (bo < buffer.length && buffer[bo] <= ' ') {
-                bo++;
-            }
-            r -= bo;
-
             byte[] b = new byte[length + r];
 
-            System.arraycopy(buffer, bo, b, 0, r);
+            System.arraycopy(buffer, 0, b, 0, r);
             if (length > 0)
                 System.arraycopy(chars, offset, b, r, length);
 
             r = 0;
             return b;
-        }
-
-        while (length > 0 && chars[offset] <= ' ') {
-            offset++;
-            length--;
-        }
-        while (length > 0 && chars[offset + length - 1] <= ' ') {
-            length--;
         }
 
         byte[] b = new byte[length];
@@ -259,8 +245,6 @@ public abstract class HttpHeadersReader {
             }
 
             byte[] b = new byte[length + r];
-            if (length < 0)
-                r += length;
             System.arraycopy(buffer, bo, b, 0, r);
             if (length > 0)
                 System.arraycopy(chars, offset, b, r, length);
