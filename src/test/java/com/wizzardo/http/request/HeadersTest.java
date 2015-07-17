@@ -37,7 +37,7 @@ public class HeadersTest {
                 "User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/30.0.1599.114 Safari/537.36\r\n" +
                 "Accept-Encoding: gzip,deflate,sdch\r\n" +
                 "Accept-Language: en-US,en;q=0.8,ru;q=0.6\r\n" +
-                "Cookie: JSESSIONID=1dt8eiw5zc9t4j2o9asxcgmzq; __utma=107222046.2138525965.1372169768.1372169768.1372685422.2; __utmz=107222046.1372169768.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none)\r\n" +
+                "Cookie: JSESSIONID=1dt8eiw5zc 9t4j2o9asxcgmzq; __utma=107222046.2138525965.1372169768.1372169768.1372685422.2; __utmz=107222046.1372169768.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none)\r\n" +
                 "\r\nololo data foo bar";
         checker = (hhr, end) -> {
             Assert.assertEquals("GET", hhr.method);
@@ -45,6 +45,7 @@ public class HeadersTest {
             Assert.assertEquals("HTTP/1.1", hhr.protocol);
             Assert.assertEquals("foo=bar", hhr.queryString);
             Assert.assertEquals(true, hhr.isComplete());
+            Assert.assertEquals(-1, hhr.read(new byte[0]));
 
             Assert.assertEquals("example.com", hhr.getHeaders().get("Host").getValue());
             Assert.assertEquals("Keep-Alive", hhr.getHeaders().get("Connection").getValue());
