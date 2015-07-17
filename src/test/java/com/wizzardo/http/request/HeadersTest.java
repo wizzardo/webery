@@ -37,6 +37,7 @@ public class HeadersTest {
                 "User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/30.0.1599.114 Safari/537.36\r\n" +
                 "Accept-Encoding: gzip,deflate,sdch\r\n" +
                 "Accept-Language: en-US,en;q=0.8,ru;q=0.6\r\n" +
+                "Custom:  foo  bar  \r\n" +
                 "Cookie: JSESSIONID=1dt8eiw5zc 9t4j2o9asxcgmzq; __utma=107222046.2138525965.1372169768.1372169768.1372685422.2; __utmz=107222046.1372169768.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none)\r\n" +
                 "\r\nololo data foo bar";
         checker = (hhr, end) -> {
@@ -55,7 +56,8 @@ public class HeadersTest {
             Assert.assertEquals("Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/30.0.1599.114 Safari/537.36", hhr.getHeaders().get("User-Agent").getValue());
             Assert.assertEquals("gzip,deflate,sdch", hhr.getHeaders().get("Accept-Encoding").getValue());
             Assert.assertEquals("en-US,en;q=0.8,ru;q=0.6", hhr.getHeaders().get("Accept-Language").getValue());
-            Assert.assertEquals("JSESSIONID=1dt8eiw5zc9t4j2o9asxcgmzq; __utma=107222046.2138525965.1372169768.1372169768.1372685422.2; __utmz=107222046.1372169768.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none)", hhr.getHeaders().get("Cookie").getValue());
+            Assert.assertEquals("JSESSIONID=1dt8eiw5zc 9t4j2o9asxcgmzq; __utma=107222046.2138525965.1372169768.1372169768.1372685422.2; __utmz=107222046.1372169768.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none)", hhr.getHeaders().get("Cookie").getValue());
+            Assert.assertEquals("foo  bar", hhr.getHeaders().get("Custom").getValue());
         };
         complexTest(src, checker);
 
