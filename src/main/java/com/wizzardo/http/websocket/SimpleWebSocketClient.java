@@ -205,35 +205,4 @@ public class SimpleWebSocketClient extends Thread {
     public void send(byte[] data, int offset, int length) throws IOException {
         new Frame(data, offset, length).mask().write(out);
     }
-
-    public static void main(String[] args) throws URISyntaxException, IOException {
-//        byte[] testMessage = new byte[]{-127, 28, 70, 114, 105, 32, 79, 99, 116, 32, 48, 51, 32, 50, 48, 58, 49, 55, 58, 48, 49, 32, 77, 83, 75, 32, 50, 48, 49, 52};
-//        System.out.println(new String(testMessage));
-//        System.out.println(testMessage.length);
-//        WebSocketFrame message = new WebSocketFrame(testMessage, 0, testMessage.length);
-//        System.out.println(message);
-
-//        String s = "WebSocketFrame message = new WebSocketFrame";
-//        byte[] b = s.getBytes();
-//        WebSocketFrame frame = new WebSocketFrame();
-//        frame.mask(b, frame.intToBytes(123123), 0, b.length);
-//        System.out.println(new String(b));
-//        frame.mask(b, frame.intToBytes(123123), 0, b.length);
-//        System.out.println(new String(b));
-
-
-//        SimpleWebSocketClient client = new SimpleWebSocketClient("ws://localhost:8080/BrochureDownloader/test") {
-//        SimpleWebSocketClient client = new SimpleWebSocketClient("ws://localhost:8080/BrochureDownloader/echo") {
-        SimpleWebSocketClient client = new SimpleWebSocketClient("ws://localhost:8084/echo") {
-            //        SimpleWebSocketClient client = new SimpleWebSocketClient("ws://localhost:8084/time") {
-            @Override
-            public void onMessage(Message message) {
-                System.out.println("onMessage: " + message.asString());
-            }
-        };
-        client.start();
-
-        client.send("foo bar");
-
-    }
 }
