@@ -1,11 +1,13 @@
 package com.wizzardo.http.websocket;
 
 import com.wizzardo.http.ServerTest;
+import com.wizzardo.tools.security.MD5;
 import org.junit.Assert;
 import org.junit.Test;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
@@ -57,4 +59,38 @@ public class WebSocketTest extends ServerTest {
         Assert.assertEquals("foo bar", messageHolder.get());
     }
 
+    @Test
+    public void echoDifferentSizeTest() throws IOException, URISyntaxException, InterruptedException {
+        handler = new WebSocketHandler() {
+            @Override
+            public void onMessage(WebSocketListener listener, Message message) {
+                listener.sendMessage(message);
+            }
+        };
+
+        AtomicReference<String> md5Holder = new AtomicReference<>();
+        SimpleWebSocketClient client = new SimpleWebSocketClient("ws://localhost:" + getPort()) {
+            @Override
+            public void onMessage(Message message) {
+                md5Holder.set(MD5.create().update(message.asBytes()).asString());
+            }
+        };
+        byte[] data = new byte[126];
+        ThreadLocalRandom.current().nextBytes(data);
+        client.send(data);
+        client.waitForMessage();
+        Assert.assertEquals(MD5.create().update(data).asString(), md5Holder.get());
+
+        data = new byte[64 * 1024];
+        ThreadLocalRandom.current().nextBytes(data);
+        client.send(data);
+        client.waitForMessage();
+        Assert.assertEquals(MD5.create().update(data).asString(), md5Holder.get());
+
+        data = new byte[1024 * 1024];
+        ThreadLocalRandom.current().nextBytes(data);
+        client.send(data);
+        client.waitForMessage();
+        Assert.assertEquals(MD5.create().update(data).asString(), md5Holder.get());
+    }
 }
