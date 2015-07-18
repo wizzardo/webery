@@ -23,6 +23,7 @@ public class SimpleWebSocketClient extends Thread {
     private OutputStream out;
     private byte[] buffer = new byte[1024];
     private volatile int bufferOffset = 0;
+    private volatile boolean closed = false;
 
     public static class Request {
         private URI uri;
@@ -140,7 +141,18 @@ public class SimpleWebSocketClient extends Thread {
     public void waitForMessage() throws IOException {
         Message message = new Message();
         while (!message.isComplete()) {
-            message.add(readFrame());
+            Frame frame = readFrame();
+
+            if (frame.isPing())
+                continue;
+
+            if (frame.isClose()) {
+                closed = true;
+                onClose();
+                return;
+            }
+
+            message.add(frame);
         }
         onMessage(message);
     }
@@ -167,6 +179,14 @@ public class SimpleWebSocketClient extends Thread {
 
     public void onMessage(Message message) {
     }
+
+    public void onClose() {
+    }
+
+    public boolean isClosed() {
+        return closed;
+    }
+
 
     public void send(Message message) throws IOException {
         for (Frame frame : message.getFrames()) {

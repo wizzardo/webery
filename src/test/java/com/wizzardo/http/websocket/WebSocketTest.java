@@ -93,4 +93,20 @@ public class WebSocketTest extends ServerTest {
         client.waitForMessage();
         Assert.assertEquals(MD5.create().update(data).asString(), md5Holder.get());
     }
+
+    @Test
+    public void closeTest() throws IOException, URISyntaxException, InterruptedException {
+        handler = new WebSocketHandler() {
+            @Override
+            public void onMessage(WebSocketListener listener, Message message) {
+                listener.close();
+            }
+        };
+
+        SimpleWebSocketClient client = new SimpleWebSocketClient("ws://localhost:" + getPort());
+
+        client.send("close");
+        client.waitForMessage();
+        Assert.assertTrue(client.isClosed());
+    }
 }
