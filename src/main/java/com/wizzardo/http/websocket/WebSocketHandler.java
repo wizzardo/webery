@@ -134,9 +134,9 @@ public class WebSocketHandler implements Handler {
         private boolean handleClose() {
             if (tempFrame.isClose()) {
                 connection.setCloseOnFinishWriting(true);
+                webSocketHandler.onDisconnect(this);
                 sendFrame(tempFrame);
                 tempFrame = null;
-                webSocketHandler.onDisconnect(this);
                 return true;
             }
             return false;

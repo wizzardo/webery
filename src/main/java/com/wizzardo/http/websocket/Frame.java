@@ -73,6 +73,9 @@ class Frame {
     }
 
     public void write(OutputStream out) throws IOException {
+        if (data == null)
+            data = new byte[MAX_HEADER_LENGTH];
+
         int headerOffset = getHeader(data);
         out.write(data, headerOffset, length + MAX_HEADER_LENGTH - headerOffset);
     }
@@ -255,6 +258,10 @@ class Frame {
 
     public boolean isPing() {
         return opcode == OPCODE_PING;
+    }
+
+    public boolean isPong() {
+        return opcode == OPCODE_PONG;
     }
 
     public void setOpcode(byte opcode) {

@@ -24,6 +24,7 @@ public class SimpleWebSocketClient extends Thread {
     private byte[] buffer = new byte[1024];
     private volatile int bufferOffset = 0;
     private volatile boolean closed = false;
+    private Message message = new Message();
 
     public static class Request {
         private URI uri;
@@ -139,22 +140,29 @@ public class SimpleWebSocketClient extends Thread {
     }
 
     public void waitForMessage() throws IOException {
-        Message message = new Message();
         while (!message.isComplete()) {
-            Frame frame = readFrame();
-
-            if (frame.isPing())
-                continue;
-
-            if (frame.isClose()) {
-                closed = true;
-                onClose();
-                return;
-            }
-
-            message.add(frame);
+            if (!onFrame(readFrame()))
+                break;
         }
+        if (!message.isComplete())
+            return;
+
         onMessage(message);
+        message = new Message();
+    }
+
+    protected boolean onFrame(Frame frame) {
+        if (frame.isPing())
+            return true;
+
+        if (frame.isClose()) {
+            closed = true;
+            onClose();
+            return false;
+        }
+
+        message.add(frame);
+        return true;
     }
 
     private Frame readFrame() throws IOException {
@@ -204,5 +212,29 @@ public class SimpleWebSocketClient extends Thread {
 
     public void send(byte[] data, int offset, int length) throws IOException {
         new Frame(data, offset, length).mask().write(out);
+    }
+
+    public long ping() throws IOException {
+        long time = System.currentTimeMillis();
+        new Frame(Frame.OPCODE_PING).write(out);
+        Frame frame = readFrame();
+        while (!frame.isPong()) {
+            onFrame(frame);
+            if (frame.isClose())
+                break;
+
+            frame = readFrame();
+        }
+        return System.currentTimeMillis() - time;
+    }
+
+    public void close() throws IOException {
+        new Frame(Frame.OPCODE_CONNECTION_CLOSE).write(out);
+        Frame frame = readFrame();
+        while (!frame.isClose()) {
+            onFrame(frame);
+            frame = readFrame();
+        }
+        closed = true;
     }
 }

@@ -96,17 +96,36 @@ public class WebSocketTest extends ServerTest {
 
     @Test
     public void closeTest() throws IOException, URISyntaxException, InterruptedException {
+        AtomicReference<String> messageHolder = new AtomicReference<>();
         handler = new WebSocketHandler() {
             @Override
             public void onMessage(WebSocketListener listener, Message message) {
                 listener.close();
             }
+
+            @Override
+            public void onDisconnect(WebSocketListener listener) {
+                messageHolder.set("closed");
+            }
         };
 
         SimpleWebSocketClient client = new SimpleWebSocketClient("ws://localhost:" + getPort());
-
         client.send("close");
         client.waitForMessage();
         Assert.assertTrue(client.isClosed());
+
+        client = new SimpleWebSocketClient("ws://localhost:" + getPort());
+        client.close();
+        Assert.assertTrue(client.isClosed());
+        Assert.assertEquals("closed", messageHolder.get());
+    }
+
+    @Test
+    public void pingTest() throws IOException, URISyntaxException, InterruptedException {
+        handler = new WebSocketHandler();
+
+        SimpleWebSocketClient client = new SimpleWebSocketClient("ws://localhost:" + getPort());
+
+        Assert.assertTrue(client.ping() >= 0);
     }
 }
