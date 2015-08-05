@@ -2,6 +2,7 @@ package com.wizzardo.http;
 
 import com.wizzardo.http.html.HtmlBuilder;
 import com.wizzardo.http.html.Tag;
+import com.wizzardo.http.request.Header;
 import com.wizzardo.http.request.Request;
 import com.wizzardo.http.response.RangeResponseHelper;
 import com.wizzardo.http.response.Response;
@@ -67,7 +68,7 @@ public class FileTreeHandler<T extends FileTreeHandler.HandlerContext> implement
 
         if (file.isDirectory())
             if (showFolder)
-                return response.setBody(renderDirectory(request, file));
+                return response.appendHeader(Header.KV_CONTENT_TYPE_HTML_UTF8).setBody(renderDirectory(request, file));
             else
                 return response.setStatus(Status._403).setBody(path + " is forbidden");
 
@@ -159,7 +160,10 @@ public class FileTreeHandler<T extends FileTreeHandler.HandlerContext> implement
             path += '/';
 
         T handlerContext = createHandlerContext(path, request);
+        return render(path, dir, files, sort, order, handlerContext);
+    }
 
+    protected Tag render(String path, File dir, File[] files, String sort, String order, T handlerContext) {
         HtmlBuilder html = new HtmlBuilder();
         html.add(header().add(Meta.charset("utf-8").add(title(path))));
         html.add(body()
@@ -167,12 +171,14 @@ public class FileTreeHandler<T extends FileTreeHandler.HandlerContext> implement
                         .add(table()
                                 .attr("border", "0")
                                 .add(createTableHeader(path, sort, order))
-                                .each(files, (file) -> {
+                                .each(files, (file, table) -> {
                                     String url = generateUrl(file, handlerContext);
-                                    return tr()
-                                            .add(td().add(a().href(url).text(file.getName())))
-                                            .add(td().attr("align", "right").text(file.length() + " bytes"))
-                                            .add(td().text(DateIso8601.format(new Date(file.lastModified()))));
+                                    table.add(tr()
+                                                    .add(td().add(a().href(url).text(file.getName() + (file.isDirectory() ? "/" : ""))))
+                                                    .add(td().attr("align", "right").text(file.length() + " bytes"))
+                                                    .add(td().text(DateIso8601.format(new Date(file.lastModified()))))
+                                    ).text("\n");
+                                    return null;
                                 }))
         );
 
@@ -184,7 +190,7 @@ public class FileTreeHandler<T extends FileTreeHandler.HandlerContext> implement
     }
 
     protected String generateUrl(File file, T handlerContext) {
-        return handlerContext.path + encodeName(file.getName()) + (file.isDirectory() ? "/" : "");
+        return encodeName(file.getName()) + (file.isDirectory() ? "/" : "");
     }
 
     private String encodeName(String name) {

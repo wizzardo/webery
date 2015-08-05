@@ -38,18 +38,18 @@ public class Tag {
         }
     }
 
-    public <T> Tag each(Collection<T> collection, CollectionTools.Closure<Tag, T> closure) {
+    public <T> Tag each(Collection<T> collection, CollectionTools.Closure2<Void, T, Tag> closure) {
         if (collection != null)
             for (T t : collection) {
-                add(closure.execute(t));
+                closure.execute(t, this);
             }
         return this;
     }
 
-    public <T> Tag each(T[] collection, CollectionTools.Closure<Tag, T> closure) {
+    public <T> Tag each(T[] collection, CollectionTools.Closure2<Void, T, Tag> closure) {
         if (collection != null)
             for (T t : collection) {
-                add(closure.execute(t));
+                closure.execute(t, this);
             }
         return this;
     }
