@@ -2,6 +2,7 @@ package com.wizzardo.http.framework.di;
 
 import com.wizzardo.tools.cache.Cache;
 import com.wizzardo.tools.reflection.FieldReflection;
+import com.wizzardo.tools.reflection.FieldReflectionFactory;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
@@ -15,6 +16,7 @@ import java.util.List;
 public abstract class Dependency<T> {
     protected static Cache<Class, List<FieldReflection>> dependencies = new Cache<>(0, clazz -> {
         List<FieldReflection> l = new ArrayList<>();
+        FieldReflectionFactory reflectionFactory = new FieldReflectionFactory();
         while (clazz != null) {
             for (Field f : clazz.getDeclaredFields()) {
                 int mod = f.getType().getModifiers();
@@ -23,11 +25,11 @@ public abstract class Dependency<T> {
                 if (f.getType().getAnnotation(Injectable.class) != null
                         || Modifier.isAbstract(mod)
                         || Modifier.isInterface(mod)) {
-                    l.add(new FieldReflection(f, true));
+                    l.add(reflectionFactory.create(f, true));
                 } else
                     for (Class i : f.getType().getInterfaces()) {
                         if (i.getAnnotation(Injectable.class) != null) {
-                            l.add(new FieldReflection(f, true));
+                            l.add(reflectionFactory.create(f, true));
                             break;
                         }
                     }
