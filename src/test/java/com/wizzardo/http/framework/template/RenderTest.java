@@ -4,6 +4,7 @@ import com.wizzardo.http.framework.template.Model;
 import com.wizzardo.http.framework.template.RenderResult;
 import com.wizzardo.http.framework.template.RenderableList;
 import com.wizzardo.http.framework.template.ViewRenderer;
+import com.wizzardo.tools.xml.GspParser;
 import com.wizzardo.tools.xml.Node;
 import org.junit.Assert;
 import org.junit.Test;
@@ -19,7 +20,7 @@ import java.util.Map;
 public class RenderTest {
     @Test
     public void render() {
-        Node n = Node.parse("<div style=\"width: 100px\"><a href=\"http://${host.toLowerCase()}\">yandex</a><br></div>", true);
+        Node n = new GspParser().parse("<div style=\"width: 100px\"><a href=\"http://${host.toLowerCase()}\">yandex</a><br></div>");
 
         RenderableList l = new RenderableList();
         ViewRenderer.prepare(n.children(), l, "", "");

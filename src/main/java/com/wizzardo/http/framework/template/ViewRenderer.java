@@ -4,6 +4,7 @@ import com.wizzardo.http.framework.di.DependencyFactory;
 import com.wizzardo.tools.cache.Cache;
 import com.wizzardo.tools.collections.CollectionTools;
 import com.wizzardo.tools.collections.Pair;
+import com.wizzardo.tools.xml.GspParser;
 import com.wizzardo.tools.xml.Node;
 
 import java.util.Arrays;
@@ -54,7 +55,7 @@ public class ViewRenderer extends Renderer {
         String dir = view.substring(0, view.lastIndexOf("/") + 1);
 
         RenderableList l = new RenderableList();
-        Node html = Node.parse(template, true, true);
+        Node html = new GspParser().parse(template);
         List<String> imports = null;
 
         Node page;
@@ -71,7 +72,7 @@ public class ViewRenderer extends Renderer {
         if (layoutTag != null) {
             layoutTag.parent().children().remove(layoutTag);
 
-            Node layout = Node.parse(resourceTools.getResourceAsString("layouts/" + layoutTag.attr("content") + ".gsp"), true, true);
+            Node layout = new GspParser().parse(resourceTools.getResourceAsString("layouts/" + layoutTag.attr("content") + ".gsp"));
             for (Decorator decorator : DependencyFactory.getDependency(DecoratorLib.class).list()) {
                 decorator.decorate(html, layout);
             }
@@ -82,7 +83,7 @@ public class ViewRenderer extends Renderer {
         return l;
     }
 
-    private static Cache<Pair<String, String>, RenderableList> templatesCache = new Cache<>(60 * 60 * 24, s -> {
+    private static Cache<Pair<String, String>, RenderableList> templatesCache = new Cache<>(1, s -> {
         RenderableList l = new RenderableList();
         prepare(s.key, l, null);
         return l;

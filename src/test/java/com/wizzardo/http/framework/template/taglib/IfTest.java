@@ -4,6 +4,7 @@ import com.wizzardo.http.framework.template.*;
 import com.wizzardo.http.framework.template.taglib.g.Else;
 import com.wizzardo.http.framework.template.taglib.g.Elseif;
 import com.wizzardo.http.framework.template.taglib.g.If;
+import com.wizzardo.tools.xml.GspParser;
 import com.wizzardo.tools.xml.Node;
 import org.junit.Assert;
 import org.junit.Before;
@@ -120,7 +121,7 @@ public class IfTest implements TagTest {
 
     @Test
     public void test_exceptions() {
-        Node n = Node.parse("<div><g:if test=\"${flag}\">text</g:if>error<g:else>foo</g:else></div>", true);
+        Node n = new GspParser().parse("<div><g:if test=\"${flag}\">text</g:if>error<g:else>foo</g:else></div>");
         try {
             ViewRenderer.prepare(n.children(), new RenderableList(), "", "");
             assert false;
@@ -128,7 +129,7 @@ public class IfTest implements TagTest {
             Assert.assertEquals("If tag must be before Else tag", e.getMessage());
         }
 
-        n = Node.parse("<div><g:if test=\"${flag}\">text</g:if>error<g:elseif test=\"${flag}\">foo</g:elseif></div>", true);
+        n = new GspParser().parse("<div><g:if test=\"${flag}\">text</g:if>error<g:elseif test=\"${flag}\">foo</g:elseif></div>");
         try {
             ViewRenderer.prepare(n.children(), new RenderableList(), "", "");
             assert false;
