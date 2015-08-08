@@ -24,9 +24,11 @@ import static com.wizzardo.http.html.HtmlBuilder.*;
  * Date: 19.09.14
  */
 public class FileTreeHandler<T extends FileTreeHandler.HandlerContext> implements Handler {
-    protected static final int GB = 1024 * 1024 * 1024;
-    protected static final int MB = 1024 * 1024;
-    protected static final int KB = 1024;
+    protected static final int SIZE_GB = 1024 * 1024 * 1024;
+    protected static final int SIZE_MB = 1024 * 1024;
+    protected static final int SIZE_KB = 1024;
+    protected static final String ORDER_ASC = "asc";
+    protected static final String ORDER_DESC = "desc";
 
     private String prefix;
     private String workDirPath;
@@ -99,13 +101,13 @@ public class FileTreeHandler<T extends FileTreeHandler.HandlerContext> implement
 
     protected Tag createTableHeader(String path, String sort, String order) {
         return tr()
-                .add(th().add(a().href(path + "?sort=name&order=" + ("name".equals(sort) ? ("desc".equals(order) ? "asc" : "desc") : "asc"))
+                .add(th().add(a().href(path + "?sort=name&order=" + ("name".equals(sort) ? (ORDER_DESC.equals(order) ? ORDER_ASC : ORDER_DESC) : ORDER_ASC))
                                 .text("Name"))
                 )
-                .add(th().add(a().href(path + "?sort=modified&order=" + ("modified".equals(sort) ? ("desc".equals(order) ? "asc" : "desc") : "desc"))
+                .add(th().add(a().href(path + "?sort=modified&order=" + ("modified".equals(sort) ? (ORDER_DESC.equals(order) ? ORDER_ASC : ORDER_DESC) : ORDER_DESC))
                                 .text("Last modified"))
                 )
-                .add(th().add(a().href(path + "?sort=size&order=" + ("size".equals(sort) ? ("desc".equals(order) ? "asc" : "desc") : "desc"))
+                .add(th().add(a().href(path + "?sort=size&order=" + ("size".equals(sort) ? (ORDER_DESC.equals(order) ? ORDER_ASC : ORDER_DESC) : ORDER_DESC))
                                 .text("Size"))
                 )
                 ;
@@ -214,14 +216,14 @@ public class FileTreeHandler<T extends FileTreeHandler.HandlerContext> implement
     }
 
     protected String formatFileSize(long l) {
-        if (l >= GB)
-            return l / GB + "G";
+        if (l >= SIZE_GB)
+            return l / SIZE_GB + "G";
 
-        if (l >= MB)
-            return l / MB + "M";
+        if (l >= SIZE_MB)
+            return l / SIZE_MB + "M";
 
-        if (l >= KB)
-            return l / KB + "K";
+        if (l >= SIZE_KB)
+            return l / SIZE_KB + "K";
 
         return String.valueOf(l);
     }
