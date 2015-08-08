@@ -24,6 +24,10 @@ import static com.wizzardo.http.html.HtmlBuilder.*;
  * Date: 19.09.14
  */
 public class FileTreeHandler<T extends FileTreeHandler.HandlerContext> implements Handler {
+    protected static final int GB = 1024 * 1024 * 1024;
+    protected static final int MB = 1024 * 1024;
+    protected static final int KB = 1024;
+
     private String prefix;
     private String workDirPath;
     private File workDir;
@@ -98,11 +102,11 @@ public class FileTreeHandler<T extends FileTreeHandler.HandlerContext> implement
                 .add(th().add(a().href(path + "?sort=name&order=" + ("name".equals(sort) ? ("desc".equals(order) ? "asc" : "desc") : "asc"))
                                 .text("Name"))
                 )
-                .add(th().add(a().href(path + "?sort=size&order=" + ("size".equals(sort) ? ("desc".equals(order) ? "asc" : "desc") : "desc"))
-                                .text("Size"))
-                )
                 .add(th().add(a().href(path + "?sort=modified&order=" + ("modified".equals(sort) ? ("desc".equals(order) ? "asc" : "desc") : "desc"))
                                 .text("Last modified"))
+                )
+                .add(th().add(a().href(path + "?sort=size&order=" + ("size".equals(sort) ? ("desc".equals(order) ? "asc" : "desc") : "desc"))
+                                .text("Size"))
                 )
                 ;
     }
@@ -175,8 +179,8 @@ public class FileTreeHandler<T extends FileTreeHandler.HandlerContext> implement
                                     String url = generateUrl(file, handlerContext);
                                     table.add(tr()
                                                     .add(td().add(a().href(url).text(file.getName() + (file.isDirectory() ? "/" : ""))))
-                                                    .add(td().attr("align", "right").text(file.length() + " bytes"))
                                                     .add(td().text(DateIso8601.format(new Date(file.lastModified()))))
+                                                    .add(td().attr("align", "right").text(formatFileSize(file.length())))
                                     ).text("\n");
                                     return null;
                                 }))
@@ -207,5 +211,18 @@ public class FileTreeHandler<T extends FileTreeHandler.HandlerContext> implement
         public HandlerContext(String path) {
             this.path = path;
         }
+    }
+
+    protected String formatFileSize(long l) {
+        if (l >= GB)
+            return l / GB + "G";
+
+        if (l >= MB)
+            return l / MB + "M";
+
+        if (l >= KB)
+            return l / KB + "K";
+
+        return String.valueOf(l);
     }
 }
