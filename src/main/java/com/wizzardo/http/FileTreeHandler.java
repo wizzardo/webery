@@ -177,6 +177,7 @@ public class FileTreeHandler<T extends FileTreeHandler.HandlerContext> implement
                         .add(table()
                                 .attr("border", "0")
                                 .add(createTableHeader(path, sort, order))
+                                .text("\n")
                                 .each(files, (file, table) -> {
                                     String url = generateUrl(file, handlerContext);
                                     table.add(tr()
