@@ -14,7 +14,7 @@ public class HpackReaderTest {
         byte[] bytes;
 
         bytes = new byte[1];
-        HpackReader.encode(10, bytes, 5);
+        HpackReader.encode(10, bytes, 3);
 
         Assert.assertEquals(0b00001010, bytes[0]);
     }
