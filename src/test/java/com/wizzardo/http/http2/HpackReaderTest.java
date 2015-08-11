@@ -44,4 +44,46 @@ public class HpackReaderTest {
         Assert.assertEquals(8, HpackReader.encode(42, bytes, 0));
         Assert.assertEquals(0b00101010, bytes[0] & 0xff);
     }
+
+    @Test
+    public void test_int_decoding_1() {
+        byte[] bytes;
+
+        bytes = new byte[1];
+        bytes[0] = (byte) 0b00001010;
+
+        HpackReader.IntDecodingResult result = HpackReader.decode(bytes, 3);
+
+        Assert.assertEquals(8, result.offset);
+        Assert.assertEquals(10, result.value);
+    }
+
+    @Test
+    public void test_int_decoding_2() {
+        byte[] bytes;
+
+        bytes = new byte[3];
+        bytes[0] = (byte) 0b00011111;
+        bytes[1] = (byte) 0b10011010;
+        bytes[2] = (byte) 0b00001010;
+
+        HpackReader.IntDecodingResult result = HpackReader.decode(bytes, 3);
+
+        Assert.assertEquals(24, result.offset);
+        Assert.assertEquals(1337, result.value);
+    }
+
+    @Test
+    public void test_int_decoding_3() {
+        byte[] bytes;
+
+        bytes = new byte[1];
+        bytes[0] = (byte) 0b00101010;
+
+        HpackReader.IntDecodingResult result = HpackReader.decode(bytes, 0);
+
+        Assert.assertEquals(8, result.offset);
+        Assert.assertEquals(42, result.value);
+    }
+
 }
