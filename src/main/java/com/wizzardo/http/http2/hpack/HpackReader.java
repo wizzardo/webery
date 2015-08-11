@@ -12,6 +12,7 @@ public class HpackReader {
             int a = bytes[offsetBits / 8];
             a = a & (((1 << (8 - prefix)) - 1) << prefix);
             bytes[offsetBits / 8] = (byte) (a | i);
+            return offsetBits + prefix;
         }
         return -1;
     }

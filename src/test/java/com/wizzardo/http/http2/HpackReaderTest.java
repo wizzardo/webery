@@ -10,16 +10,16 @@ import org.junit.Test;
 public class HpackReaderTest {
 
     @Test
-    public void test_int_encoding() {
+    public void test_int_encoding_1() {
         byte[] bytes;
 
         bytes = new byte[1];
-        HpackReader.encode(10, bytes, 3);
 
+        Assert.assertEquals(8, HpackReader.encode(10, bytes, 3));
         Assert.assertEquals(0b00001010, bytes[0] & 0xff);
 
         bytes[0] = (byte) 255;
-        HpackReader.encode(10, bytes, 3);
+        Assert.assertEquals(8, HpackReader.encode(10, bytes, 3));
         Assert.assertEquals(0b11101010, bytes[0] & 0xff);
     }
 }
