@@ -1,12 +1,25 @@
 package com.wizzardo.http.http2.hpack;
 
+import com.wizzardo.http.utils.AsciiReader;
+
 /**
  * Created by wizzardo on 08.08.15.
  */
 public class HpackReader {
 
     public static int encode(String s, boolean compress, byte[] bytes, int offsetBits) {
-        return -1;
+        return compress ? -1 : encodeWithoutCompression(s, bytes, offsetBits);
+    }
+
+    public static int encodeWithoutCompression(String s, byte[] bytes, int offsetBits) {
+        if (offsetBits % 8 != 0)
+            return -1;
+
+        int index = offsetBits / 8;
+        bytes[index] = 0;
+        offsetBits = encode(s.length(), bytes, offsetBits + 1);
+        offsetBits = AsciiReader.write(s, bytes, offsetBits / 8) * 8;
+        return offsetBits;
     }
 
     public static int encode(int i, byte[] bytes, int offsetBits) {
