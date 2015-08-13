@@ -5,6 +5,10 @@ package com.wizzardo.http.http2.hpack;
  */
 public class HpackReader {
 
+    public static int encode(String s, boolean compress, byte[] bytes, int offsetBits) {
+        return -1;
+    }
+
     public static int encode(int i, byte[] bytes, int offsetBits) {
         int prefix = 8 - (offsetBits % 8);
         int maxPrefix = (1 << prefix) - 1;
