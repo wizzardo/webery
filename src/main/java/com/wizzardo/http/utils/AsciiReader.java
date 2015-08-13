@@ -57,11 +57,16 @@ public class AsciiReader {
 
     public static byte[] write(String s) {
         byte[] bytes = new byte[s.length()];
-        char[] chars = StringReflection.chars(s);
-        int l = chars.length;
-        for (int i = 0; i < l; i++) {
-            bytes[i] = (byte) chars[i];
-        }
+        write(s, bytes, 0);
         return bytes;
+    }
+
+    public static int write(String s, byte[] bytes, int offset) {
+        char[] chars = StringReflection.chars(s);
+        int l = chars.length + offset;
+        for (int i = offset; i < l; i++) {
+            bytes[i] = (byte) chars[i - offset];
+        }
+        return l;
     }
 }
