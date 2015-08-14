@@ -15,17 +15,17 @@ public class HpackReader {
         if (offsetBits % 8 != 0)
             return -1;
 
-        int index = offsetBits / 8;
+        int index = offsetBits >> 3;
         bytes[index] = 0;
         offsetBits = encode(s.length(), bytes, offsetBits + 1);
-        offsetBits = AsciiReader.write(s, bytes, offsetBits / 8) * 8;
+        offsetBits = AsciiReader.write(s, bytes, offsetBits >> 3) << 3;
         return offsetBits;
     }
 
     public static int encode(int i, byte[] bytes, int offsetBits) {
         int prefix = 8 - (offsetBits % 8);
         int maxPrefix = (1 << prefix) - 1;
-        int index = offsetBits / 8;
+        int index = offsetBits >> 3;
 
         if (i < maxPrefix) {
             int a = bytes[index];
@@ -41,22 +41,22 @@ public class HpackReader {
         while (i >= 128) {
             a = 128 + (i % 128);
             bytes[index++] = (byte) a;
-            i /= 128;
+            i = i >> 7;
         }
 
         bytes[index++] = (byte) i;
 
-        return index * 8;
+        return index << 3;
     }
 
     public static IntDecodingResult decode(byte[] bytes, int offsetBits) {
         int prefix = 8 - (offsetBits % 8);
         int maxPrefix = (1 << prefix) - 1;
-        int index = offsetBits / 8;
+        int index = offsetBits >> 3;
 
         int i = bytes[index] & maxPrefix;
         if (i != maxPrefix)
-            return new IntDecodingResult(i, (index + 1) * 8);
+            return new IntDecodingResult(i, (index + 1) << 3);
 
         long l = maxPrefix;
         int a;
@@ -72,7 +72,7 @@ public class HpackReader {
         if (count > 64)
             throw new IllegalStateException("can not decode numbers with length > 64 bits");
 
-        return new IntDecodingResult(l, index * 8);
+        return new IntDecodingResult(l, index << 3);
     }
 
     public static class IntDecodingResult {
