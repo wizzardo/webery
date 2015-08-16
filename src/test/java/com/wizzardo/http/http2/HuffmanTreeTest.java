@@ -41,6 +41,12 @@ public class HuffmanTreeTest {
         });
 
         Assert.assertEquals(42, l);
-        Assert.assertEquals("BACADAEAFABBAAAGAH", sb.toString());
+        String s = "BACADAEAFABBAAAGAH";
+        Assert.assertEquals(s, sb.toString());
+
+        byte[] bytes = new byte[6];
+        l = tree.encode(bytes, 0, s);
+        Assert.assertEquals(42, l);
+        Assert.assertArrayEquals(data, bytes);
     }
 }

@@ -66,6 +66,55 @@ public class HuffmanTree extends Node {
         return i;
     }
 
+    public int encode(byte[] data, int offset, String s) {
+        return encode(data, offset, s.toCharArray());
+    }
+
+    public int encode(byte[] data, int offset, char[] chars) {
+        return encode(data, offset, chars, 0, chars.length);
+    }
+
+    public int encode(byte[] data, int offset, char[] chars, int from, int to) {
+        int k;
+        byte b;
+        int i = offset << 3;
+
+        for (int j = from; j < to; j++) {
+            Leaf leaf = leafs[chars[j]];
+            int l = leaf.length;
+            k = 8 - i + ((i >> 3) << 3);
+            if (l <= k) {
+                if (k == 8)
+                    data[i >> 3] = (byte) (leaf.bits << k - l);
+                else {
+                    b = (byte) (data[i >> 3] & (0xff << k));
+                    b = (byte) (b | (leaf.bits << k - l));
+                    data[i >> 3] = b;
+                }
+                i += l;
+            } else {
+                int ll = l;
+                b = (byte) (data[i >> 3] & (0xff << k));
+                b = (byte) (b | (leaf.bits >> ll - k));
+                data[i >> 3] = b;
+
+                ll -= k;
+                i += k;
+                while (ll >= 8) {
+                    ll -= 8;
+                    data[i >> 3] = (byte) (leaf.bits >> ll);
+                    i += 8;
+                }
+                if (ll > 0) {
+                    data[i >> 3] = (byte) (leaf.bits << 8 - ll);
+                    i += ll;
+                }
+            }
+        }
+
+        return i;
+    }
+
     public interface CharConsumer {
         boolean consume(char ch);
     }
