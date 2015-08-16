@@ -4,6 +4,7 @@ import com.wizzardo.http.http2.huffman.HuffmanTree;
 import com.wizzardo.http.http2.huffman.Leaf;
 import com.wizzardo.http.http2.huffman.Node;
 import org.junit.Assert;
+import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -13,6 +14,7 @@ import java.util.List;
  */
 public class HuffmanTreeTest {
 
+    @Test
     public void test_1() {
         List<Leaf> leafs = new ArrayList<>();
         leafs.add(new Leaf('A', 0b0, 1));
@@ -32,22 +34,13 @@ public class HuffmanTreeTest {
         byte[] data = new byte[]{(byte) 0b10001010, 0b01011011, 0b00011010, (byte) 0b10010000, 0b01110011, (byte) 0b11000000};
 
         StringBuilder sb = new StringBuilder();
-        Node node = tree;
-        int bit;
-        int i = 0;
-        int n = 5 * 8 + 2;
-        while (i < n) {
-            byte b = data[i / 8];
-            int k = i % 8;
-            bit = (b >> 7 - k) & 1;
-            node = node.get(bit);
-            if (node.isEnd()) {
-                sb.append(node.get());
-                node = tree;
-            }
-            i++;
-        }
 
+        int l = tree.decode(data, 0, ch -> {
+            sb.append(ch);
+            return ch != 'H';// end
+        });
+
+        Assert.assertEquals(42, l);
         Assert.assertEquals("BACADAEAFABBAAAGAH", sb.toString());
     }
 }
