@@ -86,7 +86,6 @@ public class HpackReaderTest {
         Assert.assertEquals(42, result.value);
     }
 
-
     @Test
     public void test_string_encoding_1() {
         String s = "/sample/path";
@@ -94,5 +93,14 @@ public class HpackReaderTest {
 
         Assert.assertEquals(8 * bytes.length, HpackReader.encode(s, false, bytes, 8));
         Assert.assertArrayEquals(new byte[]{0, 0x0c, 0x2f, 0x73, 0x61, 0x6d, 0x70, 0x6c, 0x65, 0x2f, 0x70, 0x61, 0x74, 0x68}, bytes);
+    }
+
+    @Test
+    public void test_string_encoding_2() {
+        String s = "www.example.com";
+        byte[] bytes = new byte[14];
+
+        Assert.assertEquals(8 * bytes.length, HpackReader.encode(s, true, bytes, 8));
+        Assert.assertArrayEquals(new byte[]{0, (byte) 0x8c, (byte) 0xf1, (byte) 0xe3, (byte) 0xc2, (byte) 0xe5, (byte) 0xf2, (byte) 0x3a, (byte) 0x6b, (byte) 0xa0, (byte) 0xab, (byte) 0x90, (byte) 0xf4, (byte) 0xff}, bytes);
     }
 }
