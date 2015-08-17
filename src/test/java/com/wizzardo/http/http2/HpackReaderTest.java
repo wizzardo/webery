@@ -100,7 +100,8 @@ public class HpackReaderTest {
         String s = "www.example.com";
         byte[] bytes = new byte[14];
 
+        byte[] expected = new byte[]{0, (byte) 0x8c, (byte) 0xf1, (byte) 0xe3, (byte) 0xc2, (byte) 0xe5, (byte) 0xf2, (byte) 0x3a, (byte) 0x6b, (byte) 0xa0, (byte) 0xab, (byte) 0x90, (byte) 0xf4, (byte) 0xff};
         Assert.assertEquals(8 * bytes.length, HpackReader.encode(s, true, bytes, 8));
-        Assert.assertArrayEquals(new byte[]{0, (byte) 0x8c, (byte) 0xf1, (byte) 0xe3, (byte) 0xc2, (byte) 0xe5, (byte) 0xf2, (byte) 0x3a, (byte) 0x6b, (byte) 0xa0, (byte) 0xab, (byte) 0x90, (byte) 0xf4, (byte) 0xff}, bytes);
+        Assert.assertArrayEquals(expected, bytes);
     }
 }

@@ -1,6 +1,7 @@
 package com.wizzardo.http.http2.hpack;
 
 import com.wizzardo.http.utils.AsciiReader;
+import com.wizzardo.tools.reflection.StringReflection;
 
 /**
  * Created by wizzardo on 08.08.15.
@@ -8,7 +9,10 @@ import com.wizzardo.http.utils.AsciiReader;
 public class HpackReader {
 
     public static int encode(String s, boolean compress, byte[] bytes, int offsetBits) {
-        return compress ? -1 : encodeWithoutCompression(s, bytes, offsetBits);
+        if (compress)
+            return encodeWithCompression(s, bytes, offsetBits);
+        else
+            return encodeWithoutCompression(s, bytes, offsetBits);
     }
 
     public static int encodeWithoutCompression(String s, byte[] bytes, int offsetBits) {
@@ -19,6 +23,32 @@ public class HpackReader {
         bytes[index] = 0;
         offsetBits = encode(s.length(), bytes, offsetBits + 1);
         offsetBits = AsciiReader.write(s, bytes, offsetBits >> 3) << 3;
+        return offsetBits;
+    }
+
+    public static int encodeWithCompression(String s, byte[] bytes, int offsetBits) {
+        if (offsetBits % 8 != 0)
+            return -1;
+
+        int index = offsetBits >> 3;
+        int l = s.length();
+        if (l <= 160) { //average compressed length for one byte
+            int offset = StaticHttp2HuffmanTable.huffman.encode(bytes, (offsetBits + 8) >> 3, StringReflection.chars(s));
+            int k = 8 - offset + ((offset >> 3) << 3);
+            if (k != 8) {
+                bytes[offset >> 3] = (byte) (bytes[offset >> 3] | (1 << k) - 1);
+                offset += k;
+            }
+            if ((offset >> 3) > 127) {
+                //todo: shift data
+            }
+
+            bytes[index] = (byte) 128;
+            encode((offset - offsetBits - 8) >> 3, bytes, offsetBits + 1);
+            return offset;
+        } else {
+            //todo: calculate optimal size and encode
+        }
         return offsetBits;
     }
 
