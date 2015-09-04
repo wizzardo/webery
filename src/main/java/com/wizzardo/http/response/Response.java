@@ -11,6 +11,7 @@ import com.wizzardo.http.request.Request;
 import com.wizzardo.http.utils.AsciiReader;
 import com.wizzardo.http.utils.StringBuilderThreadLocalHolder;
 import com.wizzardo.tools.misc.ExceptionDrivenStringBuilder;
+import com.wizzardo.tools.misc.Unchecked;
 
 import java.io.File;
 import java.io.IOException;
@@ -301,8 +302,16 @@ public class Response {
         }
 
         builder.append(LINE_SEPARATOR);
-        if (body != null && hasBody)
-            builder.append(body);
+        if (body != null) {
+            if (hasBody)
+                builder.append(body);
+            else
+                try {
+                    body.close();
+                } catch (IOException e) {
+                    throw Unchecked.rethrow(e);
+                }
+        }
         return builder;
     }
 
