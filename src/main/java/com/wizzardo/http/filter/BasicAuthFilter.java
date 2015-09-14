@@ -28,6 +28,7 @@ public class BasicAuthFilter implements AuthFilter {
 
     public boolean returnNotAuthorized(Response response) {
         response.setStatus(Status._401);
+        response.body(Status._401.message);
         response.header(Header.KEY_WWW_AUTHENTICATE, "Basic realm=\"simple http server\"");
         return false;
     }
