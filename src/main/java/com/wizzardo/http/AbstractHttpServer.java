@@ -70,7 +70,7 @@ public abstract class AbstractHttpServer<T extends HttpConnection> extends Epoll
             if (connection.processInputListener())
                 return;
 
-            process(connection);
+            process(connection, this);
         }
 
         @Override
@@ -103,10 +103,10 @@ public abstract class AbstractHttpServer<T extends HttpConnection> extends Epoll
         return true;
     }
 
-    private void process(T connection) {
+    private void process(T connection, ByteBufferProvider bufferProvider) {
         if (workersCount > 0) {
             queue.add(connection);
-        } else if (checkData(connection, this))
+        } else if (checkData(connection, bufferProvider))
             while (processConnection(connection)) {
             }
     }
