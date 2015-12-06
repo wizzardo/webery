@@ -59,7 +59,7 @@ public class ViewRenderer extends Renderer {
         List<String> imports = null;
 
         Node page;
-        if (html.children().size() == 1 && (page = html.children().get(0)).name().equals("%@") && page.hasAttr("page")) {
+        if (html.children().size() == 1 && "%@".equals((page = html.children().get(0)).name()) && page.hasAttr("page")) {
             html.children().remove(0);
             html.children().addAll(page.children());
 
@@ -176,11 +176,21 @@ public class ViewRenderer extends Renderer {
 
     public static boolean checkTagLib(final Node n, RenderableList l, String dir, String offset, List<String> imports) {
         if (n.name().equals("g:render")) {
+            String model = n.attr("model");
+            if (model == null)
+                model = "${[:]}";
 
-            String params = n.attr("params");
-            if (params == null)
-                params = "${[:]}";
-            l.add(createRenderClosure(dir + "_" + n.attr("template"), params, offset));
+            String template = n.attr("template");
+            int i = template.lastIndexOf("/");
+            String path = "";
+            if (i > 0) {
+                path = template.substring(0, i + 1);
+                if (path.startsWith("/"))
+                    path = ".." + path;
+
+                template = template.substring(i + 1);
+            }
+            l.add(createRenderClosure(dir + path + "_" + template + ".gsp", model, offset));
             return true;
         }
 
