@@ -8,6 +8,7 @@ import com.wizzardo.http.framework.message.MessageSource;
 import com.wizzardo.http.framework.template.*;
 import com.wizzardo.http.mapping.UrlMapping;
 
+import java.io.File;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
 
@@ -57,8 +58,11 @@ public class WebApplication extends HttpServer<HttpConnection> {
         ResourceTools localResources = environment == Environment.DEVELOPMENT ? new DevResourcesTools() : new LocalResourcesTools();
         List<Class> classes = localResources.getClasses();
         DependencyFactory.get().setClasses(classes);
-        urlMapping.append("/static/*", "static", new FileTreeHandler<>(localResources.getResourceFile("public"), "/static")
-                .setShowFolder(false));
+
+        File staticResources = localResources.getResourceFile("public");
+        if (staticResources.exists())
+            urlMapping.append("/static/*", "static", new FileTreeHandler<>(staticResources, "/static")
+                    .setShowFolder(false));
 
         TagLib.findTags(classes);
         DependencyFactory.get().register(ResourceTools.class, new SingletonDependency<>(localResources));
