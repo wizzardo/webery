@@ -1,6 +1,7 @@
 package com.wizzardo.http.html;
 
 import com.wizzardo.tools.collections.CollectionTools;
+import com.wizzardo.tools.misc.Supplier;
 import com.wizzardo.tools.misc.Unchecked;
 
 import java.util.*;
@@ -21,6 +22,10 @@ public class Tag {
         this.name = name;
     }
 
+    public interface ClosureVoidTwoArgs<A, B> {
+        void execute(A a, B b);
+    }
+
     public void render(Renderer renderer) {
         renderer.append('<').append(name);
         if (attrs != null) {
@@ -38,7 +43,7 @@ public class Tag {
         }
     }
 
-    public <T> Tag each(Collection<T> collection, CollectionTools.Closure2<Void, T, Tag> closure) {
+    public <T> Tag each(Collection<T> collection, ClosureVoidTwoArgs<T, Tag> closure) {
         if (collection != null)
             for (T t : collection) {
                 closure.execute(t, this);
@@ -46,7 +51,7 @@ public class Tag {
         return this;
     }
 
-    public <T> Tag each(T[] collection, CollectionTools.Closure2<Void, T, Tag> closure) {
+    public <T> Tag each(T[] collection, ClosureVoidTwoArgs<T, Tag> closure) {
         if (collection != null)
             for (T t : collection) {
                 closure.execute(t, this);

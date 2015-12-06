@@ -185,7 +185,6 @@ public class FileTreeHandler<T extends FileTreeHandler.HandlerContext> implement
                                                     .add(td().text(DateIso8601.format(new Date(file.lastModified()))))
                                                     .add(td().attr("align", "right").text(formatFileSize(file.length())))
                                     ).text("\n");
-                                    return null;
                                 }))
         );
 
