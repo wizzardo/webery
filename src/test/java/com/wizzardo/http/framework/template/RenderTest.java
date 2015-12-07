@@ -115,4 +115,20 @@ public class RenderTest {
         l.clear();
         m.clear();
     }
+
+    @Test()
+    public void test_ignore_comments() {
+        String gsp = "<div>\n" +
+                "    before\n" +
+                "    %{--<p>text</p>--}%\n" +
+                "    after\n" +
+                "</div>";
+
+        RenderableList renderable = new RenderableList();
+        ViewRenderer.prepare(new GspParser().parse(gsp).children(), renderable, "", "");
+        Assert.assertEquals("<div>\n" +
+                "    before\n" +
+                "    after\n" +
+                "</div>\n", renderable.get(null).toString());
+    }
 }

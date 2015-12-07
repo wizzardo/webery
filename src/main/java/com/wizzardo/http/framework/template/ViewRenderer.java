@@ -129,6 +129,9 @@ public class ViewRenderer extends Renderer {
     }
 
     public static void prepare(Node n, RenderableList l, String dir, String offset, boolean addNewLine, List<String> imports) {
+        if (n.isComment() && n instanceof GspParser.GspComment)
+            return;
+
         if (n.name() == null) {
             l.append(offset);
             prepare(n.textOwn(), l, imports);
