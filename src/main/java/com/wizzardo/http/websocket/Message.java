@@ -10,6 +10,21 @@ import java.util.List;
 public class Message {
     private List<Frame> frames = new ArrayList<>();
 
+    public Message() {
+    }
+
+    public Message(String message) {
+        append(message);
+    }
+
+    public Message(byte[] message) {
+        append(message);
+    }
+
+    public Message(byte[] message, int offset, int length) {
+        append(message, offset, length);
+    }
+
     public boolean isComplete() {
         if (frames.isEmpty())
             return false;
