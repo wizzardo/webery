@@ -10,6 +10,8 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import static com.wizzardo.http.framework.di.DependencyFactory.getAnnotation;
+
 /**
  * Created by wizzardo on 05.05.15.
  */
@@ -22,13 +24,13 @@ public abstract class Dependency<T> {
                 int mod = f.getType().getModifiers();
                 if (Modifier.isFinal(mod) || f.getType().isPrimitive())
                     continue;
-                if (f.getType().getAnnotation(Injectable.class) != null
+                if (getAnnotation(f.getType(), Injectable.class) != null
                         || Modifier.isAbstract(mod)
                         || Modifier.isInterface(mod)) {
                     l.add(reflectionFactory.create(f, true));
                 } else
                     for (Class i : f.getType().getInterfaces()) {
-                        if (i.getAnnotation(Injectable.class) != null) {
+                        if (getAnnotation(i, Injectable.class) != null) {
                             l.add(reflectionFactory.create(f, true));
                             break;
                         }

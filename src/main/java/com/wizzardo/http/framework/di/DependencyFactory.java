@@ -79,7 +79,7 @@ public class DependencyFactory {
         }
     });
 
-    private Annotation getAnnotation(Class clazz, Class annotation) {
+    static Annotation getAnnotation(Class clazz, Class annotation) {
         while (clazz != null) {
             Annotation a = clazz.getAnnotation(annotation);
             if (a != null) {
