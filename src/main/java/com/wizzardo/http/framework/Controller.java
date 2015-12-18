@@ -11,10 +11,12 @@ import com.wizzardo.http.framework.template.Model;
 import com.wizzardo.http.framework.template.Renderer;
 import com.wizzardo.http.framework.template.TextRenderer;
 import com.wizzardo.http.framework.template.ViewRenderer;
+import com.wizzardo.http.request.Header;
 import com.wizzardo.http.request.Parameters;
 import com.wizzardo.http.request.Request;
 import com.wizzardo.http.response.Response;
 import com.wizzardo.http.response.Status;
+import com.wizzardo.tools.json.JsonTools;
 
 /**
  * @author Moxa
@@ -60,6 +62,11 @@ public abstract class Controller {
 
     public Renderer renderString(String s) {
         return new TextRenderer(s);
+    }
+
+    public Renderer renderJson(Object o) {
+        response.appendHeader(Header.KV_CONTENT_TYPE_APPLICATION_JSON);
+        return new TextRenderer(JsonTools.serialize(o));
     }
 
     public Renderer redirect(String url) {
