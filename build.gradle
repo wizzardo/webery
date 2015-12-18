@@ -3,6 +3,10 @@ apply plugin: 'application'
 
 repositories {
     jcenter()
+    mavenCentral()
+    maven {
+        url "https://oss.sonatype.org/content/repositories/snapshots/"
+    }
 }
 
 sourceCompatibility = 1.8
@@ -13,11 +17,9 @@ version = '0.1'
 mainClassName = "com.wizzardo.http.HttpServer"
 
 dependencies {
-//    compile 'com.wizzardo.tools:tools:0.12'
-    compile files(
-            '../epollserver/build/libs/epoll-0.1.jar',
-            '../Utils/build/libs/tools-all-0.14-SNAPSHOT.jar'
-    )
+    compile 'com.wizzardo:epoll:0.1+'
+    compile 'com.wizzardo.tools:tools:0.14+'
+
     testCompile 'junit:junit:4.12'
 }
 
