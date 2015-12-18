@@ -12,9 +12,12 @@ repositories {
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
 
-version = '0.1'
-
 mainClassName = "com.wizzardo.http.HttpServer"
+
+ext {
+    descriptionString = 'Java HTTP-server, based on epoll-lib'
+}
+apply from: 'gradle/sonatype.gradle'
 
 dependencies {
     compile 'com.wizzardo:epoll:0.1+'

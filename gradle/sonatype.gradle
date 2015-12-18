@@ -1,0 +1,72 @@
+apply plugin: 'maven'
+apply plugin: 'signing'
+
+if (!project.hasProperty("ossrhUsername"))
+    ext.ossrhUsername = ""
+if (!project.hasProperty("ossrhPassword"))
+    ext.ossrhPassword = ""
+
+task javadocJar(type: Jar) {
+    classifier = 'javadoc'
+    from javadoc
+}
+
+task sourcesJar(type: Jar) {
+    classifier = 'sources'
+    from sourceSets.main.allSource
+}
+
+artifacts {
+    archives javadocJar, sourcesJar
+}
+
+signing {
+    required { gradle.taskGraph.hasTask("uploadArchives") }
+    sign configurations.archives
+}
+
+uploadArchives {
+    repositories {
+        mavenDeployer {
+            beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
+
+            repository(url: "https://oss.sonatype.org/service/local/staging/deploy/maven2/") {
+                authentication(userName: ossrhUsername, password: ossrhPassword)
+            }
+
+            snapshotRepository(url: "https://oss.sonatype.org/content/repositories/snapshots/") {
+                authentication(userName: ossrhUsername, password: ossrhPassword)
+            }
+
+            pom.project {
+                name archivesBaseName
+                packaging 'jar'
+                // optionally artifactId can be defined here
+                description project.ext.descriptionString
+                url 'https://github.com/wizzardo/http'
+
+                scm {
+                    connection 'scm:git:git@github.com:wizzardo/http.git'
+                    developerConnection 'scm:git:git@github.com:wizzardo/http.git'
+                    url 'https://github.com/wizzardo/http'
+                }
+
+
+                licenses {
+                    license {
+                        name 'MIT License'
+                        url 'http://www.opensource.org/licenses/mit-license.php'
+                    }
+                }
+
+                developers {
+                    developer {
+                        id 'Wizzardo'
+                        name 'Mikhail Bobrutskov'
+                        email 'wizzardobox@gmail.com'
+                    }
+                }
+            }
+        }
+    }
+}
