@@ -55,7 +55,6 @@ public class WebApplication extends HttpServer<HttpConnection> {
     @Override
     public synchronized void start() {
         started = true;
-        System.out.println("environment: " + environment);
         ResourceTools localResources = environment == Environment.DEVELOPMENT ? new DevResourcesTools() : new LocalResourcesTools();
         List<Class> classes = localResources.getClasses();
         DependencyFactory.get().setClasses(classes);
@@ -68,6 +67,9 @@ public class WebApplication extends HttpServer<HttpConnection> {
         TagLib.findTags(classes);
         DependencyFactory.get().register(ResourceTools.class, new SingletonDependency<>(localResources));
         DependencyFactory.get().register(DecoratorLib.class, new SingletonDependency<>(new DecoratorLib(classes)));
+
+        System.out.println("application has started");
+        System.out.println("environment: " + environment);
         super.start();
     }
 
