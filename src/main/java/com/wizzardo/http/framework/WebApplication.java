@@ -55,12 +55,13 @@ public class WebApplication extends HttpServer<HttpConnection> {
     @Override
     public synchronized void start() {
         started = true;
+        System.out.println("environment: " + environment);
         ResourceTools localResources = environment == Environment.DEVELOPMENT ? new DevResourcesTools() : new LocalResourcesTools();
         List<Class> classes = localResources.getClasses();
         DependencyFactory.get().setClasses(classes);
 
         File staticResources = localResources.getResourceFile("public");
-        if (staticResources.exists())
+        if (staticResources != null && staticResources.exists())
             urlMapping.append("/static/*", "static", new FileTreeHandler<>(staticResources, "/static")
                     .setShowFolder(false));
 
