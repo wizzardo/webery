@@ -2,6 +2,7 @@ package com.wizzardo.http.framework.template;
 
 
 import com.wizzardo.http.framework.di.Injectable;
+import com.wizzardo.tools.io.FileTools;
 import com.wizzardo.tools.io.IOTools;
 import com.wizzardo.tools.io.ZipTools;
 
@@ -37,7 +38,7 @@ public class LocalResourcesTools implements ResourceTools {
 //            classpath.add(LocalResourcesTools.class.getProtectionDomain().getCodeSource().getLocation().toURI().getRawPath());
 //        } catch (Exception ignored) {
 //        }
-        try {
+        try { //todo: check it
             File workDir = new File(LocalResourcesTools.class.getProtectionDomain().getCodeSource().getLocation().toURI());
             if (workDir.isFile())
                 workDir = workDir.getParentFile();
@@ -45,6 +46,16 @@ public class LocalResourcesTools implements ResourceTools {
             if (workDir.exists())
                 addResourcesDir(workDir);
         } catch (URISyntaxException ignore) {
+        }
+
+        File jarFile = new File(LocalResourcesTools.class.getProtectionDomain().getCodeSource().getLocation().getPath());
+        if (jarFile.isFile()) {
+            File outDir = new File("/tmp/" + jarFile.getName());
+            if (outDir.exists())
+                FileTools.deleteRecursive(outDir);
+
+            ZipTools.unzip(jarFile, outDir, entry -> entry.getName().startsWith("public"));
+            addResourcesDir(outDir);
         }
     }
 
