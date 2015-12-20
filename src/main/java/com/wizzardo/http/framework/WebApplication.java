@@ -55,6 +55,11 @@ public class WebApplication extends HttpServer<HttpConnection> {
     @Override
     public synchronized void start() {
         started = true;
+        onStart();
+        super.start();
+    }
+
+    protected void onStart() {
         ResourceTools localResources = environment == Environment.DEVELOPMENT ? new DevResourcesTools() : new LocalResourcesTools();
         List<Class> classes = localResources.getClasses();
         DependencyFactory.get().setClasses(classes);
@@ -70,7 +75,6 @@ public class WebApplication extends HttpServer<HttpConnection> {
 
         System.out.println("application has started");
         System.out.println("environment: " + environment);
-        super.start();
     }
 
     protected void init() {
