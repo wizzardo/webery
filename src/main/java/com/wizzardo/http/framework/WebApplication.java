@@ -1,5 +1,6 @@
 package com.wizzardo.http.framework;
 
+import com.wizzardo.tools.evaluation.Config;
 import com.wizzardo.http.*;
 import com.wizzardo.http.framework.di.DependencyFactory;
 import com.wizzardo.http.framework.di.SingletonDependency;
@@ -7,6 +8,8 @@ import com.wizzardo.http.framework.message.MessageBundle;
 import com.wizzardo.http.framework.message.MessageSource;
 import com.wizzardo.http.framework.template.*;
 import com.wizzardo.http.mapping.UrlMapping;
+import com.wizzardo.tools.evaluation.EvalTools;
+import com.wizzardo.tools.io.FileTools;
 
 import java.io.File;
 import java.util.List;
@@ -18,6 +21,7 @@ import java.util.concurrent.BlockingQueue;
 public class WebApplication extends HttpServer<HttpConnection> {
 
     protected Environment environment = Environment.DEVELOPMENT;
+    protected Config config= new Config();
     private volatile boolean started = false;
 
     public WebApplication(int port) {
@@ -61,6 +65,10 @@ public class WebApplication extends HttpServer<HttpConnection> {
 
     protected void onStart() {
         ResourceTools localResources = environment == Environment.DEVELOPMENT ? new DevResourcesTools() : new LocalResourcesTools();
+        File config = localResources.getResourceFile("Config.groovy");
+        if (config != null && config.exists())
+            EvalTools.prepare(FileTools.text(config)).get(this.config);
+
         List<Class> classes = localResources.getClasses();
         DependencyFactory.get().setClasses(classes);
 
@@ -106,5 +114,9 @@ public class WebApplication extends HttpServer<HttpConnection> {
     @Override
     protected ControllerUrlMapping createUrlMapping(String host, int port, String context) {
         return new ControllerUrlMapping(host, port, context);
+    }
+
+    public Config getConfig() {
+        return config;
     }
 }
