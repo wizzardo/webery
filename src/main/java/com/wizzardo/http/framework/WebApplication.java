@@ -13,6 +13,7 @@ import com.wizzardo.tools.io.FileTools;
 
 import java.io.File;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 
 /**
@@ -21,7 +22,7 @@ import java.util.concurrent.BlockingQueue;
 public class WebApplication extends HttpServer<HttpConnection> {
 
     protected Environment environment = Environment.DEVELOPMENT;
-    protected Config config= new Config();
+    protected Config config = new Config();
     private volatile boolean started = false;
 
     public WebApplication(int port) {
@@ -68,6 +69,17 @@ public class WebApplication extends HttpServer<HttpConnection> {
         File config = localResources.getResourceFile("Config.groovy");
         if (config != null && config.exists())
             EvalTools.prepare(FileTools.text(config)).get(this.config);
+
+        if (this.config.containsKey("environments")) {
+            Map environments = (Map) this.config.remove("environments");
+            Map<String, Object> env = (Map<String, Object>) environments.get(environment.shortName);
+            if (env != null)
+                this.config.putAll(env);
+
+            env = (Map<String, Object>) environments.get(environment.name().toLowerCase());
+            if (env != null)
+                this.config.putAll(env);
+        }
 
         Holders.setApplication(this);
 
