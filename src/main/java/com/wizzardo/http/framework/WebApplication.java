@@ -69,6 +69,8 @@ public class WebApplication extends HttpServer<HttpConnection> {
         if (config != null && config.exists())
             EvalTools.prepare(FileTools.text(config)).get(this.config);
 
+        Holders.setApplication(this);
+
         List<Class> classes = localResources.getClasses();
         DependencyFactory.get().setClasses(classes);
 
