@@ -95,7 +95,11 @@ public class DependencyFactory {
     }
 
     public static <T> T getDependency(Class<T> clazz) {
-        return DependencyFactoryHolder.instance.resolveDependency(clazz);
+        return DependencyFactoryHolder.instance.resolve(clazz);
+    }
+
+    public static <T> T get(Class<T> clazz) {
+        return DependencyFactoryHolder.instance.resolve(clazz);
     }
 
     public static DependencyFactory get() {
@@ -103,7 +107,7 @@ public class DependencyFactory {
     }
 
     @SuppressWarnings("unchecked")
-    private <T> T resolveDependency(Class<T> clazz) {
+    private <T> T resolve(Class<T> clazz) {
         return (T) dependencies.get(clazz).get();
     }
 
