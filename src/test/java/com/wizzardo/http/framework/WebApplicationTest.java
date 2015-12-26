@@ -2,7 +2,6 @@ package com.wizzardo.http.framework;
 
 import com.wizzardo.http.ServerTest;
 import com.wizzardo.http.framework.message.MessageBundle;
-import com.wizzardo.http.framework.message.MessageSource;
 import org.junit.Before;
 
 /**
@@ -20,6 +19,7 @@ public class WebApplicationTest extends ServerTest<WebApplication> {
             }
         };
         server.setIoThreadsCount(1);
+        server.setEnvironment(Environment.TEST);
         server.start();
     }
 

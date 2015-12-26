@@ -1,5 +1,7 @@
 package com.wizzardo.http.framework.template;
 
+import com.wizzardo.http.framework.Environment;
+import com.wizzardo.http.framework.Holders;
 import com.wizzardo.tools.evaluation.Expression;
 import com.wizzardo.tools.evaluation.UserFunction;
 import com.wizzardo.tools.evaluation.Variable;
@@ -26,7 +28,9 @@ public class TagLib {
 
                 String name = c.getSimpleName().substring(0, 1).toLowerCase() + c.getSimpleName().substring(1);
                 String tag = namespace + ":" + name;
-                System.out.println("register tag: " + tag);
+                if (Holders.getEnvironment() != Environment.TEST)
+                    System.out.println("register tag: " + tag);
+
                 taglib.put(tag, c);
                 if (RenderableString.class.isAssignableFrom(c))
                     tagFunctions.put(name, new TagFunction(name, c));

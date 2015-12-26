@@ -1,6 +1,8 @@
 package com.wizzardo.http.framework.template;
 
 
+import com.wizzardo.http.framework.Environment;
+import com.wizzardo.http.framework.Holders;
 import com.wizzardo.http.framework.di.Injectable;
 import com.wizzardo.tools.io.FileTools;
 import com.wizzardo.tools.io.IOTools;
@@ -112,7 +114,9 @@ public class LocalResourcesTools implements ResourceTools {
             if (!filterClasspath(dir))
                 continue;
 
-            System.out.println("searching for classes in " + dir.getAbsolutePath());
+            if (Holders.getEnvironment() != Environment.TEST)
+                System.out.println("searching for classes in " + dir.getAbsolutePath());
+
             if (!dir.exists())
                 continue;
             if (dir.isDirectory())
