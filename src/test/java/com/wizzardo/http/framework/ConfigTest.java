@@ -11,7 +11,7 @@ public class ConfigTest extends WebApplicationTest {
 
     @Before
     public void setUp() throws NoSuchMethodException, ClassNotFoundException, NoSuchFieldException {
-        System.out.println("setUp " + name.getMethodName());
+        System.out.println("setUp " + this.getClass().getSimpleName() + "." + name.getMethodName());
         server = new WebApplication(null, port, context, workers);
         server.setIoThreadsCount(1);
     }

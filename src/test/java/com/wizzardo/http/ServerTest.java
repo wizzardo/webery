@@ -32,7 +32,7 @@ public class ServerTest<S extends HttpServer> {
 
     @Before
     public void setUp() throws NoSuchMethodException, ClassNotFoundException, NoSuchFieldException {
-        System.out.println("setUp " + name.getMethodName());
+        System.out.println("setUp " + this.getClass().getSimpleName() + "." + name.getMethodName());
         server = (S) new HttpServer<HttpConnection>(null, port, context, workers) {
             @Override
             protected Response handle(Request request, Response response) throws IOException {
@@ -61,7 +61,7 @@ public class ServerTest<S extends HttpServer> {
 
     @After
     public void tearDown() throws InterruptedException {
-        System.out.println("tearDown " + name.getMethodName());
+        System.out.println("tearDown " + this.getClass().getSimpleName() + "." + name.getMethodName());
         server.stopEpoll();
         handler = null;
         context = null;
