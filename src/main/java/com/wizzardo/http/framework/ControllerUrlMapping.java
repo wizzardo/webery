@@ -9,15 +9,6 @@ import com.wizzardo.http.mapping.UrlMapping;
 public class ControllerUrlMapping extends UrlMapping<Handler> {
 
     public ControllerUrlMapping() {
-        super();
-    }
-
-    public ControllerUrlMapping(String context) {
-        super(context);
-    }
-
-    public ControllerUrlMapping(String host, int port, String context) {
-        super(host, port, context);
     }
 
     public ControllerUrlMapping append(String url, ControllerHandler handler) {

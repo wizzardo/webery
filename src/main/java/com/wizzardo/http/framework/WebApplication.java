@@ -23,10 +23,11 @@ public class WebApplication extends HttpServer<HttpConnection> {
 
     protected Environment environment = Environment.DEVELOPMENT;
     protected Config config = new Config();
-    private volatile boolean started = false;
+
+    public WebApplication() {
+    }
 
     public WebApplication(int port) {
-        this(null, port);
     }
 
     public WebApplication(String host, int port) {
@@ -46,9 +47,7 @@ public class WebApplication extends HttpServer<HttpConnection> {
     }
 
     public WebApplication setEnvironment(Environment environment) {
-        if (started)
-            throw new IllegalStateException("Application already started, cannot set environment");
-
+        checkIfStarted();
         this.environment = environment;
         return this;
     }
@@ -57,12 +56,6 @@ public class WebApplication extends HttpServer<HttpConnection> {
         return environment;
     }
 
-    @Override
-    public synchronized void start() {
-        started = true;
-        onStart();
-        super.start();
-    }
 
     protected void onStart() {
         ResourceTools localResources = environment == Environment.DEVELOPMENT ? new DevResourcesTools() : new LocalResourcesTools();
@@ -95,6 +88,7 @@ public class WebApplication extends HttpServer<HttpConnection> {
         DependencyFactory.get().register(ResourceTools.class, new SingletonDependency<>(localResources));
         DependencyFactory.get().register(DecoratorLib.class, new SingletonDependency<>(new DecoratorLib(classes)));
 
+        super.onStart();
         System.out.println("application has started");
         System.out.println("environment: " + environment);
     }
@@ -126,8 +120,8 @@ public class WebApplication extends HttpServer<HttpConnection> {
     }
 
     @Override
-    protected ControllerUrlMapping createUrlMapping(String host, int port, String context) {
-        return new ControllerUrlMapping(host, port, context);
+    protected ControllerUrlMapping createUrlMapping() {
+        return new ControllerUrlMapping();
     }
 
     public Config getConfig() {

@@ -11,14 +11,12 @@ import java.util.regex.Pattern;
  * Created by wizzardo on 16.04.15.
  */
 public class UrlTemplate {
-    private String host;
-    private String context;
+    private TemplatesHolder holder;
     private List<TemplateHolder> holders = new ArrayList<TemplateHolder>();
     private static Pattern variables = Pattern.compile("(/)?\\$\\{?([a-zA-Z_]+[\\w]*)\\}?\\??");
 
-    public UrlTemplate(String host, String context, String url) {
-        this.host = host;
-        this.context = context;
+    public UrlTemplate(TemplatesHolder holder, String url) {
+        this.holder = holder;
 
         if (url.endsWith("/*"))
             url = url.substring(0, url.length() - 2);
@@ -54,19 +52,23 @@ public class UrlTemplate {
     }
 
     public String getAbsoluteUrl() {
-        return getRelativeUrl(null, null, new StringBuilder(host));
+        return getRelativeUrl(null, null, getStringBuilderWithBase());
     }
 
     public String getAbsoluteUrl(Map<String, Object> params) {
-        return getRelativeUrl(params, null, new StringBuilder(host));
+        return getRelativeUrl(params, null, getStringBuilderWithBase());
     }
 
     public String getAbsoluteUrl(Map<String, Object> params, String suffix) {
-        return getRelativeUrl(params, suffix, new StringBuilder(host));
+        return getRelativeUrl(params, suffix, getStringBuilderWithBase());
     }
 
     public String getAbsoluteUrl(String suffix) {
-        return getRelativeUrl(null, suffix, new StringBuilder(host));
+        return getRelativeUrl(null, suffix, getStringBuilderWithBase());
+    }
+
+    protected StringBuilder getStringBuilderWithBase() {
+        return new StringBuilder(holder.base);
     }
 
     public String getRelativeUrl() {
@@ -89,8 +91,8 @@ public class UrlTemplate {
         if (sb == null)
             sb = new StringBuilder();
 
-        if (context != null)
-            sb.append('/').append(context);
+        if (holder.context != null)
+            sb.append('/').append(holder.context);
 
         Map<String, Object> params;
 

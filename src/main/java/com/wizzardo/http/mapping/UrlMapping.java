@@ -22,7 +22,7 @@ public class UrlMapping<T> {
     protected T value;
     protected UrlMapping<T> parent;
     protected UrlMappingEndsWith<T> endsWithMapping;
-    protected TemplatesHolder<String> urlTemplates;
+    protected TemplatesHolder<String> urlTemplates = new TemplatesHolder<>();
     protected String context;
 
     public UrlMapping() {
@@ -48,6 +48,10 @@ public class UrlMapping<T> {
     protected void prepare(Request request) {
         if (parent != null && request != null)
             parent.prepare(request);
+    }
+
+    public TemplatesHolder<String> getTemplatesHolder() {
+        return urlTemplates;
     }
 
     public UrlTemplate getUrlTemplate(String name) {
@@ -216,5 +220,10 @@ public class UrlMapping<T> {
 
     protected String convertRegexpVariables(String s) {
         return s.replaceAll(VARIABLES.pattern(), "(.+)");
+    }
+
+    public void setContext(String context) {
+        this.context = context;
+        urlTemplates.setContext(context);
     }
 }

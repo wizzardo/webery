@@ -21,6 +21,9 @@ public abstract class AbstractHttpServer<T extends HttpConnection> extends Epoll
 
     protected MimeProvider mimeProvider;
 
+    public AbstractHttpServer() {
+    }
+
     public AbstractHttpServer(int port) {
         this(null, port);
     }
