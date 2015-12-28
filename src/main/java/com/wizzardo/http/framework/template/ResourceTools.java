@@ -1,5 +1,7 @@
 package com.wizzardo.http.framework.template;
 
+import com.wizzardo.tools.misc.Consumer;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -10,15 +12,17 @@ import java.util.List;
  * Date: 5/15/13
  */
 public interface ResourceTools {
-    public InputStream getResource(String path) throws IOException;
+    InputStream getResource(String path) throws IOException;
 
-    public File getResourceFile(String path);
+    File getResourceFile(String path);
 
-    public String getResourceAsString(String path);
+    void getResourceFile(String path, Consumer<File> consumer);
 
-    public List<Class> getClasses();
+    String getResourceAsString(String path);
 
-    public void addPathToClasses(String path);
+    List<Class> getClasses();
 
-    public void addResourcesDir(File dir);
+    void addPathToClasses(String path);
+
+    void addResourcesDir(File dir);
 }
