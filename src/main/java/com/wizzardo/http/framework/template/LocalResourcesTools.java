@@ -7,9 +7,9 @@ import com.wizzardo.http.framework.di.Injectable;
 import com.wizzardo.tools.io.FileTools;
 import com.wizzardo.tools.io.IOTools;
 import com.wizzardo.tools.io.ZipTools;
+import com.wizzardo.tools.misc.Consumer;
 
 import java.io.*;
-import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.charset.StandardCharsets;
@@ -25,8 +25,8 @@ import java.util.zip.ZipInputStream;
 @Injectable
 public class LocalResourcesTools implements ResourceTools {
 
-    private List<String> classpath = new ArrayList<String>();
-    private List<File> resourcesDirs = new ArrayList<File>();
+    private List<String> classpath = new ArrayList<>();
+    private List<File> resourcesDirs = new ArrayList<>();
 
     {
         ClassLoader cl = ClassLoader.getSystemClassLoader();
@@ -36,23 +36,14 @@ public class LocalResourcesTools implements ResourceTools {
             classpath.add(url.getFile());
         }
 
-//        try {
-//            classpath.add(LocalResourcesTools.class.getProtectionDomain().getCodeSource().getLocation().toURI().getRawPath());
-//        } catch (Exception ignored) {
-//        }
-        try { //todo: check it
-            File workDir = new File(LocalResourcesTools.class.getProtectionDomain().getCodeSource().getLocation().toURI());
-            if (workDir.isFile())
-                workDir = workDir.getParentFile();
-            workDir = new File(workDir, "resources");
-            if (workDir.exists())
-                addResourcesDir(workDir);
-        } catch (URISyntaxException ignore) {
+        File src = new File("src");
+        if (src.exists() && src.isDirectory()) {
+            addResourcesDir(src.getAbsoluteFile().getParentFile());
         }
 
         File jarFile = new File(LocalResourcesTools.class.getProtectionDomain().getCodeSource().getLocation().getPath());
         if (jarFile.isFile()) {
-            File outDir = new File("/tmp/" + jarFile.getName());
+            File outDir = new File("/tmp/" + jarFile.getName() + "_unzipped");
             if (outDir.exists())
                 FileTools.deleteRecursive(outDir);
 
@@ -70,6 +61,13 @@ public class LocalResourcesTools implements ResourceTools {
         if (f == null || !f.exists())
             throw new FileNotFoundException("file " + path + " not found");
         return new FileInputStream(f);
+    }
+
+    public void getResourceFile(String path, Consumer<File> consumer) {
+        File file = getResourceFile(path);
+        if (file != null && file.exists()) {
+            consumer.consume(file);
+        }
     }
 
     public File getResourceFile(String path) {

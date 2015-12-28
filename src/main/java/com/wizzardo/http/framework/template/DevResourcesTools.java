@@ -2,10 +2,8 @@ package com.wizzardo.http.framework.template;
 
 
 import com.wizzardo.http.framework.di.Injectable;
-import com.wizzardo.tools.io.IOTools;
 
 import java.io.*;
-import java.nio.charset.StandardCharsets;
 
 /**
  * @author: moxa
@@ -30,14 +28,4 @@ public class DevResourcesTools extends LocalResourcesTools {
 
         return super.getResourceFile(path);
     }
-
-    public String getResourceAsString(String path) {
-        try {
-            return new String(IOTools.bytes(getResource(path)), StandardCharsets.UTF_8);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
-
 }
