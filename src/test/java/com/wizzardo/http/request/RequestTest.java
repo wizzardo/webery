@@ -293,6 +293,10 @@ public class RequestTest extends ServerTest {
             Assert.assertEquals("some data", value);
             Assert.assertEquals("just some data", entry.fileName());
 
+            MultiPartEntry empty = request.entry("empty");
+            Assert.assertEquals(0, empty.asBytes().length);
+            Assert.assertEquals("", empty.fileName());
+
             Assert.assertEquals("bar", request.param("foo"));
             Assert.assertEquals("barbar", request.param("foofoo"));
 
@@ -302,6 +306,7 @@ public class RequestTest extends ServerTest {
         Assert.assertEquals("ok", makeRequest("/")
                 .param("foo", "bar")
                 .addByteArray("data", "some data".getBytes(), "just some data")
+                .addByteArray("empty", new byte[0], "")
                 .param("foofoo", "barbar")
                 .post().asString());
     }

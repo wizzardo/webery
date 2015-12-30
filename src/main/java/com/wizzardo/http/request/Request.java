@@ -221,7 +221,7 @@ public class Request<C extends HttpConnection> {
                     while ((r = br.read(b)) != -1) {
                         if (!headerReady) {
                             int read = 0;
-                            while ((rnrn = newLine.search(b, Math.max(read - 4, 0), read + r - 4)) == -1) {
+                            while ((rnrn = newLine.search(b, Math.max(read - 4, 0), read + r)) == -1) {
                                 read += r;
                                 r = br.read(b, read, b.length - read);
 
