@@ -225,7 +225,7 @@ public class Request<C extends HttpConnection> {
                                 read += r;
                                 r = br.read(b, read, b.length - read);
 
-                                if (r == -1 && read == 0)
+                                if ((r == -1 && read == 0) || (read == 4 && b[0] == '-' && b[1] == '-' && b[2] == '\r' && b[3] == '\n'))
                                     continue outer;
 
                                 if (r == -1 || read == b.length)
