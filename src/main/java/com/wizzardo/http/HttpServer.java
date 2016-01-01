@@ -27,6 +27,7 @@ public class HttpServer<T extends HttpConnection> extends AbstractHttpServer<T> 
     protected String context;
 
     public HttpServer() {
+        init();
     }
 
     public HttpServer(int port) {

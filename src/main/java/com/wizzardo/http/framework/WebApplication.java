@@ -22,7 +22,8 @@ import java.util.concurrent.BlockingQueue;
 public class WebApplication extends HttpServer<HttpConnection> {
 
     protected Environment environment = Environment.DEVELOPMENT;
-    protected Config config = new Config();
+    protected Config config;
+    protected ResourceTools resourcesTools;
 
     public WebApplication() {
     }
@@ -56,36 +57,27 @@ public class WebApplication extends HttpServer<HttpConnection> {
         return environment;
     }
 
-
     protected void onStart() {
-        ResourceTools localResources = environment == Environment.DEVELOPMENT ? new DevResourcesTools() : new LocalResourcesTools();
-        File config = localResources.getResourceFile("Config.groovy");
-        if (config != null && config.exists())
-            EvalTools.prepare(FileTools.text(config)).get(this.config);
-
-        if (this.config.containsKey("environments")) {
-            Map environments = (Map) this.config.remove("environments");
+        Map environments = (Map) this.config.remove("environments");
+        if (environments != null) {
             Map<String, Object> env = (Map<String, Object>) environments.get(environment.shortName);
             if (env != null)
-                this.config.putAll(env);
+                this.config.merge(env);
 
             env = (Map<String, Object>) environments.get(environment.name().toLowerCase());
             if (env != null)
-                this.config.putAll(env);
+                this.config.merge(env);
         }
 
-        Holders.setApplication(this);
-
-        List<Class> classes = localResources.getClasses();
+        List<Class> classes = resourcesTools.getClasses();
         DependencyFactory.get().setClasses(classes);
 
-        File staticResources = localResources.getResourceFile("public");
+        File staticResources = resourcesTools.getResourceFile("public");
         if (staticResources != null && staticResources.exists())
             urlMapping.append("/static/*", "static", new FileTreeHandler<>(staticResources, "/static")
                     .setShowFolder(false));
 
         TagLib.findTags(classes);
-        DependencyFactory.get().register(ResourceTools.class, new SingletonDependency<>(localResources));
         DependencyFactory.get().register(DecoratorLib.class, new SingletonDependency<>(new DecoratorLib(classes)));
 
         super.onStart();
@@ -93,13 +85,24 @@ public class WebApplication extends HttpServer<HttpConnection> {
         System.out.println("environment: " + environment);
     }
 
+    protected ResourceTools createResourceTools() {
+        File src = new File("src");
+        return src.exists() && src.isDirectory() ? new DevResourcesTools() : new LocalResourcesTools();
+    }
+
     protected void init() {
         super.init();
+        Holders.setApplication(this);
+        resourcesTools = createResourceTools();
+        DependencyFactory.get().register(ResourceTools.class, new SingletonDependency<>(resourcesTools));
         DependencyFactory.get().register(UrlMapping.class, new SingletonDependency<>(urlMapping));
 
         MessageBundle bundle = initMessageSource();
         DependencyFactory.get().register(MessageSource.class, new SingletonDependency<>(bundle));
         DependencyFactory.get().register(MessageBundle.class, new SingletonDependency<>(bundle));
+
+        config = new Config();
+        loadConfig("Config.groovy");
     }
 
     protected MessageBundle initMessageSource() {
@@ -126,5 +129,13 @@ public class WebApplication extends HttpServer<HttpConnection> {
 
     public Config getConfig() {
         return config;
+    }
+
+    public WebApplication loadConfig(String path) {
+        resourcesTools.getResourceFile(path, file -> {
+            System.out.println("load config from: " + file.getAbsolutePath());
+            EvalTools.prepare(FileTools.text(file)).get(config);
+        });
+        return this;
     }
 }
