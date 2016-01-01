@@ -54,6 +54,15 @@ public class ServerTest<S extends HttpServer> {
                 };
 
             }
+
+            @Override
+            public MimeProvider getMimeProvider() {
+                return new MimeProvider(){
+                    @Override
+                    protected void init() throws IOException {
+                    }
+                };
+            }
         };
         server.setIoThreadsCount(1);
         server.start();
