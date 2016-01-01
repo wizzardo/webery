@@ -36,10 +36,10 @@ public class ControllerHandler implements Handler {
 //        request.controller(controllerName);
 //        request.action(actionName);
 
-        WebWorker webWorker = (WebWorker) Thread.currentThread();
-        webWorker.requestHolder = new RequestHolder(request, response);
-        webWorker.controller = controllerName;
-        webWorker.action = actionName;
+        RequestContext context = (RequestContext) Thread.currentThread();
+        context.setRequestHolder(new RequestHolder(request, response));
+        context.setController(controllerName);
+        context.setAction(actionName);
 
         Controller c = DependencyFactory.getDependency(controller);
         c.request = request;

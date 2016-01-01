@@ -65,8 +65,8 @@ public class HttpServer<T extends HttpConnection> extends AbstractHttpServer<T> 
 
     @Override
     public synchronized void start() {
-        started = true;
         onStart();
+        started = true;
         super.start();
     }
 
@@ -121,5 +121,10 @@ public class HttpServer<T extends HttpConnection> extends AbstractHttpServer<T> 
         else
             response.setStatus(Status._404).setBody(request.path() + " not found");
         return response;
+    }
+
+    public void setContext(String context) {
+        checkIfStarted();
+        this.context = context;
     }
 }

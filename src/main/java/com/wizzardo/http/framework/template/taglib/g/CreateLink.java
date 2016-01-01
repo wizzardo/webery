@@ -1,7 +1,7 @@
 package com.wizzardo.http.framework.template.taglib.g;
 
 import com.wizzardo.http.Handler;
-import com.wizzardo.http.framework.WebWorker;
+import com.wizzardo.http.framework.RequestContext;
 import com.wizzardo.http.framework.di.DependencyFactory;
 import com.wizzardo.http.framework.template.*;
 import com.wizzardo.http.mapping.UrlMapping;
@@ -23,11 +23,11 @@ public class CreateLink extends Tag implements RenderableString {
     public Tag init(Map<String, String> attrs, Body body, String offset) {
         String controller = attrs.remove("controller");
         if (controller == null)
-            controller = ((WebWorker) Thread.currentThread()).controller();
+            controller = ((RequestContext) Thread.currentThread()).controller();
 
         String action = attrs.remove("action");
         if (action == null)
-            action = ((WebWorker) Thread.currentThread()).action();
+            action = ((RequestContext) Thread.currentThread()).action();
 
         ExpressionHolder base = asExpression(attrs, "base", true, false);
         ExpressionHolder fragment = asExpression(attrs, "fragment", true, false);
@@ -75,11 +75,11 @@ public class CreateLink extends Tag implements RenderableString {
     public String render(Map<String, Object> attrs) {
         String controller = (String) attrs.remove("controller");
         if (controller == null)
-            controller = ((WebWorker) Thread.currentThread()).controller();
+            controller = ((RequestContext) Thread.currentThread()).controller();
 
         String action = (String) attrs.remove("action");
         if (action == null)
-            action = ((WebWorker) Thread.currentThread()).action();
+            action = ((RequestContext) Thread.currentThread()).action();
 
         String base = (String) attrs.remove("base");
         String fragment = (String) attrs.remove("fragment");

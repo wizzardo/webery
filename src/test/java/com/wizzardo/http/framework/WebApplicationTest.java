@@ -12,12 +12,18 @@ public class WebApplicationTest extends ServerTest<WebApplication> {
     @Before
     public void setUp() throws NoSuchMethodException, ClassNotFoundException, NoSuchFieldException {
         System.out.println("setUp " + this.getClass().getSimpleName() + "." + name.getMethodName());
-        server = new WebApplication(null, port, context, workers) {
+        server = new WebApplication() {
             @Override
             protected MessageBundle initMessageSource() {
                 return WebApplicationTest.this.initMessageSource(super.initMessageSource());
             }
         };
+
+        server.setHost(null);
+        server.setPort(port);
+        server.setContext(context);
+        server.setWorkersCount(workers);
+
         server.setIoThreadsCount(1);
         server.setEnvironment(Environment.TEST);
         server.start();

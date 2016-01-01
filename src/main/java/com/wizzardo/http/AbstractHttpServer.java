@@ -15,9 +15,9 @@ import java.util.concurrent.LinkedBlockingQueue;
  */
 public abstract class AbstractHttpServer<T extends HttpConnection> extends EpollServer<T> {
 
-    private BlockingQueue<T> queue = new LinkedBlockingQueue<>();
-    private int workersCount;
-    private int sessionTimeoutSec = 30 * 60;
+    protected volatile BlockingQueue<T> queue = new LinkedBlockingQueue<>();
+    protected volatile int workersCount;
+    protected volatile int sessionTimeoutSec = 30 * 60;
 
     protected MimeProvider mimeProvider;
 
@@ -35,11 +35,6 @@ public abstract class AbstractHttpServer<T extends HttpConnection> extends Epoll
     public AbstractHttpServer(String host, int port, int workersCount) {
         super(host, port);
         this.workersCount = workersCount;
-
-        System.out.println("worker count: " + workersCount);
-        for (int i = 0; i < workersCount; i++) {
-            createWorker(queue, "worker_" + i).start();
-        }
     }
 
     protected Worker<T> createWorker(BlockingQueue<T> queue, String name) {
@@ -49,6 +44,10 @@ public abstract class AbstractHttpServer<T extends HttpConnection> extends Epoll
     @Override
     public void run() {
         Session.createSessionsHolder(sessionTimeoutSec);
+        System.out.println("worker count: " + workersCount);
+        for (int i = 0; i < workersCount; i++) {
+            createWorker(queue, "worker_" + i).start();
+        }
         super.run();
     }
 
@@ -59,28 +58,7 @@ public abstract class AbstractHttpServer<T extends HttpConnection> extends Epoll
 
     @Override
     protected IOThread<T> createIOThread(int number, int divider) {
-        return new HttpIOThread(number, divider);
-    }
-
-    private class HttpIOThread extends IOThread<T> {
-
-        public HttpIOThread(int number, int divider) {
-            super(number, divider);
-        }
-
-        @Override
-        public void onRead(T connection) {
-            if (connection.processInputListener())
-                return;
-
-            process(connection, this);
-        }
-
-        @Override
-        public void onDisconnect(T connection) {
-            super.onDisconnect(connection);
-//            System.out.println("close " + connection);
-        }
+        return new HttpIOThread(this, number, divider);
     }
 
     protected boolean checkData(T connection, ByteBufferProvider bufferProvider) {
@@ -106,7 +84,7 @@ public abstract class AbstractHttpServer<T extends HttpConnection> extends Epoll
         return true;
     }
 
-    private void process(T connection, ByteBufferProvider bufferProvider) {
+    void process(T connection, ByteBufferProvider bufferProvider) {
         if (workersCount > 0) {
             queue.add(connection);
         } else if (checkData(connection, bufferProvider))
@@ -152,7 +130,13 @@ public abstract class AbstractHttpServer<T extends HttpConnection> extends Epoll
     }
 
     public void setSessionTimeout(int sec) {
+        checkIfStarted();
         this.sessionTimeoutSec = sec;
+    }
+
+    public void setWorkersCount(int count) {
+        checkIfStarted();
+        this.workersCount = count;
     }
 
     public MimeProvider getMimeProvider() {

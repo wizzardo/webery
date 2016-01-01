@@ -1,5 +1,7 @@
 package com.wizzardo.http.framework;
 
+import com.wizzardo.epoll.IOThread;
+import com.wizzardo.epoll.SslConfig;
 import com.wizzardo.tools.evaluation.Config;
 import com.wizzardo.http.*;
 import com.wizzardo.http.framework.di.DependencyFactory;
@@ -24,28 +26,6 @@ public class WebApplication extends HttpServer<HttpConnection> {
     protected Environment environment = Environment.DEVELOPMENT;
     protected Config config;
     protected ResourceTools resourcesTools;
-
-    public WebApplication() {
-    }
-
-    public WebApplication(int port) {
-    }
-
-    public WebApplication(String host, int port) {
-        this(host, port, null, 4);
-    }
-
-    public WebApplication(String host, int port, String context) {
-        this(host, port, context, 4);
-    }
-
-    public WebApplication(String host, int port, int workersCount) {
-        this(host, port, null, workersCount);
-    }
-
-    public WebApplication(String host, int port, String context, int workersCount) {
-        super(host, port, context, workersCount);
-    }
 
     public WebApplication setEnvironment(Environment environment) {
         checkIfStarted();
@@ -79,6 +59,11 @@ public class WebApplication extends HttpServer<HttpConnection> {
 
         TagLib.findTags(classes);
         DependencyFactory.get().register(DecoratorLib.class, new SingletonDependency<>(new DecoratorLib(classes)));
+
+        Config server = config.config("server");
+        setHost(server.get("host", (String) null));
+        setPort(server.get("port", 8080));
+        setContext(server.get("context", (String) null));
 
         super.onStart();
         System.out.println("application has started");
@@ -118,6 +103,11 @@ public class WebApplication extends HttpServer<HttpConnection> {
     }
 
     @Override
+    protected IOThread<HttpConnection> createIOThread(int number, int divider) {
+        return new WebIOThread<>(this, number, divider);
+    }
+
+    @Override
     public ControllerUrlMapping getUrlMapping() {
         return (ControllerUrlMapping) super.getUrlMapping();
     }
@@ -137,5 +127,54 @@ public class WebApplication extends HttpServer<HttpConnection> {
             EvalTools.prepare(FileTools.text(file)).get(config);
         });
         return this;
+    }
+
+    @Override
+    public void setHost(String host) {
+        super.setHost(host);
+        config.config("server").put("host", host);
+    }
+
+    @Override
+    public void setPort(int port) {
+        super.setPort(port);
+        config.config("server").put("port", port);
+    }
+
+    @Override
+    public void setSessionTimeout(int sec) {
+        super.setSessionTimeout(sec);
+        config.config("server").config("session").put("ttl", sec);
+    }
+
+    @Override
+    public void setIoThreadsCount(int ioThreadsCount) {
+        super.setIoThreadsCount(ioThreadsCount);
+        config.config("server").put("ioWorkersCount", ioThreadsCount);
+    }
+
+    @Override
+    public void setWorkersCount(int count) {
+        super.setWorkersCount(count);
+        config.config("server").put("workersCount", count);
+    }
+
+    @Override
+    public void setContext(String context) {
+        super.setContext(context);
+        config.config("server").put("context", context);
+    }
+
+    @Override
+    public void setTTL(long milliseconds) {
+        super.setTTL(milliseconds);
+        config.config("server").put("ttl", milliseconds);
+    }
+
+    @Override
+    public void loadCertificates(SslConfig sslConfig) {
+        super.loadCertificates(sslConfig);
+        config.config("server").config("ssl").put("cert", sslConfig.getCertFile());
+        config.config("server").config("ssl").put("key", sslConfig.getKeyFile());
     }
 }
