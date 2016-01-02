@@ -7,7 +7,6 @@ import com.wizzardo.http.framework.template.RenderResult;
 import com.wizzardo.http.framework.template.Renderer;
 import com.wizzardo.http.framework.template.TagLib;
 import com.wizzardo.http.framework.template.taglib.g.CreateLink;
-import com.wizzardo.http.framework.template.taglib.g.Link;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -38,6 +37,7 @@ public class CreateLinkTest extends WebApplicationTest implements TagTest {
         server.getUrlMapping()
                 .append("/book/list", BookController.class, "list")
                 .append("/book/$id", BookController.class, "show")
+                .append("/static/*", "static", (request, response) -> response.body("static content"))
         ;
     }
 
@@ -88,6 +88,11 @@ public class CreateLinkTest extends WebApplicationTest implements TagTest {
         model.put("id", 1);
         Assert.assertEquals("/book/1\n", new CreateLink().init(new LinkedHashMap<>(attrs)).get(model).toString());
 
+        model.clear();
+        attrs.clear();
+        attrs.put("mapping", "static");
+        attrs.put("path", "/js/app.js");
+        Assert.assertEquals("/static/js/app.js\n", new CreateLink().init(new LinkedHashMap<>(attrs)).get(model).toString());
     }
 
     @Test
@@ -118,8 +123,12 @@ public class CreateLinkTest extends WebApplicationTest implements TagTest {
                 .get(new Model());
         Assert.assertEquals("/book/list#foo\n", result.toString());
 
+        result = prepare("${createLink([mapping:'static', path:'/js/app.js'])}")
+                .get(new Model());
+        Assert.assertEquals("/static/js/app.js\n", result.toString());
+
         checkException(() -> prepare("${createLink([controller:'none', action:'list'])}").get(new Model()),
-                IllegalStateException.class, "can not find mapping for controller 'none' and action:'list'");
+                IllegalStateException.class, "can not find mapping for 'none.list'");
     }
 
     @Test
@@ -134,6 +143,6 @@ public class CreateLinkTest extends WebApplicationTest implements TagTest {
     @Test
     public void test_exception() {
         checkException(() -> prepare("<div><g:createLink controller=\"none\" action=\"index\" params=\"[id: 1]\"/></div>"),
-                IllegalStateException.class, "can not find mapping for controller 'none' and action:'index'");
+                IllegalStateException.class, "can not find mapping for 'none.index'");
     }
 }

@@ -109,6 +109,18 @@ public class RenderTest {
         Assert.assertEquals(2, l.size());
         Assert.assertEquals("abc", l.get(0).get(null).toString());
         Assert.assertEquals("abcabc", l.get(1).get(model).toString());
+
+
+        reset(l, model);
+        s = "a${b+\"${c}d\"}e";
+        model.put("b", "b");
+        model.put("c", "c");
+        ViewRenderer.prepare(s, l);
+        Assert.assertEquals(3, l.size());
+        Assert.assertEquals("abcde", l.get(model).toString());
+        Assert.assertEquals("a", l.get(0).get(null).toString());
+        Assert.assertEquals("bcd", l.get(1).get(model).toString());
+        Assert.assertEquals("e", l.get(2).get(model).toString());
     }
 
     private void reset(List l, Map m) {

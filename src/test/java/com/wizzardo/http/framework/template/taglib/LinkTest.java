@@ -99,6 +99,6 @@ public class LinkTest extends WebApplicationTest implements TagTest {
     @Test
     public void test_exception() {
         checkException(() -> prepare("<div><g:link controller=\"none\" action=\"index\" params=\"[id: 1]\">text</g:link></div>"),
-                IllegalStateException.class, "can not find mapping for controller 'none' and action:'index'");
+                IllegalStateException.class, "can not find mapping for 'none.index'");
     }
 }

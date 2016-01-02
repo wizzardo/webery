@@ -24,7 +24,7 @@ public class ViewRenderer extends Renderer {
     private String controller;
     private String template;
 
-    private static Pattern p = Pattern.compile("\\$\\{([^\\{\\}]+)\\}|\\$([\\w]+)");
+    private static Pattern p = Pattern.compile("\\$\\{(.+)\\}|\\$([\\w]+)");
     private static Cache<Pair<String, String>, RenderableList> viewsCache = new Cache<>(10, s -> prepareView(s.key, s.value));
 
     public ViewRenderer(Model model, String controller, String view) {
@@ -99,11 +99,8 @@ public class ViewRenderer extends Renderer {
             int last = 0;
             while (m.find()) {
                 l.append(s.substring(last, m.start()));
-                String exp = m.group(1);
-                if (exp == null) {
-                    exp = m.group(2);
-                }
-                l.add(new ExpressionHolder(exp, imports, false));
+                String exp = m.group();
+                l.add(new ExpressionHolder(exp, imports, true));
                 last = m.end();
             }
             if (last != s.length()) {

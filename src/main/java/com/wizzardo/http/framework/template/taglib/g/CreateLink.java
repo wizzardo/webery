@@ -1,10 +1,10 @@
 package com.wizzardo.http.framework.template.taglib.g;
 
 import com.wizzardo.http.Handler;
+import com.wizzardo.http.framework.ControllerUrlMapping;
 import com.wizzardo.http.framework.RequestContext;
 import com.wizzardo.http.framework.di.DependencyFactory;
 import com.wizzardo.http.framework.template.*;
-import com.wizzardo.http.mapping.UrlMapping;
 import com.wizzardo.http.mapping.UrlTemplate;
 import com.wizzardo.tools.evaluation.AsBooleanExpression;
 
@@ -17,43 +17,49 @@ import java.util.Map;
  */
 public class CreateLink extends Tag implements RenderableString {
 
-    protected UrlMapping<Handler> urlMapping = DependencyFactory.getDependency(UrlMapping.class);
+    protected ControllerUrlMapping urlMapping = DependencyFactory.getDependency(ControllerUrlMapping.class);
 
     @Override
     public Tag init(Map<String, String> attrs, Body body, String offset) {
-        String controller = attrs.remove("controller");
-        if (controller == null)
-            controller = ((RequestContext) Thread.currentThread()).controller();
+        String mapping = remove(attrs, "mapping", false);
+        if (mapping == null) {
+            String controller = attrs.remove("controller");
+            if (controller == null)
+                controller = ((RequestContext) Thread.currentThread()).controller();
 
-        String action = attrs.remove("action");
-        if (action == null)
-            action = ((RequestContext) Thread.currentThread()).action();
+            String action = attrs.remove("action");
+            if (action == null)
+                action = ((RequestContext) Thread.currentThread()).action();
+
+            mapping = urlMapping.toMapping(controller, action);
+        }
 
         ExpressionHolder base = asExpression(attrs, "base", true, false);
         ExpressionHolder fragment = asExpression(attrs, "fragment", true, false);
         ExpressionHolder absolute = asExpression(attrs, "absolute", false, false);
+        ExpressionHolder suffix = asExpression(attrs, "path", true, false);
 
         append(offset);
         beforeAppendUrl(attrs, body, offset);
 
         ExpressionHolder<Map<String, Object>> params = asExpression(remove(attrs, "params", "[:]"), false);
 
-        UrlTemplate template = urlMapping.getUrlTemplate(controller + "." + action);
+        UrlTemplate template = urlMapping.getUrlTemplate(mapping);
 
         if (template == null)
-            throw new IllegalStateException("can not find mapping for controller '" + controller + "' and action:'" + action + "'");
+            throw new IllegalStateException("can not find mapping for '" + mapping + "'");
 
         if (base != null) {
-            add(model -> new RenderResult(template.getUrl(String.valueOf(base.getRaw(model)), params.getRaw(model))));
+            add(model -> new RenderResult(template.getUrl(asString(base, model), params.getRaw(model), asString(suffix, model))));
         } else if (absolute != null)
             add(model -> {
                 if (AsBooleanExpression.toBoolean(absolute.getRaw(model)))
-                    return new RenderResult(template.getAbsoluteUrl(params.getRaw(model)));
+                    return new RenderResult(template.getAbsoluteUrl(params.getRaw(model), asString(suffix, model)));
                 else
-                    return new RenderResult(template.getRelativeUrl(params.getRaw(model)));
+                    return new RenderResult(template.getRelativeUrl(params.getRaw(model), asString(suffix, model)));
             });
         else
-            add(model -> new RenderResult(template.getRelativeUrl(params.getRaw(model))));
+            add(model -> new RenderResult(template.getRelativeUrl(params.getRaw(model), asString(suffix, model))));
 
         if (fragment != null) {
             append("#").append(fragment);
@@ -65,6 +71,13 @@ public class CreateLink extends Tag implements RenderableString {
         return this;
     }
 
+    protected String asString(ExpressionHolder exp, Map<String, Object> model) {
+        if (exp == null)
+            return null;
+
+        return String.valueOf(exp.getRaw(model));
+    }
+
     protected void beforeAppendUrl(Map<String, String> attrs, Body body, String offset) {
     }
 
@@ -73,17 +86,22 @@ public class CreateLink extends Tag implements RenderableString {
 
     @Override
     public String render(Map<String, Object> attrs) {
-        String controller = (String) attrs.remove("controller");
-        if (controller == null)
-            controller = ((RequestContext) Thread.currentThread()).controller();
+        String mapping = (String) attrs.remove("mapping");
+        if (mapping == null) {
+            String controller = (String) attrs.remove("controller");
+            if (controller == null)
+                controller = ((RequestContext) Thread.currentThread()).controller();
 
-        String action = (String) attrs.remove("action");
-        if (action == null)
-            action = ((RequestContext) Thread.currentThread()).action();
+            String action = (String) attrs.remove("action");
+            if (action == null)
+                action = ((RequestContext) Thread.currentThread()).action();
 
+            mapping = urlMapping.toMapping(controller, action);
+        }
         String base = (String) attrs.remove("base");
         String fragment = (String) attrs.remove("fragment");
         Boolean absolute = (Boolean) attrs.remove("absolute");
+        String suffix = (String) attrs.remove("path");
         Object id = attrs.remove("id");
 
         Map<String, Object> params = (Map) attrs.remove("params");
@@ -98,18 +116,18 @@ public class CreateLink extends Tag implements RenderableString {
             params.put("id", id);
         }
 
-        UrlTemplate template = getUrlTemplate(controller, action);
+        UrlTemplate template = getUrlTemplate(mapping);
         if (template == null)
-            throw new IllegalStateException("can not find mapping for controller '" + controller + "' and action:'" + action + "'");
+            throw new IllegalStateException("can not find mapping for '" + mapping + "'");
 
         String url;
 
         if (base != null) {
-            url = template.getUrl(base, params);
+            url = template.getUrl(base, params, suffix);
         } else if (absolute != null && absolute)
-            url = template.getAbsoluteUrl(params);
+            url = template.getAbsoluteUrl(params, suffix);
         else
-            url = template.getRelativeUrl(params);
+            url = template.getRelativeUrl(params, suffix);
 
         if (fragment != null && fragment.length() > 0)
             return url + "#" + fragment;
@@ -120,9 +138,5 @@ public class CreateLink extends Tag implements RenderableString {
 
     protected UrlTemplate getUrlTemplate(String name) {
         return urlMapping.getUrlTemplate(name);
-    }
-
-    protected UrlTemplate getUrlTemplate(String controller, String action) {
-        return getUrlTemplate(controller + "." + action);
     }
 }

@@ -48,7 +48,11 @@ public class UrlTemplate {
     }
 
     public String getUrl(String base, Map<String, Object> params) {
-        return getRelativeUrl(params, null, new StringBuilder(base));
+        return getUrl(base, params, null);
+    }
+
+    public String getUrl(String base, Map<String, Object> params, String suffix) {
+        return getRelativeUrl(params, suffix, new StringBuilder(base));
     }
 
     public String getAbsoluteUrl() {
