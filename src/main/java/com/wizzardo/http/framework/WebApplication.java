@@ -60,14 +60,30 @@ public class WebApplication extends HttpServer<HttpConnection> {
         TagLib.findTags(classes);
         DependencyFactory.get().register(DecoratorLib.class, new SingletonDependency<>(new DecoratorLib(classes)));
 
+        setupApplication();
+
+        super.onStart();
+        System.out.println("application has started");
+        System.out.println("environment: " + environment);
+    }
+
+    protected void setupApplication() {
         Config server = config.config("server");
         setHost(server.get("host", (String) null));
         setPort(server.get("port", 8080));
         setContext(server.get("context", (String) null));
 
-        super.onStart();
-        System.out.println("application has started");
-        System.out.println("environment: " + environment);
+        int workers = server.get("ioWorkersCount", -1);
+        if (workers > 0)
+            setIoThreadsCount(workers);
+
+        workers = server.get("workersCount", -1);
+        if (workers > 0)
+            setWorkersCount(workers);
+
+        int ttl = server.get("ttl", -1);
+        if (ttl > 0)
+            setTTL(ttl);
     }
 
     protected ResourceTools createResourceTools() {
@@ -80,7 +96,8 @@ public class WebApplication extends HttpServer<HttpConnection> {
         Holders.setApplication(this);
         resourcesTools = createResourceTools();
         DependencyFactory.get().register(ResourceTools.class, new SingletonDependency<>(resourcesTools));
-        DependencyFactory.get().register(UrlMapping.class, new SingletonDependency<>(urlMapping));
+        DependencyFactory.get().register(UrlMapping.class, new SingletonDependency<>(getUrlMapping()));
+        DependencyFactory.get().register(ControllerUrlMapping.class, new SingletonDependency<>(getUrlMapping()));
 
         MessageBundle bundle = initMessageSource();
         DependencyFactory.get().register(MessageSource.class, new SingletonDependency<>(bundle));
