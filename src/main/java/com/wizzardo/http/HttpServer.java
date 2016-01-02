@@ -24,7 +24,6 @@ public class HttpServer<T extends HttpConnection> extends AbstractHttpServer<T> 
     protected FiltersMapping filtersMapping;
     protected UrlMapping<Handler> urlMapping;
     protected ServerDate serverDate = new ServerDate();
-    protected String context;
 
     public HttpServer() {
         init();
@@ -121,10 +120,5 @@ public class HttpServer<T extends HttpConnection> extends AbstractHttpServer<T> 
         else
             response.setStatus(Status._404).setBody(request.path() + " not found");
         return response;
-    }
-
-    public void setContext(String context) {
-        checkIfStarted();
-        this.context = context;
     }
 }

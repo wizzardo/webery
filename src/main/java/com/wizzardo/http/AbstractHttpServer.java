@@ -18,6 +18,7 @@ public abstract class AbstractHttpServer<T extends HttpConnection> extends Epoll
     protected volatile BlockingQueue<T> queue = new LinkedBlockingQueue<>();
     protected volatile int workersCount;
     protected volatile int sessionTimeoutSec = 30 * 60;
+    protected String context;
 
     protected MimeProvider mimeProvider;
 
@@ -137,6 +138,15 @@ public abstract class AbstractHttpServer<T extends HttpConnection> extends Epoll
     public void setWorkersCount(int count) {
         checkIfStarted();
         this.workersCount = count;
+    }
+
+    public void setContext(String context) {
+        checkIfStarted();
+        this.context = context;
+    }
+
+    public String getContext() {
+        return context;
     }
 
     public MimeProvider getMimeProvider() {

@@ -54,6 +54,10 @@ public class Request<C extends HttpConnection> {
         return path;
     }
 
+    public String context() {
+        return connection.getServer().getContext();
+    }
+
     public String protocol() {
         return protocol;
     }

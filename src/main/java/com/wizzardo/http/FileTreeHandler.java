@@ -2,6 +2,7 @@ package com.wizzardo.http;
 
 import com.wizzardo.http.html.HtmlBuilder;
 import com.wizzardo.http.html.Tag;
+import com.wizzardo.http.mapping.Path;
 import com.wizzardo.http.request.Header;
 import com.wizzardo.http.request.Request;
 import com.wizzardo.http.response.RangeResponseHelper;
@@ -52,10 +53,14 @@ public class FileTreeHandler<T extends FileTreeHandler.HandlerContext> implement
 
     @Override
     public Response handle(Request request, Response response) {
-        String path = request.path().toString();
+        Path p = request.path();
+        if (request.context() != null)
+            p = p.subPath(1);
+
+        String path = p.toString();
 
         if (!path.startsWith(prefix))
-            return response.setStatus(Status._400).setBody("path must starts with prefix '" + prefix + "'");
+            return response.setStatus(Status._400).setBody("path must starts with prefix '" + prefix + "'. path=" + path);
 
         if (!prefix.isEmpty())
             path = path.substring(prefix.length(), path.length());
