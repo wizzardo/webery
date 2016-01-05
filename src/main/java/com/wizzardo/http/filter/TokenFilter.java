@@ -32,10 +32,9 @@ public class TokenFilter implements AuthFilter {
     @Override
     public boolean filter(Request request, Response response) {
         String token;
-        if ((token = request.param("token")) == null)
+        byte[] data;
+        if ((token = request.param("token")) == null || (data = Base64.decodeFast(token, true)).length < 40)
             return authFilter.filter(request, response);
-
-        byte[] data = Base64.decodeFast(token, true);
 
         BytesHolder secret = hashes.get(new BytesHolder(data, 0, 16));
         if (secret == null)
