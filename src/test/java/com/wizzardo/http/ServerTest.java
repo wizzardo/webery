@@ -7,6 +7,7 @@ import com.wizzardo.http.response.Response;
 import com.wizzardo.tools.http.HttpClient;
 import com.wizzardo.tools.http.HttpSession;
 import com.wizzardo.tools.io.IOTools;
+import com.wizzardo.tools.misc.Unchecked;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -57,11 +58,17 @@ public class ServerTest<S extends HttpServer> {
 
             @Override
             public MimeProvider getMimeProvider() {
-                return new MimeProvider(){
+                return new MimeProvider() {
                     @Override
                     protected void init() throws IOException {
                     }
                 };
+            }
+
+            @Override
+            protected void onError(HttpConnection connection, Exception e) {
+                e.printStackTrace();
+                Assert.fail(e.getMessage());
             }
         };
         server.setIoThreadsCount(1);
