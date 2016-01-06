@@ -28,7 +28,7 @@ public class BlockReader {
         process(bytes, 0, bytes.length);
     }
 
-    protected void process(byte[] bytes, int offset, int length) {
+    public void process(byte[] bytes, int offset, int length) {
         if (length <= 0)
             return;
 
