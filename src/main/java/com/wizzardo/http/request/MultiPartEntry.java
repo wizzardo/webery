@@ -42,7 +42,7 @@ public abstract class MultiPartEntry {
     public void delete() {
     }
 
-    void header(String key, String value) {
+    public void header(String key, String value) {
         headers.put(key, value);
     }
 
@@ -58,5 +58,5 @@ public abstract class MultiPartEntry {
 
     public abstract InputStream inputStream() throws IOException;
 
-    abstract OutputStream outputStream() throws IOException;
+    public abstract OutputStream outputStream() throws IOException;
 }

@@ -115,8 +115,12 @@ public abstract class AbstractHttpServer<T extends HttpConnection> extends Epoll
     }
 
     protected boolean finishHandling(T connection) throws IOException {
-        if (connection.getResponse().isAsync())
+        if (connection.getResponse().isAsync()) {
+            if (connection.getInputListener() != null)
+                connection.getInputListener().onReady(connection);
+
             return false;
+        }
 
         connection.getResponse().commit(connection);
         connection.flushOutputStream();

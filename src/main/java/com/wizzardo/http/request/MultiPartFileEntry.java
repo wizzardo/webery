@@ -25,7 +25,7 @@ public class MultiPartFileEntry extends MultiPartEntry {
     }
 
     @Override
-    OutputStream outputStream() throws IOException {
+    public OutputStream outputStream() throws IOException {
         return new FileOutputStream(file);
     }
 

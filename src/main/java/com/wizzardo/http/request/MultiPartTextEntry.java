@@ -37,7 +37,7 @@ public class MultiPartTextEntry extends MultiPartEntry {
     }
 
     @Override
-    OutputStream outputStream() throws IOException {
+    public OutputStream outputStream() throws IOException {
         return data = new ByteArrayOutputStream();
     }
 }

@@ -187,6 +187,14 @@ public class Request<C extends HttpConnection> {
         return multiPartEntryMap.get(key);
     }
 
+    public void entry(String key, MultiPartEntry entry) {
+        multiPartDataPrepared = true;
+        if (multiPartEntryMap == null)
+            multiPartEntryMap = new HashMap<>();
+
+        multiPartEntryMap.put(key, entry);
+    }
+
     public Collection<MultiPartEntry> entries() {
         return multiPartEntryMap.values();
     }

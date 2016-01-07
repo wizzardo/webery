@@ -54,6 +54,19 @@ public class HttpConnection<H extends AbstractHttpServer, Q extends Request, S e
         return buffer.length - position;
     }
 
+    int getBufferPosition() {
+        return position;
+    }
+
+    void resetBuffer() {
+        position = 0;
+        r = 0;
+    }
+
+    int getBufferLimit() {
+        return r;
+    }
+
     public State getState() {
         return state;
     }
@@ -174,7 +187,7 @@ public class HttpConnection<H extends AbstractHttpServer, Q extends Request, S e
     private boolean checkData(ByteBuffer bb) {
         if (request.contentLength() > 0) {
             if (request.getBody() == null || request.isMultipart()) {
-                getInputStream();
+//                getInputStream();
                 return true;
             }
             ready = request.getBody().read(buffer, position, r - position);
@@ -218,6 +231,10 @@ public class HttpConnection<H extends AbstractHttpServer, Q extends Request, S e
             r = 0;
         }
         return true;
+    }
+
+    public InputListener<HttpConnection> getInputListener() {
+        return inputListener;
     }
 
     @Override
