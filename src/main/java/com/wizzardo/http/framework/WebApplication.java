@@ -2,6 +2,9 @@ package com.wizzardo.http.framework;
 
 import com.wizzardo.epoll.IOThread;
 import com.wizzardo.epoll.SslConfig;
+import com.wizzardo.http.filter.AuthFilter;
+import com.wizzardo.http.filter.BasicAuthFilter;
+import com.wizzardo.http.filter.TokenFilter;
 import com.wizzardo.tools.evaluation.Config;
 import com.wizzardo.http.*;
 import com.wizzardo.http.framework.di.DependencyFactory;
@@ -84,6 +87,37 @@ public class WebApplication extends HttpServer<HttpConnection> {
         int ttl = server.get("ttl", -1);
         if (ttl > 0)
             setTTL(ttl);
+
+        loadSslConfiguration(server);
+
+        loadBasicAuthConfiguration(server);
+    }
+
+    protected void loadBasicAuthConfiguration(Config server) {
+        Config basicAuth = server.config("basicAuth");
+        String username = basicAuth.get("username", "");
+        String password = basicAuth.get("password", "");
+        if (!username.isEmpty() && !password.isEmpty()) {
+            Config tokenized = basicAuth.config("tokenized");
+            AuthFilter auth = new BasicAuthFilter().allow(username, password);
+            if (!tokenized.isEmpty()) {
+                auth = new TokenFilter(auth);
+                for (String name : tokenized.keySet()) {
+                    urlMapping.append("/" + name + "/*", name, new FileTreeHandler<>(tokenized.get(name, ""), "/" + name)
+                            .setShowFolder(false));
+                }
+            }
+
+            filtersMapping.addBefore("/*", auth);
+        }
+    }
+
+    protected void loadSslConfiguration(Config server) {
+        Config ssl = server.config("ssl");
+        String cert = ssl.get("cert", "");
+        String key = ssl.get("key", "");
+        if (!cert.isEmpty() && !key.isEmpty())
+            loadCertificates(cert, key);
     }
 
     protected ResourceTools createResourceTools() {
@@ -178,6 +212,12 @@ public class WebApplication extends HttpServer<HttpConnection> {
 
     @Override
     public void setContext(String context) {
+        while (context != null && context.startsWith("/"))
+            context = context.substring(1);
+
+        if (context != null && context.isEmpty())
+            context = null;
+
         super.setContext(context);
         config.config("server").put("context", context);
     }
