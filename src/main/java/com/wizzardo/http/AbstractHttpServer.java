@@ -3,6 +3,7 @@ package com.wizzardo.http;
 import com.wizzardo.epoll.ByteBufferProvider;
 import com.wizzardo.epoll.EpollServer;
 import com.wizzardo.epoll.IOThread;
+import com.wizzardo.http.response.Status;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -72,13 +73,10 @@ public abstract class AbstractHttpServer<T extends HttpConnection> extends Epoll
             if (!connection.isRequestReady())
                 return false;
 
-        } catch (IOException e) {
+        } catch (Exception e) {
+            connection.setCloseOnFinishWriting(true);
+            connection.getResponse().status(Status._400).commit(connection);
             e.printStackTrace();
-            try {
-                connection.close();
-            } catch (IOException e1) {
-                e1.printStackTrace();
-            }
             return false;
         }
 
