@@ -99,7 +99,7 @@ public class WebApplication extends HttpServer<HttpConnection> {
         String password = basicAuth.get("password", "");
         if (!username.isEmpty() && !password.isEmpty()) {
             Config tokenized = basicAuth.config("tokenized");
-            AuthFilter auth = new BasicAuthFilter().allow(username, password);
+            AuthFilter auth = new BasicAuthFilter();
             if (!tokenized.isEmpty()) {
                 TokenFilter tokenFilter = new TokenFilter(auth);
                 DependencyFactory.get().register(TokenFilter.class, new SingletonDependency<>(tokenFilter));
@@ -109,7 +109,7 @@ public class WebApplication extends HttpServer<HttpConnection> {
                             .setShowFolder(false));
                 }
             }
-
+            auth.allow(username, password);
             filtersMapping.addBefore("/*", auth);
         }
     }
