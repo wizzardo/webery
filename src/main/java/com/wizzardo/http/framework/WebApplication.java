@@ -101,7 +101,9 @@ public class WebApplication extends HttpServer<HttpConnection> {
             Config tokenized = basicAuth.config("tokenized");
             AuthFilter auth = new BasicAuthFilter().allow(username, password);
             if (!tokenized.isEmpty()) {
-                auth = new TokenFilter(auth);
+                TokenFilter tokenFilter = new TokenFilter(auth);
+                DependencyFactory.get().register(TokenFilter.class, new SingletonDependency<>(tokenFilter));
+                auth = tokenFilter;
                 for (String name : tokenized.keySet()) {
                     urlMapping.append("/" + name + "/*", name, new FileTreeHandler<>(tokenized.get(name, ""), "/" + name)
                             .setShowFolder(false));
