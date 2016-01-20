@@ -1,14 +1,11 @@
 package com.wizzardo.http.framework.template.taglib;
 
 import com.wizzardo.http.framework.template.*;
-import com.wizzardo.http.framework.template.taglib.g.Each;
 import com.wizzardo.http.framework.template.taglib.g.Set;
-import com.wizzardo.tools.xml.Node;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.util.Arrays;
 import java.util.Collections;
 
 /**
@@ -28,6 +25,16 @@ public class SetTest implements TagTest {
         Assert.assertEquals("" +
                 "<div>\n" +
                 "    1\n" +
+                "</div>\n", result.toString());
+    }
+
+    @Test
+    public void test_2() {
+        RenderResult result = prepare("<div><g:set value=\"${1}\" var=\"i\"/>${i.class.simpleName}</div>").get(new Model());
+
+        Assert.assertEquals("" +
+                "<div>\n" +
+                "    Integer\n" +
                 "</div>\n", result.toString());
     }
 
