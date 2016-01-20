@@ -14,11 +14,11 @@ public class Holders {
     }
 
     public static Environment getEnvironment() {
-        return application.getEnvironment();
+        return application != null ? application.getEnvironment() : null;
     }
 
     public static Config getConfig() {
-        return application.getConfig();
+        return application != null ? application.getConfig() : null;
     }
 
     static void setApplication(WebApplication app) {
