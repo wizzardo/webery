@@ -11,4 +11,15 @@ public enum Environment {
     Environment(String shortName) {
         this.shortName = shortName;
     }
+
+    public static Environment parse(String s) {
+        if (DEVELOPMENT.shortName.equals(s))
+            return DEVELOPMENT;
+        if (PRODUCTION.shortName.equals(s))
+            return PRODUCTION;
+        if (TEST.shortName.equals(s))
+            return TEST;
+
+        return Environment.valueOf(s == null ? null : s.toUpperCase());
+    }
 }
