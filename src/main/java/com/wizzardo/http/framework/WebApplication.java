@@ -15,6 +15,7 @@ import com.wizzardo.http.framework.template.*;
 import com.wizzardo.http.mapping.UrlMapping;
 import com.wizzardo.tools.evaluation.EvalTools;
 import com.wizzardo.tools.io.FileTools;
+import com.wizzardo.tools.misc.Consumer;
 
 import java.io.File;
 import java.util.List;
@@ -29,6 +30,7 @@ public class WebApplication extends HttpServer<HttpConnection> {
     protected Environment environment = Environment.DEVELOPMENT;
     protected Config config;
     protected ResourceTools resourcesTools;
+    protected Consumer<WebApplication> onSetup;
 
     public WebApplication setEnvironment(Environment environment) {
         checkIfStarted();
@@ -38,6 +40,10 @@ public class WebApplication extends HttpServer<HttpConnection> {
 
     public Environment getEnvironment() {
         return environment;
+    }
+
+    public void onSetup(Consumer<WebApplication> onSetup) {
+        this.onSetup = onSetup;
     }
 
     protected void onStart() {
@@ -64,6 +70,8 @@ public class WebApplication extends HttpServer<HttpConnection> {
         DependencyFactory.get().register(DecoratorLib.class, new SingletonDependency<>(new DecoratorLib(classes)));
 
         setupApplication();
+        if (onSetup != null)
+            onSetup.consume(this);
 
         super.onStart();
         System.out.println("application has started");
