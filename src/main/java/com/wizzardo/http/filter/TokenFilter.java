@@ -16,6 +16,7 @@ import java.util.Map;
 public class TokenFilter implements AuthFilter {
 
     protected final long HOUR = 60l * 60 * 1000;
+    protected long ttl;
 
     //secret = md5(user:password)
     //key = md5(user)
@@ -27,6 +28,7 @@ public class TokenFilter implements AuthFilter {
 
     public TokenFilter(AuthFilter authFilter) {
         this.authFilter = authFilter;
+        ttl = 12 * HOUR;
     }
 
     @Override
@@ -68,6 +70,14 @@ public class TokenFilter implements AuthFilter {
         return this;
     }
 
+    public void setTTL(long ttlMs) {
+        ttl = ttlMs;
+    }
+
+    public long getTTL() {
+        return ttl;
+    }
+
     @Override
     public String getUser(Request request) {
         return authFilter.getUser(request);
@@ -81,7 +91,7 @@ public class TokenFilter implements AuthFilter {
         MD5.create().update(getUser(request)).asBytes(token, 0); // key
         BytesHolder secret = hashes.get(new BytesHolder(token, 0, 16));
 
-        long timestamp = System.currentTimeMillis() + HOUR * 12;
+        long timestamp = System.currentTimeMillis() + ttl;
         BytesTools.toBytes(timestamp, token, 32, 8);
         MD5.create().update(token, 32, 8).update(secret.bytes).asBytes(token, 16);
         return Base64.encodeToString(token, false, true);

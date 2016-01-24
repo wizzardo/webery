@@ -111,6 +111,10 @@ public class WebApplication extends HttpServer<HttpConnection> {
             Config tokenized = basicAuth.config("tokenized");
             if ((tokenEnabled != null && tokenEnabled) || (tokenEnabled == null && !tokenized.isEmpty())) {
                 TokenFilter tokenFilter = new TokenFilter(auth);
+                long ttl = basicAuth.get("tokenTTL", -1l);
+                if (ttl > 0)
+                    tokenFilter.setTTL(ttl);
+
                 DependencyFactory.get().register(TokenFilter.class, new SingletonDependency<>(tokenFilter));
                 auth = tokenFilter;
                 for (String name : tokenized.keySet()) {
