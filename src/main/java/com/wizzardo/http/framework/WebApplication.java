@@ -106,9 +106,10 @@ public class WebApplication extends HttpServer<HttpConnection> {
         String username = basicAuth.get("username", "");
         String password = basicAuth.get("password", "");
         if (!username.isEmpty() && !password.isEmpty()) {
-            Config tokenized = basicAuth.config("tokenized");
             AuthFilter auth = new BasicAuthFilter();
-            if (!tokenized.isEmpty()) {
+            Boolean tokenEnabled = basicAuth.get("token", (Boolean) null);
+            Config tokenized = basicAuth.config("tokenized");
+            if ((tokenEnabled != null && tokenEnabled) || (tokenEnabled == null && !tokenized.isEmpty())) {
                 TokenFilter tokenFilter = new TokenFilter(auth);
                 DependencyFactory.get().register(TokenFilter.class, new SingletonDependency<>(tokenFilter));
                 auth = tokenFilter;
