@@ -11,13 +11,13 @@ import java.io.File;
 public class TokenizedFileTreeHandler<T extends TokenizedFileTreeHandler.HandlerContextWithToken> extends FileTreeHandler<T> {
     protected TokenFilter tokenFilter;
 
-    public TokenizedFileTreeHandler(File workDir, String prefix, TokenFilter tokenFilter) {
-        super(workDir, prefix);
+    public TokenizedFileTreeHandler(File workDir, String prefix, TokenFilter tokenFilter, String name) {
+        super(workDir, prefix, name);
         this.tokenFilter = tokenFilter;
     }
 
-    public TokenizedFileTreeHandler(String workDir, String prefix, TokenFilter tokenFilter) {
-        super(workDir, prefix);
+    public TokenizedFileTreeHandler(String workDir, String prefix, TokenFilter tokenFilter, String name) {
+        super(workDir, prefix, name);
         this.tokenFilter = tokenFilter;
     }
 

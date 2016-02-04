@@ -1,5 +1,7 @@
 package com.wizzardo.http.mapping;
 
+import com.wizzardo.http.Named;
+
 import java.util.*;
 import java.util.regex.Pattern;
 
@@ -141,7 +143,7 @@ public class ChainUrlMapping<T> extends UrlMapping<ChainUrlMapping.Chain<T>> {
                 addToAll(entry.getValue(), t);
     }
 
-    public static class Chain<T> implements Iterable<T> {
+    public static class Chain<T> implements Iterable<T>, Named {
         Set<T> chain = new LinkedHashSet<>();
 
         @Override

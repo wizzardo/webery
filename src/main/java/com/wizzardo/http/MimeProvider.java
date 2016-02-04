@@ -14,7 +14,7 @@ import java.io.IOException;
 public class MimeProvider {
     private static final String APACHE_MIME_TYPES_URL = "http://svn.apache.org/viewvc/httpd/httpd/branches/2.4.x/docs/conf/mime.types?view=co";
 
-    private UrlMapping<String> types = new UrlMapping<>();
+    private UrlMapping<Holder> types = new UrlMapping<>();
 
     public MimeProvider() {
         try {
@@ -32,13 +32,14 @@ public class MimeProvider {
 
             String[] type = s.split("\\s+");
             for (int i = 1; i < type.length; i++) {
-                types.append("*." + type[i], type[0]);
+                types.append("*." + type[i], new Holder(type[0]));
             }
         }
     }
 
     public String getMimeType(String fileName) {
-        return types.get(fileName);
+        Holder holder = types.get(fileName);
+        return holder != null ? holder.value : null;
     }
 
     public Response provideContentType(Response response, File file) {
@@ -47,5 +48,13 @@ public class MimeProvider {
             return response;
 
         return response.appendHeader(Header.KEY_CONTENT_TYPE, type);
+    }
+
+    private static class Holder implements Named {
+        final String value;
+
+        private Holder(String value) {
+            this.value = value;
+        }
     }
 }

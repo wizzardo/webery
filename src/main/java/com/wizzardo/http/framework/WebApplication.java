@@ -63,7 +63,7 @@ public class WebApplication extends HttpServer<HttpConnection> {
 
         File staticResources = resourcesTools.getResourceFile("public");
         if (staticResources != null && staticResources.exists())
-            urlMapping.append("/static/*", "static", new FileTreeHandler<>(staticResources, "/static")
+            urlMapping.append("/static/*", new FileTreeHandler<>(staticResources, "/static", "static")
                     .setShowFolder(false));
 
         TagLib.findTags(classes);
@@ -118,7 +118,7 @@ public class WebApplication extends HttpServer<HttpConnection> {
                 DependencyFactory.get().register(TokenFilter.class, new SingletonDependency<>(tokenFilter));
                 auth = tokenFilter;
                 for (String name : tokenized.keySet()) {
-                    urlMapping.append("/" + name + "/*", name, new FileTreeHandler<>(tokenized.get(name, ""), "/" + name)
+                    urlMapping.append("/" + name + "/*", new FileTreeHandler<>(tokenized.get(name, ""), "/" + name, name)
                             .setShowFolder(false));
                 }
             }

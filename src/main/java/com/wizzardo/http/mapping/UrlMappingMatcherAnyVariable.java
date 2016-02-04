@@ -1,11 +1,12 @@
 package com.wizzardo.http.mapping;
 
+import com.wizzardo.http.Named;
 import com.wizzardo.http.request.Request;
 
 /**
 * Created by wizzardo on 27.03.15.
 */
-class UrlMappingMatcherAnyVariable<T> extends UrlMappingWithVariables<T> {
+class UrlMappingMatcherAnyVariable<T extends Named> extends UrlMappingWithVariables<T> {
     protected String variable;
 
     protected UrlMappingMatcherAnyVariable(UrlMapping<T> parent, String part, int partNumber) {

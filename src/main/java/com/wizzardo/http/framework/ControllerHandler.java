@@ -30,6 +30,10 @@ public class ControllerHandler implements Handler {
         actionName = action;
     }
 
+    @Override
+    public String name() {
+        return getControllerName() + "." + getActionName();
+    }
 
     @Override
     public Response handle(Request request, Response response) throws IOException {

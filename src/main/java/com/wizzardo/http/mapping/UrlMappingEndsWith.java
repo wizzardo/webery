@@ -1,5 +1,6 @@
 package com.wizzardo.http.mapping;
 
+import com.wizzardo.http.Named;
 import com.wizzardo.tools.misc.CharTree;
 
 import java.util.List;
@@ -7,7 +8,7 @@ import java.util.List;
 /**
 * Created by wizzardo on 27.03.15.
 */
-class UrlMappingEndsWith<T> extends UrlMapping<T> {
+class UrlMappingEndsWith<T extends Named> extends UrlMapping<T> {
     protected CharTree<UrlMapping<T>> endsWith = new CharTree<>();
 
     protected UrlMappingEndsWith(UrlMapping<T> parent) {

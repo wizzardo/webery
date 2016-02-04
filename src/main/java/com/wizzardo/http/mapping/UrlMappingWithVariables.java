@@ -1,5 +1,6 @@
 package com.wizzardo.http.mapping;
 
+import com.wizzardo.http.Named;
 import com.wizzardo.http.request.Request;
 
 import java.util.ArrayList;
@@ -10,7 +11,7 @@ import java.util.regex.Pattern;
 /**
 * Created by wizzardo on 27.03.15.
 */
-class UrlMappingWithVariables<T> extends UrlMappingMatcher<T> {
+class UrlMappingWithVariables<T extends Named> extends UrlMappingMatcher<T> {
     String[] variables;
     Pattern pattern;
     int partNumber;

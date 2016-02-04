@@ -1,5 +1,6 @@
 package com.wizzardo.http.mapping;
 
+import com.wizzardo.http.Named;
 import com.wizzardo.http.request.ByteTree;
 import com.wizzardo.http.request.Request;
 
@@ -10,7 +11,7 @@ import java.util.regex.Pattern;
  * @author: wizzardo
  * Date: 25.09.14
  */
-public class UrlMapping<T> {
+public class UrlMapping<T extends Named> {
     public static final ByteTree SEGMENT_CACHE = new ByteTree();
 
     static final Pattern VARIABLES = Pattern.compile("\\$\\{?([a-zA-Z_]+[\\w]*)\\}?");
@@ -153,6 +154,9 @@ public class UrlMapping<T> {
     }
 
     public UrlMapping<T> append(String url, String name, T handler) {
+        if (name == null)
+            name = handler.name();
+
         if (name != null)
             urlTemplates.append(name, url);
 

@@ -9,7 +9,7 @@ import java.io.IOException;
  * @author: wizzardo
  * Date: 07.09.14
  */
-public interface Handler {
+public interface Handler extends Named {
 
-    public Response handle(Request request, Response response) throws IOException;
+    Response handle(Request request, Response response) throws IOException;
 }

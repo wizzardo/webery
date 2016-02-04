@@ -24,6 +24,11 @@ public class MultipartHandler implements Handler {
     }
 
     @Override
+    public String name() {
+        return handler.name();
+    }
+
+    @Override
     public Response handle(Request request, Response response) throws IOException {
         if (!request.isMultipart())
             return response.status(Status._400);

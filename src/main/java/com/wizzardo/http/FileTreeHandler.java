@@ -35,8 +35,10 @@ public class FileTreeHandler<T extends FileTreeHandler.HandlerContext> implement
     private String workDirPath;
     private File workDir;
     protected boolean showFolder = true;
+    protected final String name;
 
-    public FileTreeHandler(File workDir, String prefix) {
+    public FileTreeHandler(File workDir, String prefix, String name) {
+        this.name = name;
         if (prefix.endsWith("/"))
             prefix = prefix.substring(0, prefix.length() - 1);
         if (!prefix.isEmpty() && !prefix.startsWith("/"))
@@ -47,8 +49,13 @@ public class FileTreeHandler<T extends FileTreeHandler.HandlerContext> implement
         workDirPath = getCanonicalPath(workDir);
     }
 
-    public FileTreeHandler(String workDir, String prefix) {
-        this(new File(workDir), prefix);
+    public FileTreeHandler(String workDir, String prefix, String name) {
+        this(new File(workDir), prefix, name);
+    }
+
+    @Override
+    public String name() {
+        return name;
     }
 
     @Override
