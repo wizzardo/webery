@@ -1,19 +1,12 @@
 package com.wizzardo.http;
 
-import com.wizzardo.http.request.Header;
 import com.wizzardo.http.request.MultiPartEntry;
-import com.wizzardo.tools.io.IOTools;
 import com.wizzardo.tools.security.MD5;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.Random;
-import java.util.concurrent.atomic.AtomicInteger;
-
-import static org.junit.Assert.*;
 
 /**
  * Created by wizzardo on 08.01.16.

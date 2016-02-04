@@ -1,5 +1,6 @@
 package com.wizzardo.http.request;
 
+import com.wizzardo.http.MultipartHandler;
 import com.wizzardo.http.ServerTest;
 import com.wizzardo.http.response.RangeResponseHelper;
 import com.wizzardo.tools.http.ConnectionMethod;
@@ -284,7 +285,7 @@ public class RequestTest extends ServerTest {
                 .post().asString());
 
 
-        handler = (request, response) -> {
+        handler = new MultipartHandler((request, response) -> {
             Assert.assertEquals(null, request.data());
             Assert.assertEquals(true, request.isMultipart());
 
@@ -301,7 +302,7 @@ public class RequestTest extends ServerTest {
             Assert.assertEquals("barbar", request.param("foofoo"));
 
             return response.setBody("ok");
-        };
+        });
 
         Assert.assertEquals("ok", makeRequest("/")
                 .param("foo", "bar")

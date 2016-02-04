@@ -179,7 +179,7 @@ public class Request<C extends HttpConnection> {
 
     public MultiPartEntry entry(String key) {
         if (!multiPartDataPrepared)
-            prepareMultiPart();
+            throw new IllegalStateException("To handle multipart request you need to wrap Handler into MultipartHandler");
 
         if (multiPartEntryMap == null)
             return null;
@@ -199,113 +199,8 @@ public class Request<C extends HttpConnection> {
         return multiPartEntryMap.values();
     }
 
-    public void prepareMultiPart() {
-        prepareMultiPart(null);
-    }
-
     public InputStream getInputStream() {
         return connection.getInputStream();
-    }
-
-    public void prepareMultiPart(final ProgressListener ll) {
-        if (isMultipart()) {
-            String boundary = header(Header.KEY_CONTENT_TYPE);
-            long length = headerLong(Header.KEY_CONTENT_LENGTH);
-            int r, rnrn;
-            byte[] b = new byte[(int) Math.min(length, 50 * 1024)];
-            BoyerMoore newLine = new BoyerMoore("\r\n\r\n".getBytes());
-            boundary = "--" + boundary.substring(boundary.indexOf("boundary=") + "boundary=".length());
-            BlockInputStream br;
-            InputStream in = getInputStream();
-            br = new BlockInputStream(in, boundary.getBytes(), length, ll);
-
-            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-            OutputStream out = null;
-            byte[] last = new byte[2];
-            boolean headerReady;
-            try {
-                outer:
-                while (br.hasNext()) {
-                    br.next();
-                    headerReady = false;
-                    String name = null;
-                    MultiPartEntry entry = null;
-                    while ((r = br.read(b)) != -1) {
-                        if (!headerReady) {
-                            int read = 0;
-                            while ((rnrn = newLine.search(b, Math.max(read - 4, 0), read + r)) == -1) {
-                                read += r;
-                                r = br.read(b, read, b.length - read);
-
-                                if ((r == -1 && read == 0) || (read == 4 && b[0] == '-' && b[1] == '-' && b[2] == '\r' && b[3] == '\n'))
-                                    continue outer;
-
-                                if (r == -1 || read == b.length)
-                                    throw new IllegalStateException("can't find multipart header end");
-                            }
-                            r += read;
-
-                            byteArrayOutputStream.write(b, 2, rnrn - 2); //skip \r\n
-
-                            headerReady = true;
-                            String type = new String(byteArrayOutputStream.toByteArray());
-                            byteArrayOutputStream.reset();
-
-                            name = type.substring(type.indexOf("name=\"") + 6);
-                            name = name.substring(0, name.indexOf("\""));
-
-                            if (type.contains("filename")) {
-                                String filename = type.substring(type.indexOf("filename=\"") + 10);
-                                filename = filename.substring(0, filename.indexOf("\""));
-                                entry = new MultiPartFileEntry(name, filename);
-                            } else
-                                entry = new MultiPartTextEntry(name);
-
-                            for (String header : type.split("\r\n")) {
-                                String[] kv = header.split(": ");
-                                entry.header(kv[0], kv[1]);
-                            }
-
-                            out = entry.outputStream();
-                            out.write(b, rnrn + 4, r - 4 - rnrn - 2);
-                            last[0] = b[r - 2];
-                            last[1] = b[r - 1];
-                        } else {
-                            if (r <= 1) {
-                                if (r == 0)
-                                    continue;
-                                out.write(last, 0, 1);
-                                last[0] = last[1];
-                                last[1] = b[0];
-                            } else {
-                                out.write(last);
-                                out.write(b, 0, r - 2);
-                                last[0] = b[r - 2];
-                                last[1] = b[r - 1];
-                            }
-                        }
-                    }
-                    if (entry == null)
-                        continue;
-
-                    if (multiPartEntryMap == null)
-                        multiPartEntryMap = new HashMap<>();
-
-                    out.close();
-                    multiPartEntryMap.put(name, entry);
-
-                    if (entry instanceof MultiPartTextEntry) {
-                        String value = new String(entry.asBytes());
-                        MultiValue multiValue = params.putIfAbsent(name, new MultiValue(value));
-                        if (multiValue != null)
-                            multiValue.append(value);
-                    }
-                }
-                multiPartDataPrepared = true;
-            } catch (IOException e) {
-                e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
-            }
-        }
     }
 
     public boolean isSecured() {
