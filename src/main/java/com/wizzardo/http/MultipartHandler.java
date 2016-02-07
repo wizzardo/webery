@@ -7,7 +7,6 @@ import com.wizzardo.http.response.Status;
 import com.wizzardo.tools.io.BoyerMoore;
 import com.wizzardo.tools.misc.Unchecked;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.concurrent.atomic.AtomicLong;
@@ -33,13 +32,40 @@ public class MultipartHandler implements Handler {
         if (!request.isMultipart())
             return response.status(Status._400);
 
-        AtomicLong read = new AtomicLong();
         long length = request.contentLength();
         String boundary = request.header(Header.KEY_CONTENT_TYPE);
         boundary = "--" + boundary.substring(boundary.indexOf("boundary=") + "boundary=".length());
-        BlockReader br = new BlockReader(boundary.getBytes(), new MultipartConsumer(request));
+        BlockReader br = new BlockReader(boundary.getBytes(), new MultipartConsumer(entry -> {
 
-        request.connection().setInputListener(new InputListener<HttpConnection>() {
+            if (entry instanceof MultiPartTextEntry) {
+                String value = new String(entry.asBytes());
+                MultiValue multiValue = request.params().putIfAbsent(entry.name(), new MultiValue(value));
+                if (multiValue != null)
+                    multiValue.append(value);
+            }
+            request.entry(entry.name(), entry);
+        }));
+
+        request.connection().setInputListener(createListener((c) -> {
+            handler.handle(request, response);
+            response.commit(c);
+            c.onFinishingHandling();
+        }, length, br));
+        response.async();
+        return response;
+    }
+
+    protected interface OnFinishProcessing {
+        void onFinish(HttpConnection c) throws IOException;
+    }
+
+    protected interface EntrySetter {
+        void set(MultiPartEntry entry);
+    }
+
+    protected InputListener<HttpConnection> createListener(OnFinishProcessing onFinishProcessing, long length, BlockReader br) {
+        AtomicLong read = new AtomicLong();
+        return new InputListener<HttpConnection>() {
             @Override
             public void onReadyToRead(HttpConnection c) {
                 try {
@@ -54,9 +80,7 @@ public class MultipartHandler implements Handler {
                         if (read.get() != length)
                             return;
                     }
-                    handler.handle(request, response);
-                    response.commit(c);
-                    c.onFinishingHandling();
+                    onFinishProcessing.onFinish(c);
                 } catch (IOException e) {
                     throw Unchecked.rethrow(e);
                 }
@@ -71,30 +95,29 @@ public class MultipartHandler implements Handler {
                 read.addAndGet(r);
                 onReadyToRead(c);
             }
-        });
-        response.async();
-        return response;
+        };
     }
 
-    private static class MultipartConsumer implements BlockReader.BytesConsumer {
+    protected static class MultipartConsumer implements BlockReader.BytesConsumer {
 
-        private final Request request;
+        EntrySetter entrySetter;
         boolean headerReady;
         String name;
         MultiPartEntry entry;
         BoyerMoore newLine;
-        ByteArrayOutputStream byteArrayOutputStream;
+        byte[] buffer = new byte[256];
+        int bufferLength;
         OutputStream out;
         int rnrn;
         byte[] last = new byte[2];
+        int lastBytes = 0;
 
-        public MultipartConsumer(Request request) {
-            this.request = request;
+        public MultipartConsumer(EntrySetter entrySetter) {
+            this.entrySetter = entrySetter;
             headerReady = false;
             name = null;
             entry = null;
             newLine = new BoyerMoore("\r\n\r\n".getBytes());
-            byteArrayOutputStream = new ByteArrayOutputStream();
             out = null;
         }
 
@@ -105,47 +128,29 @@ public class MultipartHandler implements Handler {
                     if (entry != null) {
                         if (r != 0)
                             if (r == 1) {
-                                out.write(last, 0, 1);
+                                if (lastBytes == 2)
+                                    out.write(last, 0, 1);
                             } else {
                                 out.write(last);
                                 out.write(b, offset, r - 2);
                             }
 
                         out.close();
-                        if (entry instanceof MultiPartTextEntry) {
-                            String value = new String(entry.asBytes());
-                            MultiValue multiValue = request.params().putIfAbsent(name, new MultiValue(value));
-                            if (multiValue != null)
-                                multiValue.append(value);
-                        }
-                        request.entry(entry.name(), entry);
+                        entrySetter.set(entry);
                         reset();
                         return;
                     }
                 }
 
                 if (!headerReady) {
-                    int read = 0;
-                    while ((rnrn = newLine.search(b, Math.max(read - 4, offset), r - read)) == -1) {
-                        read += r;
-//                    r = br.read(b, read, b.length - read);
-
-                        if ((r == 0 && read == 0)
-                                || (r == 4 && b[offset] == '-' && b[offset + 1] == '-' && b[offset + 2] == '\r' && b[offset + 3] == '\n')
-                                || (r == 2 && b[offset] == '-' && b[offset + 1] == '-')) {
-                            return;
-                        }
-
-                        if (r == -1 || read == b.length)
-                            throw new IllegalStateException("can't find multipart header end");
+                    int position = Math.max(0, bufferLength - 4);
+                    buffer(b, offset, r);
+                    if ((rnrn = newLine.search(buffer, position, bufferLength - position)) == -1) {
+                        return;
                     }
-//                    r += read;
-
-                    byteArrayOutputStream.write(b, 2 + offset, rnrn - 2 - offset); //skip \r\n
 
                     headerReady = true;
-                    String type = new String(byteArrayOutputStream.toByteArray());
-                    byteArrayOutputStream.reset();
+                    String type = new String(buffer, 2, rnrn - 2);
 
                     name = type.substring(type.indexOf("name=\"") + 6);
                     name = name.substring(0, name.indexOf("\""));
@@ -163,21 +168,41 @@ public class MultipartHandler implements Handler {
                     }
 
                     out = entry.outputStream();
-                    out.write(b, rnrn + 4, r - (rnrn - offset) - 6);
-                    last[0] = b[offset + r - 2];
-                    last[1] = b[offset + r - 1];
+                    int off = bufferLength - rnrn - 4 - 2;
+                    if (off >= 0) {
+                        out.write(buffer, rnrn + 4, off);
+
+                        last[0] = buffer[bufferLength - 2];
+                        last[1] = buffer[bufferLength - 1];
+                        lastBytes = 2;
+                    } else if (off == -1) {
+                        last[0] = buffer[bufferLength - 1];
+                        lastBytes = 1;
+                    } else if (off == -2) {
+                        lastBytes = 0;
+                    }
+                    bufferLength = 0;
                 } else {
                     if (r <= 1) {
                         if (r == 0)
                             return;
-                        out.write(last, 0, 1);
-                        last[0] = last[1];
-                        last[1] = b[offset];
+                        if (lastBytes == 2) {
+                            out.write(last, 0, 1);
+                            last[0] = last[1];
+                            last[1] = b[offset];
+                        } else if (lastBytes == 1) {
+                            last[1] = b[offset];
+                            lastBytes = 2;
+                        } else if (lastBytes == 0) {
+                            last[0] = b[offset];
+                            lastBytes = 1;
+                        }
                     } else {
-                        out.write(last);
+                        out.write(last, 0, lastBytes);
                         out.write(b, offset, r - 2);
                         last[0] = b[offset + r - 2];
                         last[1] = b[offset + r - 1];
+                        lastBytes = 2;
                     }
                 }
                 if (end)
@@ -186,6 +211,16 @@ public class MultipartHandler implements Handler {
             } catch (IOException e) {
                 throw Unchecked.rethrow(e);
             }
+        }
+
+        protected void buffer(byte[] b, int offset, int r) {
+            if (bufferLength + r > buffer.length) {
+                byte[] bb = new byte[(bufferLength + r) * 3 / 2];
+                System.arraycopy(buffer, 0, bb, 0, bufferLength);
+                buffer = bb;
+            }
+            System.arraycopy(b, offset, buffer, bufferLength, r);
+            bufferLength += r;
         }
 
         private void reset() {
