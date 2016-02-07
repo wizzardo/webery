@@ -37,8 +37,8 @@ public class BlockReader {
             if (buffered > 0) {
                 if (start <= buffered) {
                     consumer.consume(true, buffer, 0, start);
-                    length -= sl + start - offset - buffered;
-                    offset = sl + start - buffered;
+                    length -= sl + start - buffered;
+                    offset += sl + start - buffered;
                     buffered = 0;
                     process(bytes, offset, length);
                 } else {
