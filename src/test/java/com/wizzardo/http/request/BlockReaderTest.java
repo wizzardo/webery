@@ -125,6 +125,45 @@ public class BlockReaderTest {
     }
 
     @Test
+    public void test_process_3_1() {
+        byte[] separator = new byte[]{0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
+
+        AtomicInteger counter = new AtomicInteger();
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        BlockReader br = new BlockReader(separator, (end, bytes, offset, length) -> {
+            out.write(bytes, offset, length);
+            if (end) {
+                counter.incrementAndGet();
+                if (counter.get() == 1) {
+                    Assert.assertEquals(0, out.size());
+                } else if (counter.get() == 2) {
+                    Assert.assertEquals(3, out.size());
+                    Assert.assertArrayEquals(new byte[]{1, 2, 3}, out.toByteArray());
+                }
+                out.reset();
+            }
+        });
+
+        byte[] data = {
+                0, 1, 2, 3, 4, 5, 6, 7, 8, 9,
+                1, 2, 3,
+                0, 1, 2, 3, 4, 5, 6, 7, 8, 9
+        };
+        for (int i = 0; i < data.length; i++) {
+            br.process(data, i, 1);
+        }
+        br.end();
+        Assert.assertEquals(2, counter.get());
+
+        counter.set(0);
+        for (int i = 0; i < data.length; i++) {
+            br.process(Arrays.copyOfRange(data, i, i + 1));
+        }
+        br.end();
+        Assert.assertEquals(2, counter.get());
+    }
+
+    @Test
     public void test_process_4() {
         byte[] separator = new byte[]{0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
 
