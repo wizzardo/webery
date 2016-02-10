@@ -23,7 +23,8 @@ public class TokenizedFileTreeHandler<T extends TokenizedFileTreeHandler.Handler
 
     @Override
     protected String generateUrl(File file, T handlerContext) {
-        return super.generateUrl(file, handlerContext) + "?token=" + handlerContext.token;
+        String url = super.generateUrl(file, handlerContext);
+        return handlerContext.token.isEmpty() ? url : url + "?token=" + handlerContext.token;
     }
 
     @Override
