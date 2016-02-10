@@ -80,7 +80,12 @@ public enum Status {
     /**
      * Internal Server Error
      */
-    _500(500, "Internal Server Error"),;
+    _500(500, "Internal Server Error"),
+
+    /**
+     * Not Implemented
+     */
+    _501(501, "Not Implemented"),;
 
     public final byte[] bytes;
     public final int code;
@@ -132,6 +137,8 @@ public enum Status {
                 return _416;
             case 500:
                 return _500;
+            case 501:
+                return _501;
         }
         return null;
     }

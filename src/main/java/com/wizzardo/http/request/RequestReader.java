@@ -1,15 +1,15 @@
 package com.wizzardo.http.request;
 
-import com.wizzardo.http.HttpConnection;
+import com.wizzardo.http.HttpException;
 import com.wizzardo.http.HttpHeadersReader;
 import com.wizzardo.http.MultiValue;
 import com.wizzardo.http.mapping.Path;
 import com.wizzardo.http.mapping.UrlMapping;
+import com.wizzardo.http.response.Status;
 import com.wizzardo.http.utils.AsciiReader;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
-import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
@@ -64,7 +64,11 @@ public class RequestReader extends HttpHeadersReader {
     public Request fillRequest(Request request) {
         request.headers = headers;
         request.params = params;
-        request.method = Request.Method.valueOf(method);
+        try {
+            request.method = Request.Method.valueOf(method);
+        } catch (IllegalArgumentException e) {
+            throw new HttpException(e, Status._501);
+        }
         request.path = path;
         request.queryString = queryString;
         request.protocol = protocol;
