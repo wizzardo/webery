@@ -16,8 +16,13 @@ public class RestHandler implements Handler {
     protected Handler post;
     protected Handler put;
     protected Handler delete;
+    protected final Handler options = (request, response) -> provideAllowHeader(response);
 
     private byte[] allow;
+
+    public RestHandler() {
+        generateAllowHeader();
+    }
 
     @Override
     public Response handle(Request request, Response response) throws IOException {
@@ -30,6 +35,8 @@ public class RestHandler implements Handler {
                 return handle(request, response, post);
             case DELETE:
                 return handle(request, response, delete);
+            case OPTIONS:
+                return handle(request, response, options);
         }
         return response.setStatus(Status._405);
     }
@@ -42,9 +49,7 @@ public class RestHandler implements Handler {
     }
 
     protected Response provideAllowHeader(Response response) {
-        if (allow != null)
-            response.appendHeader(allow);
-        return response;
+        return response.appendHeader(allow);
     }
 
     public RestHandler setGetHandler(Handler get) {
@@ -92,14 +97,13 @@ public class RestHandler implements Handler {
         boolean comma;
 
         comma = buildAllowHeaderString(sb, get, "GET", false);
+        comma = buildAllowHeaderString(sb, get, "HEAD", comma);
         comma = buildAllowHeaderString(sb, post, "POST", comma);
         comma = buildAllowHeaderString(sb, put, "PUT", comma);
         comma = buildAllowHeaderString(sb, delete, "DELETE", comma);
+        comma = buildAllowHeaderString(sb, options, "OPTIONS", comma);
 
-        if (sb.length() > 7)
-            allow = sb.append("\r\n").toString().getBytes(StandardCharsets.UTF_8);
-        else
-            allow = null;
+        allow = sb.append("\r\n").toString().getBytes(StandardCharsets.UTF_8);
     }
 
     private boolean buildAllowHeaderString(StringBuilder sb, Handler handler, String name, boolean comma) {
