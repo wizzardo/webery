@@ -12,6 +12,7 @@ import java.nio.charset.StandardCharsets;
  */
 public class RestHandler implements Handler {
 
+    protected final String name;
     protected Handler get;
     protected Handler post;
     protected Handler put;
@@ -21,7 +22,17 @@ public class RestHandler implements Handler {
     private byte[] allow;
 
     public RestHandler() {
+        this(null);
+    }
+
+    public RestHandler(String name) {
+        this.name = name;
         generateAllowHeader();
+    }
+
+    @Override
+    public String name() {
+        return name;
     }
 
     @Override
