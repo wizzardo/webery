@@ -21,6 +21,14 @@ public class TokenizedFileTreeHandler<T extends TokenizedFileTreeHandler.Handler
         this.tokenFilter = tokenFilter;
     }
 
+    public TokenizedFileTreeHandler(File workDir, String prefix, TokenFilter tokenFilter) {
+        this(workDir, prefix, tokenFilter, null);
+    }
+
+    public TokenizedFileTreeHandler(String workDir, String prefix, TokenFilter tokenFilter) {
+        this(workDir, prefix, tokenFilter, null);
+    }
+
     @Override
     protected String generateUrl(File file, T handlerContext) {
         String url = super.generateUrl(file, handlerContext);
