@@ -37,6 +37,10 @@ public class FileTreeHandler<T extends FileTreeHandler.HandlerContext> implement
     protected boolean showFolder = true;
     protected final String name;
 
+    public FileTreeHandler(File workDir, String prefix) {
+        this(workDir, prefix, null);
+    }
+
     public FileTreeHandler(File workDir, String prefix, String name) {
         this.name = name;
         if (prefix.endsWith("/"))
@@ -51,6 +55,10 @@ public class FileTreeHandler<T extends FileTreeHandler.HandlerContext> implement
 
     public FileTreeHandler(String workDir, String prefix, String name) {
         this(new File(workDir), prefix, name);
+    }
+
+    public FileTreeHandler(String workDir, String prefix) {
+        this(workDir, prefix, null);
     }
 
     @Override
