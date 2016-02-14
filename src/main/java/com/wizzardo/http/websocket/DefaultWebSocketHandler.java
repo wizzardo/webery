@@ -26,14 +26,12 @@ public class DefaultWebSocketHandler extends WebSocketHandler {
 
     public void broadcast(String s) {
         Message message = new Message(s);
-        Iterator<WebSocketListener> iterator = listeners.iterator();
-        while (iterator.hasNext()) {
-            WebSocketListener listener = iterator.next();
+        for (WebSocketListener listener : listeners) {
             try {
                 listener.sendMessage(message);
             } catch (Exception e) {
-                iterator.remove();
                 e.printStackTrace();
+                onDisconnect(listener);
             }
         }
     }
