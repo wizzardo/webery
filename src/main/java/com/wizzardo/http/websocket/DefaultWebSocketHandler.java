@@ -3,6 +3,7 @@ package com.wizzardo.http.websocket;
 import com.wizzardo.http.framework.di.Injectable;
 
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -25,8 +26,15 @@ public class DefaultWebSocketHandler extends WebSocketHandler {
 
     public void broadcast(String s) {
         Message message = new Message(s);
-        for (WebSocketListener listener : listeners) {
-            listener.sendMessage(message);
+        Iterator<WebSocketListener> iterator = listeners.iterator();
+        while (iterator.hasNext()) {
+            WebSocketListener listener = iterator.next();
+            try {
+                listener.sendMessage(message);
+            } catch (Exception e) {
+                iterator.remove();
+                e.printStackTrace();
+            }
         }
     }
 
