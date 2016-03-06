@@ -26,7 +26,7 @@ public class RestHandlerTest extends ServerTest {
         Assert.assertEquals("post", makeRequest("/rest").post().asString());
         Assert.assertEquals("put", makeRequest("/rest").method(ConnectionMethod.PUT).execute().asString());
         Assert.assertEquals(405, makeRequest("/rest").get().getResponseCode());
-        Assert.assertEquals("POST, PUT", makeRequest("/rest").get().header("Allow"));
+        Assert.assertEquals("POST, PUT, OPTIONS", makeRequest("/rest").get().header("Allow"));
     }
 
     @Test
@@ -44,17 +44,17 @@ public class RestHandlerTest extends ServerTest {
         Assert.assertEquals("get", makeRequest("/rest").get().asString());
         Assert.assertEquals("delete", makeRequest("/rest").method(ConnectionMethod.DELETE).execute().asString());
         Assert.assertEquals(405, makeRequest("/rest").post().getResponseCode());
-        Assert.assertEquals("GET, DELETE", makeRequest("/rest").post().header("Allow"));
+        Assert.assertEquals("GET, HEAD, DELETE, OPTIONS", makeRequest("/rest").post().header("Allow"));
     }
 
     @Test
-    public void test_allowNothing() throws IOException {
+    public void test_allowNothing_butOptions() throws IOException {
         handler = new UrlHandler()
                 .append("/rest", new RestHandler().get(null))
         ;
 
         Assert.assertEquals(405, makeRequest("/rest").get().getResponseCode());
-        Assert.assertEquals(null, makeRequest("/rest").get().header("Allow"));
+        Assert.assertEquals("OPTIONS", makeRequest("/rest").get().header("Allow"));
 
         Assert.assertEquals(405, makeRequest("/rest").method(ConnectionMethod.HEAD).execute().getResponseCode());
     }
