@@ -177,16 +177,21 @@ public class UrlMapping<T extends Named> {
 
                     next = tree.endsWithMapping.append(part);
                 } else {
-                    String pattern = part.replace("*", ".*");
-                    next = tree.regexpMapping.get(pattern);
-                    if (next == null) {
-                        UrlMappingMatcher<T> t;
-                        if (pattern.equals(".*"))
-                            t = new UrlMappingMatcherAny<>(tree);
-                        else
-                            t = new UrlMappingMatcherPattern<>(tree, pattern);
-                        tree.regexpMapping.put(pattern, t);
-                        next = t;
+                    if(part.equals("*")){
+                        next = tree.regexpMapping.get(".*");
+                        if (next == null) {
+                            UrlMappingMatcher<T> t = new UrlMappingMatcherAny<>(tree);
+                            tree.regexpMapping.put(".*", t);
+                            next = t;
+                        }
+                    } else {
+                        next = tree.regexpMapping.get(part);
+                        if (next == null){
+                            UrlMappingMatcher<T> t = new UrlMappingMatcherPattern<>(tree, part);
+                            tree.regexpMapping.put(part, t);
+                            next = t;
+                        }
+
                     }
                 }
             } else if (part.contains("$")) {
