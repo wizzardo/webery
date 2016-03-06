@@ -43,6 +43,17 @@ public class UrlMappingTest extends ServerTest {
     }
 
     @Test
+    public void testMapping_regex() throws IOException {
+        handler = new UrlHandler()
+                .append("/action(\\d+)*", (request, response) -> response.setBody("ok"))
+        ;
+
+        Assert.assertEquals("ok", makeRequest("/action").get().asString());
+        Assert.assertEquals("ok", makeRequest("/action1").get().asString());
+        Assert.assertEquals(404, makeRequest("/404").get().getResponseCode());
+    }
+
+    @Test
     public void testEndsWith() throws IOException {
         handler = new UrlHandler()
                 .append("*.html", (request, response) -> response.setBody("html"))
