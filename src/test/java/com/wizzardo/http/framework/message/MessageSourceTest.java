@@ -39,4 +39,10 @@ public class MessageSourceTest {
         Assert.assertEquals("bar ru", ms.get("foo"));
         Assert.assertEquals("no localization", ms.get("no_localization"));
     }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void test_messageBundle_npe() {
+        MessageBundle ms = new MessageBundle().load("messages");
+        ms.appendDefault("npe", null);
+    }
 }
