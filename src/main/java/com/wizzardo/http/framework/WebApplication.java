@@ -47,6 +47,17 @@ public class WebApplication extends HttpServer<HttpConnection> {
     }
 
     protected void onStart() {
+        resourcesTools = createResourceTools();
+        DependencyFactory.get().register(ResourceTools.class, new SingletonDependency<>(resourcesTools));
+        DependencyFactory.get().register(UrlMapping.class, new SingletonDependency<>(getUrlMapping()));
+        DependencyFactory.get().register(ControllerUrlMapping.class, new SingletonDependency<>(getUrlMapping()));
+
+        MessageBundle bundle = initMessageSource();
+        DependencyFactory.get().register(MessageSource.class, new SingletonDependency<>(bundle));
+        DependencyFactory.get().register(MessageBundle.class, new SingletonDependency<>(bundle));
+
+        loadConfig("Config.groovy");
+
         Map environments = (Map) this.config.remove("environments");
         if (environments != null) {
             Map<String, Object> env = (Map<String, Object>) environments.get(environment.shortName);
@@ -136,6 +147,9 @@ public class WebApplication extends HttpServer<HttpConnection> {
     }
 
     protected ResourceTools createResourceTools() {
+        if (environment == Environment.TEST)
+            return new TestResourcesTools();
+
         File src = new File("src");
         return src.exists() && src.isDirectory() ? new DevResourcesTools() : new LocalResourcesTools();
     }
@@ -143,17 +157,7 @@ public class WebApplication extends HttpServer<HttpConnection> {
     protected void init() {
         super.init();
         Holders.setApplication(this);
-        resourcesTools = createResourceTools();
-        DependencyFactory.get().register(ResourceTools.class, new SingletonDependency<>(resourcesTools));
-        DependencyFactory.get().register(UrlMapping.class, new SingletonDependency<>(getUrlMapping()));
-        DependencyFactory.get().register(ControllerUrlMapping.class, new SingletonDependency<>(getUrlMapping()));
-
-        MessageBundle bundle = initMessageSource();
-        DependencyFactory.get().register(MessageSource.class, new SingletonDependency<>(bundle));
-        DependencyFactory.get().register(MessageBundle.class, new SingletonDependency<>(bundle));
-
         config = new Config();
-        loadConfig("Config.groovy");
     }
 
     protected MessageBundle initMessageSource() {
