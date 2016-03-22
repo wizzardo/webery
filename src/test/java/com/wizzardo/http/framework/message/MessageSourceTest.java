@@ -1,5 +1,6 @@
 package com.wizzardo.http.framework.message;
 
+import com.wizzardo.http.framework.template.TestResourcesTools;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -23,13 +24,13 @@ public class MessageSourceTest {
 
     @Test
     public void test_properties() {
-        MessageSource ms = new PropertiesMessageSource("messages");
+        MessageSource ms = new PropertiesMessageSource("messages", new TestResourcesTools());
         Assert.assertEquals("bar", ms.get("foo"));
     }
 
     @Test
     public void test_messageBundle() {
-        MessageBundle ms = new MessageBundle().load("messages");
+        MessageBundle ms = new MessageBundle(new TestResourcesTools()).load("messages");
         Assert.assertEquals("bar", ms.get("foo"));
         Assert.assertEquals("no localization", ms.get("no_localization"));
 
@@ -42,7 +43,7 @@ public class MessageSourceTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void test_messageBundle_npe() {
-        MessageBundle ms = new MessageBundle().load("messages");
+        MessageBundle ms = new MessageBundle(new TestResourcesTools()).load("messages");
         ms.appendDefault("npe", null);
     }
 }

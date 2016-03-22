@@ -1,5 +1,8 @@
 package com.wizzardo.http.framework.message;
 
+import com.wizzardo.http.framework.di.DependencyFactory;
+import com.wizzardo.http.framework.template.ResourceTools;
+
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -13,6 +16,15 @@ public class MessageBundle implements MessageSource {
     protected Map<Locale, TemplateMessageSource> sources = new ConcurrentHashMap<>();
     protected TemplateMessageSource defaultLocalizedSource;
     protected Locale defaultLocale;
+    protected ResourceTools resourcesTools;
+
+    public MessageBundle() {
+        this(DependencyFactory.get(ResourceTools.class));
+    }
+
+    public MessageBundle(ResourceTools resourcesTools) {
+        this.resourcesTools = resourcesTools;
+    }
 
     @Override
     public String get(String key, Args args) {
@@ -51,7 +63,7 @@ public class MessageBundle implements MessageSource {
         sourcesNames.add(name);
         sources.clear();
 
-        load(name, defaultSource);
+        load(name, defaultSource, resourcesTools);
 
         if (defaultLocale != null)
             setDefaultLocale(defaultLocale);
@@ -65,15 +77,15 @@ public class MessageBundle implements MessageSource {
             messageSource = new TemplateMessageSource();
             sources.put(locale, messageSource);
             for (String sourcesName : sourcesNames) {
-                load(sourcesName + "_" + locale.getLanguage(), messageSource);
+                load(sourcesName + "_" + locale.getLanguage(), messageSource, resourcesTools);
             }
         }
         return messageSource;
     }
 
-    protected void load(String name, TemplateMessageSource messageSource) {
+    protected void load(String name, TemplateMessageSource messageSource, ResourceTools resourcesTools) {
         try {
-            PropertiesMessageSource temp = new PropertiesMessageSource(name);
+            PropertiesMessageSource temp = new PropertiesMessageSource(name, resourcesTools);
             messageSource.templates.putAll(temp.templates);
         } catch (Exception ignored) {
         }
