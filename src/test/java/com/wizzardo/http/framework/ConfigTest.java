@@ -1,5 +1,7 @@
 package com.wizzardo.http.framework;
 
+import com.wizzardo.http.framework.template.ResourceTools;
+import com.wizzardo.http.framework.template.TestResourcesTools;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -12,7 +14,12 @@ public class ConfigTest extends WebApplicationTest {
     @Before
     public void setUp() throws NoSuchMethodException, ClassNotFoundException, NoSuchFieldException {
         System.out.println("setUp " + this.getClass().getSimpleName() + "." + name.getMethodName());
-        server = new WebApplication();
+        server = new WebApplication(){
+            @Override
+            protected ResourceTools createResourceTools() {
+                return new TestResourcesTools();
+            }
+        };
         server.setHost(null);
         server.setPort(port);
         server.setContext(context);
