@@ -16,16 +16,10 @@ public class SessionDependency<T> extends Dependency<T> {
     @Override
     public T get() {
         Session session = ((RequestContext) Thread.currentThread()).getRequestHolder().request.session();
-        Object t = session.get(clazz);
-        if (t == null) {
-            try {
-                t = clazz.newInstance();
-                injectDependencies(t);
-                session.put(clazz, t);
-            } catch (InstantiationException | IllegalAccessException e) {
-                throw new IllegalStateException("can't create instance of class " + clazz, e);
-            }
-        }
-        return (T) t;
+        T t = (T) session.get(clazz);
+        if (t == null)
+            session.put(clazz, t = newInstance(clazz));
+
+        return t;
     }
 }

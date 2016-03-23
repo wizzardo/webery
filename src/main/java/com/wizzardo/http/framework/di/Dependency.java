@@ -43,6 +43,16 @@ public abstract class Dependency<T> {
 
     public abstract T get();
 
+    protected T newInstance(Class<T> clazz) {
+        try {
+            T t = clazz.newInstance();
+            injectDependencies(t);
+            return t;
+        } catch (InstantiationException | IllegalAccessException e) {
+            throw new IllegalStateException("can't create instance of class " + clazz, e);
+        }
+    }
+
     protected void injectDependencies(Object ob) {
         try {
             for (FieldReflection f : dependencies.get(ob.getClass())) {
