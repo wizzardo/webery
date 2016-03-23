@@ -16,6 +16,12 @@ import static com.wizzardo.http.framework.di.DependencyFactory.getAnnotation;
  * Created by wizzardo on 05.05.15.
  */
 public abstract class Dependency<T> {
+    protected final Class<? extends T> clazz;
+
+    public Dependency(Class<? extends T> clazz) {
+        this.clazz = clazz;
+    }
+
     protected static Cache<Class, List<FieldReflection>> dependencies = new Cache<>(0, clazz -> {
         List<FieldReflection> l = new ArrayList<>();
         FieldReflectionFactory reflectionFactory = new FieldReflectionFactory();
@@ -43,7 +49,7 @@ public abstract class Dependency<T> {
 
     public abstract T get();
 
-    protected T newInstance(Class<T> clazz) {
+    protected T newInstance() {
         try {
             T t = clazz.newInstance();
             injectDependencies(t);

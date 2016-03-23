@@ -7,10 +7,9 @@ import com.wizzardo.http.framework.RequestContext;
  * Created by wizzardo on 05.05.15.
  */
 public class SessionDependency<T> extends Dependency<T> {
-    protected Class<T> clazz;
 
-    public SessionDependency(Class<T> clazz) {
-        this.clazz = clazz;
+    public SessionDependency(Class<? extends T> clazz) {
+        super(clazz);
     }
 
     @Override
@@ -18,7 +17,7 @@ public class SessionDependency<T> extends Dependency<T> {
         Session session = ((RequestContext) Thread.currentThread()).getRequestHolder().request.session();
         T t = (T) session.get(clazz);
         if (t == null)
-            session.put(clazz, t = newInstance(clazz));
+            session.put(clazz, t = newInstance());
 
         return t;
     }
