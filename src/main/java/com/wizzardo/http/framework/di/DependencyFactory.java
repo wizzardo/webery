@@ -29,7 +29,7 @@ public class DependencyFactory {
 
             if (Modifier.isAbstract(clazz.getModifiers()) || Modifier.isInterface(clazz.getModifiers())) {
                 Class implementation = mapping.get(clazz);
-                if (implementation == null)
+                if (implementation == null) {
                     for (Class cl : classes) {
                         if (clazz.isAssignableFrom(cl)
                                 && !Modifier.isInterface(cl.getModifiers())
@@ -42,13 +42,13 @@ public class DependencyFactory {
                             implementation = cl;
                         }
                     }
+                }
                 if (implementation != null) {
-
                     if (injectable == null)
                         injectable = (Injectable) getAnnotation(implementation, Injectable.class);
 
                     if (injectable != null)
-                        return injectable.scope().createDependency(clazz);
+                        return injectable.scope().createDependency(implementation);
                     else
                         return new PrototypeDependency(implementation);
                 }
