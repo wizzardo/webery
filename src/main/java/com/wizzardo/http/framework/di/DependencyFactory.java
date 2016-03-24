@@ -24,17 +24,8 @@ public class DependencyFactory {
         public Dependency compute(Class clazz) {
 
             Injectable injectable = (Injectable) getAnnotation(clazz, Injectable.class);
-            if (injectable != null) {
-                switch (injectable.scope()) {
-                    case SINGLETON: {
-                        return new SingletonDependency(clazz);
-                    }
-                    case PROTOTYPE:
-                        return new PrototypeDependency(clazz);
-                    case SESSION:
-                        return new SessionDependency(clazz);
-                }
-            }
+            if (injectable != null)
+                return injectable.scope().createDependency(clazz);
 
             if (Modifier.isAbstract(clazz.getModifiers()) || Modifier.isInterface(clazz.getModifiers())) {
                 Class implementation = mapping.get(clazz);
@@ -56,17 +47,9 @@ public class DependencyFactory {
                     if (injectable == null)
                         injectable = (Injectable) getAnnotation(implementation, Injectable.class);
 
-                    if (injectable != null) {
-                        switch (injectable.scope()) {
-                            case SINGLETON: {
-                                return new SingletonDependency(implementation);
-                            }
-                            case PROTOTYPE:
-                                return new PrototypeDependency(implementation);
-                            case SESSION:
-                                return new SessionDependency(implementation);
-                        }
-                    } else
+                    if (injectable != null)
+                        return injectable.scope().createDependency(clazz);
+                    else
                         return new PrototypeDependency(implementation);
                 }
             }
