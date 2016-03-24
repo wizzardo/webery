@@ -157,4 +157,25 @@ public class TestDependencies extends WebApplicationTest {
         Assert.assertEquals("J", makeRequest("/service").get().asString());
     }
 
+    @Injectable(scope = DependencyScope.THREAD_LOCAL)
+    public static class Counter {
+        int value;
+    }
+
+    @Test
+    public void testThreadLocal() throws InterruptedException {
+        Counter counter = DependencyFactory.getDependency(Counter.class);
+        Assert.assertEquals(0, counter.value);
+
+        counter.value++;
+        Assert.assertEquals(1, counter.value);
+        Assert.assertEquals(1, DependencyFactory.getDependency(Counter.class).value);
+        Thread thread = new Thread(() -> {
+            Assert.assertEquals(0, DependencyFactory.getDependency(Counter.class).value);
+        });
+        thread.start();
+        thread.join();
+
+        Assert.assertEquals(1, DependencyFactory.getDependency(Counter.class).value);
+    }
 }
