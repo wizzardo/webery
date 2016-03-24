@@ -7,6 +7,7 @@ public enum DependencyScope {
     SINGLETON,
     PROTOTYPE,
     SESSION,
+    REQUEST,
     THREAD_LOCAL;
 
     public <T> Dependency<T> createDependency(Class<T> clazz) {
@@ -19,6 +20,8 @@ public enum DependencyScope {
                 return new SessionDependency<>(clazz);
             case THREAD_LOCAL:
                 return new ThreadLocalDependency<>(clazz);
+            case REQUEST:
+                return new RequestDependency<>(clazz);
             default:
                 throw new IllegalStateException("Unknown scope: " + this);
         }
