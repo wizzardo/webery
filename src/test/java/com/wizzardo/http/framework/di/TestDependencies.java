@@ -101,6 +101,7 @@ public class TestDependencies extends WebApplicationTest {
                 .append("/increment", SimplesController.class, "increment")
                 .append("/multiply", SimplesController2.class, "multiply")
                 .append("/service", SimplesController3.class, "service")
+                .append("/request_scope", RequestScopeController.class, "check")
         ;
     }
 
@@ -177,5 +178,24 @@ public class TestDependencies extends WebApplicationTest {
         thread.join();
 
         Assert.assertEquals(1, DependencyFactory.getDependency(Counter.class).value);
+    }
+
+    @Injectable(scope = DependencyScope.REQUEST)
+    public static class G {
+        int value;
+    }
+
+    public static class RequestScopeController extends Controller {
+        public Renderer check() {
+            Assert.assertEquals(0, DependencyFactory.get(G.class).value++);
+            Assert.assertEquals(1, DependencyFactory.get(G.class).value);
+            return renderString("ok");
+        }
+    }
+
+    @Test
+    public void testRequest() throws IOException {
+        Assert.assertEquals("ok", makeRequest("/request_scope").get().asString());
+        Assert.assertEquals("ok", makeRequest("/request_scope").get().asString());
     }
 }
