@@ -5,15 +5,11 @@ package com.wizzardo.http.framework.di;
  */
 public class SingletonDependency<T> extends Dependency<T> {
     private T instance;
+    private boolean injecting = false;
     private volatile boolean init = false;
 
     public SingletonDependency(Class<? extends T> clazz) {
         super(clazz);
-        try {
-            this.instance = clazz.newInstance();
-        } catch (InstantiationException | IllegalAccessException ignored) {
-            throw new IllegalStateException("can't create instance of class " + clazz);
-        }
     }
 
     public SingletonDependency(T instance) {
@@ -31,8 +27,14 @@ public class SingletonDependency<T> extends Dependency<T> {
         if (!init) {
             synchronized (this) {
                 if (!init) {
+                    if (!injecting) {
+                        injecting = true;
+                        if (instance == null)
+                            instance = newInstance(false);
+
+                        injectDependencies(instance);
+                    }
                     init = true;
-                    injectDependencies(instance);
                 }
             }
         }

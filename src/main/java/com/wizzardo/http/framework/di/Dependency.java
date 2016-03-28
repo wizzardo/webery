@@ -50,9 +50,14 @@ public abstract class Dependency<T> {
     public abstract T get();
 
     protected T newInstance() {
+        return newInstance(true);
+    }
+
+    protected T newInstance(boolean injectDependencies) {
         try {
             T t = clazz.newInstance();
-            injectDependencies(t);
+            if (injectDependencies)
+                injectDependencies(t);
             return t;
         } catch (InstantiationException | IllegalAccessException e) {
             throw new IllegalStateException("can't create instance of class " + clazz, e);
