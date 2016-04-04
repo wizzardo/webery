@@ -8,19 +8,10 @@ import com.wizzardo.tools.misc.SoftThreadLocal;
  */
 public class StringBuilderThreadLocalHolder {
 
-    protected final SoftThreadLocal<ExceptionDrivenStringBuilder> stringBuilder = new SoftThreadLocal<ExceptionDrivenStringBuilder>() {
-        @Override
-        protected ExceptionDrivenStringBuilder init() {
-            return new ExceptionDrivenStringBuilder();
-        }
-
-        @Override
-        public ExceptionDrivenStringBuilder getValue() {
-            ExceptionDrivenStringBuilder builder = super.getValue();
-            builder.setLength(0);
-            return builder;
-        }
-    };
+    protected final SoftThreadLocal<ExceptionDrivenStringBuilder> stringBuilder = new SoftThreadLocal<>(
+            ExceptionDrivenStringBuilder::new,
+            ExceptionDrivenStringBuilder::clear
+    );
 
     public ExceptionDrivenStringBuilder get() {
         return stringBuilder.getValue();
