@@ -16,7 +16,7 @@ public class UrlMapping<T extends Named> {
 
     static final Pattern VARIABLES = Pattern.compile("\\$\\{?([a-zA-Z_]+[\\w]*)\\}?");
     static final String OPTIONAL = "(.+)?";
-    protected static final Pattern END = Pattern.compile("\\*([a-zA-Z_0-9\\.]+)");
+    protected static final Pattern END = Pattern.compile("\\*([a-zA-Z_0-9\\.\\-]+)");
 
     protected Map<String, UrlMapping<T>> mapping = new HashMap<>();
     protected Map<String, UrlMappingMatcher<T>> regexpMapping = new LinkedHashMap<>();
