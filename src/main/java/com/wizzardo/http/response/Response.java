@@ -16,6 +16,7 @@ import com.wizzardo.tools.misc.Unchecked;
 import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 /**
@@ -370,5 +371,22 @@ public class Response {
 
     public boolean isAsync() {
         return async;
+    }
+
+    public String toString() {
+        StringBuilder sb = new StringBuilder(256);
+        sb.append("status: ").append(status.code).append("\n");
+        byte[][] headers = this.headers;
+        for (int i = 0; i < headersCount; i += 2) {
+            if (headers[i + 1] == EMPTY)
+                sb.append(new String(headers[i], StandardCharsets.UTF_8));
+            else
+                sb.append(new String(headers[i], StandardCharsets.UTF_8))
+                        .append(": ")
+                        .append(new String(headers[i + 1], StandardCharsets.UTF_8))
+                        .append("\r\n");
+        }
+
+        return sb.toString();
     }
 }
