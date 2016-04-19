@@ -11,22 +11,22 @@ import java.util.concurrent.ConcurrentHashMap;
  * Created by wizzardo on 08.12.15.
  */
 @Injectable
-public class DefaultWebSocketHandler extends WebSocketHandler {
-    protected Set<WebSocketListener> listeners = Collections.newSetFromMap(new ConcurrentHashMap<>());
+public class DefaultWebSocketHandler<T extends WebSocketHandler.WebSocketListener> extends WebSocketHandler<T> {
+    protected Set<T> listeners = Collections.newSetFromMap(new ConcurrentHashMap<>());
 
     @Override
-    public void onConnect(WebSocketListener listener) {
+    public void onConnect(T listener) {
         listeners.add(listener);
     }
 
     @Override
-    public void onDisconnect(WebSocketListener listener) {
+    public void onDisconnect(T listener) {
         listeners.remove(listener);
     }
 
     public void broadcast(String s) {
         Message message = new Message(s);
-        for (WebSocketListener listener : listeners) {
+        for (T listener : listeners) {
             try {
                 listener.sendMessage(message);
             } catch (Exception e) {
@@ -35,5 +35,4 @@ public class DefaultWebSocketHandler extends WebSocketHandler {
             }
         }
     }
-
 }

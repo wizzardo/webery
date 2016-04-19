@@ -1,6 +1,7 @@
 package com.wizzardo.http.websocket;
 
 import com.wizzardo.epoll.ByteBufferProvider;
+import com.wizzardo.epoll.Connection;
 import com.wizzardo.epoll.readable.ReadableBuilder;
 import com.wizzardo.epoll.readable.ReadableData;
 import com.wizzardo.http.Handler;
@@ -19,7 +20,7 @@ import java.io.IOException;
  * @author: wizzardo
  * Date: 30.09.14
  */
-public class WebSocketHandler implements Handler {
+public class WebSocketHandler<T extends WebSocketHandler.WebSocketListener> implements Handler {
 
     @Override
     public Response handle(Request request, Response response) {
@@ -44,7 +45,7 @@ public class WebSocketHandler implements Handler {
         key += "258EAFA5-E914-47DA-95CA-C5AB0DC85B11"; // websocket magic
         key = Base64.encodeToString(SHA1.create().update(key.getBytes()).asBytes());
 
-        request.connection().upgrade(new WebSocketListener(request.connection(), this));
+        request.connection().upgrade(createListener(request.connection(), this));
 
         return response.status(Status._101)
                 .header(Header.KEY_UPGRADE, Header.VALUE_WEBSOCKET)
@@ -52,14 +53,18 @@ public class WebSocketHandler implements Handler {
                 .header(Header.KEY_SEC_WEBSOCKET_ACCEPT, key);
     }
 
+    protected T createListener(HttpConnection connection, WebSocketHandler handler) {
+        return (T) new WebSocketListener(connection, handler);
+    }
+
     public static class WebSocketListener implements InputListener<HttpConnection> {
-        private HttpConnection connection;
-        private WebSocketHandler webSocketHandler;
+        protected final HttpConnection connection;
+        protected final WebSocketHandler webSocketHandler;
         private Message tempMessage;
         private Frame tempFrame;
         private int read = 0;
 
-        private WebSocketListener(HttpConnection connection, WebSocketHandler webSocketHandler) {
+        public WebSocketListener(HttpConnection connection, WebSocketHandler webSocketHandler) {
             this.connection = connection;
             this.webSocketHandler = webSocketHandler;
         }
@@ -166,12 +171,12 @@ public class WebSocketHandler implements Handler {
         }
     }
 
-    public void onConnect(WebSocketListener listener) {
+    public void onConnect(T listener) {
     }
 
-    public void onDisconnect(WebSocketListener listener) {
+    public void onDisconnect(T listener) {
     }
 
-    public void onMessage(WebSocketListener listener, Message message) {
+    public void onMessage(T listener, Message message) {
     }
 }
