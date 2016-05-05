@@ -63,7 +63,7 @@ public class HttpServer<T extends HttpConnection> extends AbstractHttpServer<T> 
         return new UrlMapping<>();
     }
 
-    public HttpServer<T> debug(boolean enabled) {
+    public HttpServer<T> setDebugOutput(boolean enabled) {
         debug = enabled;
         return this;
     }

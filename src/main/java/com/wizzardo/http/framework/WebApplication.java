@@ -94,6 +94,7 @@ public class WebApplication extends HttpServer<HttpConnection> {
         setHost(server.get("host", (String) null));
         setPort(server.get("port", 8080));
         setContext(server.get("context", (String) null));
+        setDebugOutput(server.get("debugOutput", environment != Environment.PRODUCTION));
 
         int workers = server.get("ioWorkersCount", -1);
         if (workers > 0)
@@ -209,6 +210,12 @@ public class WebApplication extends HttpServer<HttpConnection> {
     public void setPort(int port) {
         super.setPort(port);
         config.config("server").put("port", port);
+    }
+
+    public WebApplication setDebugOutput(boolean enabled) {
+        super.setDebugOutput(enabled);
+        config.config("server").put("debugOutput", enabled);
+        return this;
     }
 
     @Override
