@@ -24,6 +24,7 @@ public class HttpServer<T extends HttpConnection> extends AbstractHttpServer<T> 
     protected FiltersMapping filtersMapping;
     protected UrlMapping<Handler> urlMapping;
     protected ServerDate serverDate = new ServerDate();
+    protected boolean debug = false;
 
     public HttpServer() {
         init();
@@ -60,6 +61,11 @@ public class HttpServer<T extends HttpConnection> extends AbstractHttpServer<T> 
 
     protected UrlMapping<Handler> createUrlMapping() {
         return new UrlMapping<>();
+    }
+
+    public HttpServer<T> debug(boolean enabled) {
+        debug = enabled;
+        return this;
     }
 
     @Override
@@ -102,8 +108,12 @@ public class HttpServer<T extends HttpConnection> extends AbstractHttpServer<T> 
         response.appendHeader(serverDate.getDateAsBytes());
         response.appendHeader(serverName);
 
-//            System.out.println(request.method() + " " + request.path() + " " + request.protocol());
-//            System.out.println(request.headers());
+        if (debug) {
+            System.out.println("request: ");
+            System.out.println(request.method() + " " + request.path() + " " + request.protocol());
+            System.out.println(request.params());
+            System.out.println(request.headers());
+        }
 
         if (!filtersMapping.before(request, response))
             return;
@@ -111,6 +121,10 @@ public class HttpServer<T extends HttpConnection> extends AbstractHttpServer<T> 
         response = handle(request, response);
 
         filtersMapping.after(request, response);
+        if (debug) {
+            System.out.println("response: ");
+            System.out.println(response);
+        }
     }
 
     protected Response handle(Request request, Response response) throws IOException {
