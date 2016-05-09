@@ -332,8 +332,12 @@ public class Response {
     }
 
     public void commit(HttpConnection connection) {
+        commit(connection, (ByteBufferProvider) Thread.currentThread());
+    }
+
+    public void commit(HttpConnection connection, ByteBufferProvider byteBufferProvider) {
         if (!committed) {
-            connection.write(toReadableBytes(), (ByteBufferProvider) Thread.currentThread());
+            connection.write(toReadableBytes(), byteBufferProvider);
             committed = true;
         }
     }

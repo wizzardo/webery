@@ -117,7 +117,7 @@ public class ProxyHandler implements Handler {
                         if (!responseReader.status.equals("200"))
                             srcResponse.setStatus(Status.valueOf(Integer.parseInt(responseReader.getStatus())));
 
-                        srcResponse.commit(srcRequest.connection());
+                        srcResponse.commit(srcRequest.connection(), byteBufferProvider);
                         if (length == null) {
                             processingBy.set(null);
                             end();

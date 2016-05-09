@@ -92,7 +92,7 @@ public abstract class AbstractHttpServer<T extends HttpConnection> extends Epoll
         connection.getResponse()
                 .status(status)
                 .appendHeader(Header.KV_CONNECTION_CLOSE)
-                .commit(connection);
+                .commit(connection, getBufferProvider());
     }
 
     void process(T connection, ByteBufferProvider bufferProvider) {
@@ -132,16 +132,20 @@ public abstract class AbstractHttpServer<T extends HttpConnection> extends Epoll
             return false;
         }
 
-        connection.getResponse().commit(connection);
+        connection.getResponse().commit(connection, getBufferProvider());
         connection.flushOutputStream();
         if (!connection.onFinishingHandling())
             return false;
 
         if (connection.isRequestReady())
             return true;
-        else if (connection.isReadyToRead() && checkData(connection, (ByteBufferProvider) Thread.currentThread()))
+        else if (connection.isReadyToRead() && checkData(connection, getBufferProvider()))
             return true;
         return false;
+    }
+
+    protected ByteBufferProvider getBufferProvider() {
+        return (ByteBufferProvider) Thread.currentThread();
     }
 
     public void setSessionTimeout(int sec) {
