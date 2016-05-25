@@ -7,10 +7,7 @@ package com.wizzardo.http.framework;
 import com.wizzardo.http.Session;
 import com.wizzardo.http.framework.di.DependencyScope;
 import com.wizzardo.http.framework.di.Injectable;
-import com.wizzardo.http.framework.template.Model;
-import com.wizzardo.http.framework.template.Renderer;
-import com.wizzardo.http.framework.template.TextRenderer;
-import com.wizzardo.http.framework.template.ViewRenderer;
+import com.wizzardo.http.framework.template.*;
 import com.wizzardo.http.request.Header;
 import com.wizzardo.http.request.Parameters;
 import com.wizzardo.http.request.Request;
@@ -66,7 +63,7 @@ public abstract class Controller {
 
     public Renderer renderJson(Object o) {
         response.appendHeader(Header.KV_CONTENT_TYPE_APPLICATION_JSON);
-        return new TextRenderer(JsonTools.serialize(o));
+        return new BytesRenderer(JsonTools.serializeToBytes(o));
     }
 
     public Renderer redirect(String url) {
