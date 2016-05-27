@@ -11,9 +11,9 @@ import com.wizzardo.http.framework.template.*;
 import com.wizzardo.http.request.Header;
 import com.wizzardo.http.request.Parameters;
 import com.wizzardo.http.request.Request;
+import com.wizzardo.http.response.JsonResponseHelper;
 import com.wizzardo.http.response.Response;
 import com.wizzardo.http.response.Status;
-import com.wizzardo.tools.json.JsonTools;
 
 /**
  * @author Moxa
@@ -63,7 +63,7 @@ public abstract class Controller {
 
     public Renderer renderJson(Object o) {
         response.appendHeader(Header.KV_CONTENT_TYPE_APPLICATION_JSON);
-        return new BytesRenderer(JsonTools.serializeToBytes(o));
+        return new ReadableDataRenderer(JsonResponseHelper.renderJson(o));
     }
 
     public Renderer redirect(String url) {
