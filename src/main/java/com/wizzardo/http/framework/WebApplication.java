@@ -72,7 +72,8 @@ public class WebApplication extends HttpServer<HttpConnection> {
         List<Class> classes = resourcesTools.getClasses();
         DependencyFactory.get().setClasses(classes);
 
-        File staticResources = resourcesTools.getResourceFile("public");
+        String staticResourcesPath = config.config("server").get("staticResourcesPath", "public");
+        File staticResources = resourcesTools.getResourceFile(staticResourcesPath);
         if (staticResources != null && staticResources.exists())
             urlMapping.append("/static/*", new FileTreeHandler<>(staticResources, "/static", "static")
                     .setShowFolder(false));
