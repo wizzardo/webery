@@ -105,6 +105,28 @@ public class TestDependencies extends WebApplicationTest {
         ;
     }
 
+    static class Holder {
+    }
+
+    static class HolderService implements Service {
+        Holder holder;
+    }
+
+    @Test
+    public void testRegisterManually() {
+        Holder holder = new Holder();
+
+        DependencyFactory.get().register(Holder.class, new SingletonDependency<>(holder));
+
+        Holder test = DependencyFactory.getDependency(Holder.class);
+        Assert.assertNotNull(test);
+        Assert.assertSame(holder, test);
+
+        test = DependencyFactory.getDependency(HolderService.class).holder;
+        Assert.assertNotNull(test);
+        Assert.assertSame(holder, test);
+    }
+
     @Test
     public void testCircularDependencies() {
         A a = DependencyFactory.getDependency(A.class);
