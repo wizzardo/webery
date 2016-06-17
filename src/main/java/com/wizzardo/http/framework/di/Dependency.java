@@ -30,17 +30,24 @@ public abstract class Dependency<T> {
                 int mod = f.getType().getModifiers();
                 if (Modifier.isFinal(mod) || f.getType().isPrimitive())
                     continue;
+
+                if (DependencyFactory.get().contains(f.getType())) {
+                    l.add(reflectionFactory.create(f, true));
+                    continue;
+                }
+
                 if (getAnnotation(f.getType(), Injectable.class) != null
                         || Modifier.isAbstract(mod)
                         || Modifier.isInterface(mod)) {
                     l.add(reflectionFactory.create(f, true));
-                } else
+                } else {
                     for (Class i : f.getType().getInterfaces()) {
                         if (getAnnotation(i, Injectable.class) != null) {
                             l.add(reflectionFactory.create(f, true));
                             break;
                         }
                     }
+                }
             }
             clazz = clazz.getSuperclass();
         }

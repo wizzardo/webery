@@ -19,7 +19,7 @@ public class DependencyFactory {
     private Map<Class, Class> mapping = new HashMap<Class, Class>();
 
     @SuppressWarnings("unchecked")
-    private Cache<Class, Dependency> dependencies = new Cache<Class, Dependency>(0, new Computable<Class, Dependency>() {
+    private Cache<Class, Dependency> dependencies = new Cache<>(0, new Computable<Class, Dependency>() {
         @Override
         public Dependency compute(Class clazz) {
 
@@ -100,9 +100,14 @@ public class DependencyFactory {
 
     public void bind(Class abstractClass, Class implementation) {
         mapping.put(abstractClass, implementation);
+        dependencies.get(abstractClass);
     }
 
     public <T> void register(Class<T> clazz, Dependency<T> dependency) {
         dependencies.put(clazz, dependency);
+    }
+
+    public boolean contains(Class clazz) {
+        return dependencies.contains(clazz);
     }
 }
