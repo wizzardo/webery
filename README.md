@@ -38,4 +38,17 @@ public class MyWebApp {
 }
 ```
 
+#### Url-mapping
 
+Controllers and actions could be mapped to static paths or
+to something dynamic with variables and wildcards
+```java
+urlMapping
+    .append("/index", AppController.class, "index")
+    .append("/books/$id?", AppController.class, "books") // 'id' - is optional
+    .append("/optionals/$foo?/$bar?", AppController.class, "optionals") // 'foo' and 'bar' - are optional
+    .append("/${foo}-${bar}", AppController.class, "fooBar")
+    .append("/any/*", AppController.class, "any")
+    .append("*.html", AppController.class, "html")
+    ;
+```
