@@ -74,3 +74,42 @@ static class AppController extends Controller {
 }
 ```
 Framework will also try to find and inject implementation of interfaces and abstract classes.
+
+#### Configuration
+```
+src/main/resources/Config.groovy
+```
+```groovy
+server {
+    host = '0.0.0.0'
+    port = 8080
+    ioWorkersCount = 1
+    ttl = 5 * 60 * 1000
+    context = 'myApp'
+    basicAuth {
+        username = 'user'
+        password = 'pass'
+        token = true
+        tokenTTL = 7 * 24 * 60 * 60 * 1000l
+    }
+
+    ssl {
+        cert = '/etc/ssl/certs/hostname.crt'
+        key = '/etc/ssl/private/hostname.key'
+    }
+}
+//this configuration will be only applied for certain environment
+environments {
+    dev {
+        custom.key = true
+    }
+    prod {
+        custom.key = false
+        server.ioWorkersCount = 4
+    }
+}
+```
+Configuration stored in Holders
+```java
+    boolean key = Holders.getConfig().config("custom").get("key", defaulValue);
+```
