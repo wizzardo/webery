@@ -113,3 +113,29 @@ Configuration stored in Holders
 ```java
     boolean key = Holders.getConfig().config("custom").get("key", defaulValue);
 ```
+
+
+#### Template engine
+This framework has it's own template engine, inspired and based on Groovy Server Pages (GSP)
+```java
+static class AppController extends Controller {
+    public Renderer index() {
+        model().append("name", params().get("name", "%user name%"));
+        return renderView("index");
+    }
+}
+```
+Engine will try to render html from template 'resources/views/controller_name/view_name.gsp', in this example:
+```
+src/main/resources/views/app/index.gsp
+```
+```html
+<html>
+   <head>
+      <title>Hello</title>
+   </head>
+   <body>
+      Hello, ${name}!
+   </body>
+ </html>
+```
