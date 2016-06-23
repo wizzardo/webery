@@ -145,7 +145,7 @@ src/main/resources/views/app/index.gsp
     MessageBundle ms = DependencyFactory.getDependency(MessageBundle.class);
 
     //load message bundle from resources/i18n/messages.properties
-    //and lasy load any other language, for example messages_en.properties, messages_fr.properties
+    //and lazy load any other language, for example messages_en.properties, messages_fr.properties
     ms.load("messages");
 
     String foo = ms.get("foo");
