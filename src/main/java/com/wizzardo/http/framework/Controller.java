@@ -49,6 +49,10 @@ public abstract class Controller {
         return request.session();
     }
 
+    public Renderer renderView() {
+        return renderView(RequestContext.get().action());
+    }
+
     public Renderer renderView(String view) {
         return new ViewRenderer(model(), name(), view);
     }

@@ -15,4 +15,8 @@ public interface RequestContext {
     void setController(String controller);
 
     void setAction(String action);
+
+    static RequestContext get() {
+        return (RequestContext) Thread.currentThread();
+    }
 }
