@@ -121,11 +121,11 @@ This framework has it's own template engine, inspired and based on Groovy Server
 static class AppController extends Controller {
     public Renderer index() {
         model().append("name", params().get("name", "%user name%"));
-        return renderView("index");
+        return renderView();
     }
 }
 ```
-Engine will try to render html from template 'resources/views/controller_name/view_name.gsp', in this example:
+Engine will try to render html from template 'resources/views/controller_name/view_name.gsp', by default 'view_name' is 'action_name':
 ```
 src/main/resources/views/app/index.gsp
 ```
