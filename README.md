@@ -75,6 +75,13 @@ static class AppController extends Controller {
 ```
 Framework will also try to find and inject implementation of interfaces and abstract classes.
 
+
+##### Raw usage of DI
+```java
+DependencyFactory.get().register(CustomBean.class, new SingletonDependency<>(CustomBean.class));
+CustomBean bean = DependencyFactory.get(CustomBean.class);
+```
+
 #### Configuration
 ```
 src/main/resources/Config.groovy
