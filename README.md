@@ -148,7 +148,7 @@ src/main/resources/views/app/index.gsp
 ```
 
 ##### Taglib
- - checkBox
+ - [checkBox](#checkBox)
  - collect
  - createLink
  - each
@@ -169,6 +169,7 @@ src/main/resources/views/app/index.gsp
  - textField
  - while
 
+<a name="checkBox"/>
 ###### checkBox
 
 template:
