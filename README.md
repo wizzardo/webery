@@ -12,7 +12,18 @@ server.start();
 
 ## Framework
 
+- [Initialization](#initialization)
+- [Url-mapping](#url-mapping)
+- [Dependency injection](#di)
+- [Configuration](#configuration)
+- [Template engine](#template-engine)
+- [Taglib](#taglib)
+- [i18n](#i18n)
+
+
+<a name="initialization"/>
 #### Initialization
+
 ```java
 import com.wizzardo.http.framework.Controller;
 import com.wizzardo.http.framework.Environment;
@@ -38,6 +49,7 @@ public class MyWebApp {
 }
 ```
 
+<a name="url-mapping"/>
 #### Url-mapping
 
 Controllers and actions could be mapped to static paths or
@@ -53,6 +65,7 @@ urlMapping
     ;
 ```
 
+<a name="di"/>
 #### Dependency injection
 Framework supports simple dependency injections, to make class or interface injectable simple annotate it with @Injectable.
 
@@ -82,7 +95,9 @@ DependencyFactory.get().register(CustomBean.class, new SingletonDependency<>(Cus
 CustomBean bean = DependencyFactory.get(CustomBean.class);
 ```
 
+<a name="configuration"/>
 #### Configuration
+
 ```
 src/main/resources/Config.groovy
 ```
@@ -122,7 +137,9 @@ Configuration stored in Holders
 ```
 
 
+<a name="template-engine"/>
 #### Template engine
+
 This framework has it's own template engine, inspired and based on Groovy Server Pages (GSP)
 ```java
 static class AppController extends Controller {
@@ -147,7 +164,9 @@ src/main/resources/views/app/index.gsp
 </html>
 ```
 
+<a name="taglib"/>
 ##### Taglib
+
  - [checkBox](#checkBox)
  - collect
  - createLink
@@ -183,7 +202,9 @@ result:
 <input type="checkbox" name="myCheckbox" id="myCheckbox_1" checked="checked"/>
 ```
 
+<a name="i18n"/>
 #### i18n
+
 ```java
     MessageBundle ms = DependencyFactory.getDependency(MessageBundle.class);
 
