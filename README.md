@@ -174,7 +174,7 @@ src/main/resources/views/app/index.gsp
 
 template:
 ```html
-<g:checkBox name="myCheckbox" value="${true}"
+<g:checkBox name="myCheckbox" value="${true}"/>
 <g:checkBox name="myCheckbox" id="myCheckbox_${1}" checked="${true}"/>
 ```
 result:
