@@ -169,6 +169,19 @@ src/main/resources/views/app/index.gsp
  - textField
  - while
 
+###### checkBox
+
+template:
+```html
+<g:checkBox name="myCheckbox" value="${true}"
+<g:checkBox name="myCheckbox" id="myCheckbox_${1}" checked="${true}"/>
+```
+result:
+```html
+<input type="checkbox" name="myCheckbox" id="myCheckbox" value="true"/>
+<input type="checkbox" name="myCheckbox" id="myCheckbox_1" checked="checked"/>
+```
+
 #### i18n
 ```java
     MessageBundle ms = DependencyFactory.getDependency(MessageBundle.class);
