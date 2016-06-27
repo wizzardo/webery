@@ -10,6 +10,8 @@ server.getUrlMapping()
 server.start();
 ```
 
+---
+
 ## Framework
 
 - [Initialization](#initialization)
@@ -20,6 +22,8 @@ server.start();
 - [Taglib](#taglib)
 - [i18n](#i18n)
 
+
+---
 
 <a name="initialization"/>
 #### Initialization
@@ -49,6 +53,8 @@ public class MyWebApp {
 }
 ```
 
+---
+
 <a name="url-mapping"/>
 #### Url-mapping
 
@@ -64,6 +70,8 @@ urlMapping
     .append("*.html", AppController.class, "html")
     ;
 ```
+
+---
 
 <a name="di"/>
 #### Dependency injection
@@ -94,6 +102,8 @@ Framework will also try to find and inject implementation of interfaces and abst
 DependencyFactory.get().register(CustomBean.class, new SingletonDependency<>(CustomBean.class));
 CustomBean bean = DependencyFactory.get(CustomBean.class);
 ```
+
+---
 
 <a name="configuration"/>
 #### Configuration
@@ -136,6 +146,7 @@ Configuration stored in Holders
     boolean key = Holders.getConfig().config("custom").get("key", defaulValue);
 ```
 
+---
 
 <a name="template-engine"/>
 #### Template engine
@@ -163,6 +174,8 @@ src/main/resources/views/app/index.gsp
    </body>
 </html>
 ```
+
+---
 
 <a name="taglib"/>
 ##### Taglib
@@ -201,6 +214,8 @@ result:
 <input type="checkbox" name="myCheckbox" id="myCheckbox" value="true"/>
 <input type="checkbox" name="myCheckbox" id="myCheckbox_1" checked="checked"/>
 ```
+
+---
 
 <a name="i18n"/>
 #### i18n
