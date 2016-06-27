@@ -12,6 +12,7 @@ server.start();
 
 ---
 
+<a name="up"/>
 ## Framework
 
 - [Initialization](#initialization)
@@ -26,7 +27,7 @@ server.start();
 ---
 
 <a name="initialization"/>
-#### Initialization
+#### Initialization [↑](#up)
 
 ```java
 import com.wizzardo.http.framework.Controller;
@@ -56,7 +57,7 @@ public class MyWebApp {
 ---
 
 <a name="url-mapping"/>
-#### Url-mapping
+#### Url-mapping [↑](#up)
 
 Controllers and actions could be mapped to static paths or
 to something dynamic with variables and wildcards
@@ -74,7 +75,7 @@ urlMapping
 ---
 
 <a name="di"/>
-#### Dependency injection
+#### Dependency injection [↑](#up)
 Framework supports simple dependency injections, to make class or interface injectable simple annotate it with @Injectable.
 
 There are several scopes for it:
@@ -106,7 +107,7 @@ CustomBean bean = DependencyFactory.get(CustomBean.class);
 ---
 
 <a name="configuration"/>
-#### Configuration
+#### Configuration [↑](#up)
 
 ```
 src/main/resources/Config.groovy
@@ -149,7 +150,7 @@ Configuration stored in Holders
 ---
 
 <a name="template-engine"/>
-#### Template engine
+#### Template engine [↑](#up)
 
 This framework has it's own template engine, inspired and based on Groovy Server Pages (GSP)
 ```java
@@ -178,7 +179,7 @@ src/main/resources/views/app/index.gsp
 ---
 
 <a name="taglib"/>
-##### Taglib
+#### Taglib [↑](#up)
 
  - [checkBox](#checkBox)
  - collect
@@ -218,7 +219,7 @@ result:
 ---
 
 <a name="i18n"/>
-#### i18n
+#### i18n [↑](#up)
 
 ```java
     MessageBundle ms = DependencyFactory.getDependency(MessageBundle.class);
