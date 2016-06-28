@@ -182,7 +182,7 @@ src/main/resources/views/app/index.gsp
 #### Taglib [↑](#up)
 
  - [checkBox](#checkBox)
- - collect
+ - [collect](#collect)
  - createLink
  - each
  - else
@@ -214,6 +214,28 @@ result:
 ```html
 <input type="checkbox" name="myCheckbox" id="myCheckbox" value="true"/>
 <input type="checkbox" name="myCheckbox" id="myCheckbox_1" checked="checked"/>
+```
+
+<a name="collect"/>
+###### collect
+
+template:
+```html
+<div><g:collect in="${books}" expr="${it.title}">$it<br/></g:collect></div>
+```
+
+action:
+```java
+model().append("books", Arrays.asList(new Book("Book one"), new Book("Book two")))
+```
+
+```html
+<div>
+    Book one
+    <br/>
+    Book two
+    <br/>
+</div>
 ```
 
 ---
