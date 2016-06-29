@@ -221,12 +221,27 @@ result:
 
 template:
 ```html
-<div><g:collect in="${books}" expr="${it.title}">$it<br/></g:collect></div>
+<div>
+    <g:collect in="${books}" expr="${it.title}">
+        $it<br/>
+    </g:collect>
+</div>
 ```
 
 action:
 ```java
 model().append("books", Arrays.asList(new Book("Book one"), new Book("Book two")))
+```
+
+Book.java:
+```java
+public class Book {
+    public final String title;
+
+    public Book(String title) {
+        this.title = title;
+    }
+}
 ```
 
 ```html
