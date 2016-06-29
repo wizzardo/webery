@@ -205,7 +205,7 @@ src/main/resources/views/app/index.gsp
 ---
 
 <a name="checkBox"/>
-###### checkBox [↑](#taglib)
+##### checkBox [↑](#taglib)
 
 template:
 ```html
@@ -221,7 +221,7 @@ result:
 ---
 
 <a name="collect"/>
-###### collect [↑](#taglib)
+##### collect [↑](#taglib)
 
 template:
 ```html
