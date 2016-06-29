@@ -202,8 +202,10 @@ src/main/resources/views/app/index.gsp
  - textField
  - while
 
+---
+
 <a name="checkBox"/>
-###### checkBox
+###### checkBox [↑](#taglib)
 
 template:
 ```html
@@ -216,8 +218,10 @@ result:
 <input type="checkbox" name="myCheckbox" id="myCheckbox_1" checked="checked"/>
 ```
 
+---
+
 <a name="collect"/>
-###### collect
+###### collect [↑](#taglib)
 
 template:
 ```html
