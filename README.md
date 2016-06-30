@@ -183,7 +183,7 @@ src/main/resources/views/app/index.gsp
 
  - [checkBox](#checkBox)
  - [collect](#collect)
- - createLink
+ - [createLink](#createLink)
  - each
  - else
  - elseIf
@@ -256,6 +256,48 @@ result:
     Book two
     <br/>
 </div>
+```
+
+---
+<a name="createLink"/>
+##### createLink [↑](#taglib)
+
+Controller:
+```java
+public class BookController extends Controller {
+
+    public Renderer list() {
+        return renderString("list of books");
+    }
+
+    public Renderer show() {
+        return renderString("some book");
+    }
+}
+```
+url-mapping:
+```java
+app.getUrlMapping()
+        .append("/book/list", BookController.class, "list")
+        .append("/book/$id", BookController.class, "show");
+```
+
+template:
+```html
+// generates <a href="/book/1">link</a>
+<a href="${createLink([controller:'book', action:'show', id: 1])}">link</a>
+
+// generates "/book/show?foo=bar&boo=far"
+<g:createLink controller="book" action="show" params="[foo: 'bar', boo: 'far']"/>
+
+// generates "/book/list"
+<g:createLink controller="book" action="list" />
+
+// generates "http://localhost:8080/book/list"
+<g:createLink controller="book" action="list" absolute="true"/>
+
+// generates "http://ya.ru/book/list"
+<g:createLink controller="book" action="list" base="http://ya.ru"/>
 ```
 
 ---
