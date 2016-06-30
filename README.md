@@ -300,6 +300,16 @@ template:
 <g:createLink controller="book" action="list" base="http://ya.ru"/>
 ```
 
+###### Attributes:
+- action (optional) - The name of the action to use in the link; if not specified the current action will be linked
+- controller (optional) - The name of the controller to use in the link; if not specified the current controller will be linked
+- id (optional) - The id to use in the link
+- fragment (optional) - The link fragment (often called anchor tag) to use
+- mapping (optional) - The named URL mapping to use, default mapping = controllerName + '.' + actionName
+- params (optional) - A Map of request parameters
+- absolute (optional) - If true will prefix the link target address with the value of the server.url property from config
+- base (optional) - Sets the prefix to be added to the link target address, typically an absolute server URL. This overrides the behaviour of the absolute property if both are specified.
+
 ---
 
 <a name="i18n"/>
