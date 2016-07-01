@@ -9,24 +9,27 @@ import java.io.IOException;
  * Created by wizzardo on 26/05/16.
  */
 public class ReadableByteArrayPool {
-    private static Pool<PooledReadableByteArray> pool = new ThreadLocalPool<PooledReadableByteArray>() {
-        @Override
-        public PooledReadableByteArray create() {
-            return new PooledReadableByteArray(new byte[10240], this);
-        }
-
-        @Override
-        protected Holder<PooledReadableByteArray> createHolder(PooledReadableByteArray value) {
-            return value.holder;
-        }
-    };
+    private static Pool<PooledReadableByteArray> pool = new PoolBuilder<PooledReadableByteArray>()
+            .supplier(() -> new PooledReadableByteArray(new byte[10240]))
+            .holder((pool, value, resetter) -> {
+                SoftHolder<PooledReadableByteArray> holder = new SoftHolder<PooledReadableByteArray>(pool, value) {
+                    public PooledReadableByteArray get() {
+                        PooledReadableByteArray t = super.get();
+                        resetter.consume(t);
+                        return t;
+                    }
+                };
+                value.holder = holder;
+                return holder;
+            })
+            .resetter(it -> it.unread((int) it.complete()))
+            .build();
 
     public static class PooledReadableByteArray extends ReadableByteArray {
-        final Holder<PooledReadableByteArray> holder;
+        private volatile Holder<PooledReadableByteArray> holder;
 
-        PooledReadableByteArray(byte[] bytes, Pool<PooledReadableByteArray> pool) {
+        PooledReadableByteArray(byte[] bytes) {
             super(bytes);
-            holder = new SoftHolder<>(pool, this);
         }
 
         public byte[] bytes() {
@@ -44,8 +47,6 @@ public class ReadableByteArrayPool {
     }
 
     public static PooledReadableByteArray get() {
-        PooledReadableByteArray buffer = pool.get();
-        buffer.unread((int) buffer.complete());
-        return buffer;
+        return pool.get();
     }
 }
