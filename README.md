@@ -307,7 +307,7 @@ template:
 - fragment (optional) - The link fragment (often called anchor tag) to use
 - mapping (optional) - The named URL mapping to use, default mapping = controllerName + '.' + actionName
 - params (optional) - A Map of request parameters
-- absolute (optional) - If true will prefix the link target address with the value of the server.url property from config
+- absolute (optional) - If true will prefix the link target address with the value of the server.host property from config
 - base (optional) - Sets the prefix to be added to the link target address, typically an absolute server URL. This overrides the behaviour of the absolute property if both are specified.
 
 ---

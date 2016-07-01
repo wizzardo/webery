@@ -86,6 +86,10 @@ public class HttpServer<T extends HttpConnection> extends AbstractHttpServer<T> 
         filtersMapping.setContext(context);
     }
 
+    protected String getHost() {
+        return getNetworkInterface();
+    }
+
     protected void init() {
         urlMapping = createUrlMapping();
         filtersMapping = new FiltersMapping();
