@@ -311,6 +311,35 @@ template:
 - base (optional) - Sets the prefix to be added to the link target address, typically an absolute server URL. This overrides the behaviour of the absolute property if both are specified.
 
 ---
+<a name="each"/>
+##### each [↑](#taglib)
+Iterate over each element of the specified collection.
+
+template:
+```html
+<div>
+    <g:each in="[1,2,3]" var="i">
+        $i<br/>
+    </g:each>
+</div>
+```
+result:
+```html
+<div>
+    1
+    <br/>
+    2
+    <br/>
+    3
+    <br/>
+</div>
+```
+
+###### Attributes:
+- in - The collection to iterate over
+- status (optional) - The name of a variable to store the iteration index in. Starts with 0 and increments for each iteration.
+- var (optional) - The name of the item, defaults to "it".
+---
 
 <a name="i18n"/>
 #### i18n [↑](#up)
