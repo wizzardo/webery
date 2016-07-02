@@ -184,7 +184,7 @@ src/main/resources/views/app/index.gsp
  - [checkBox](#checkBox)
  - [collect](#collect)
  - [createLink](#createLink)
- - each
+ - [each](#each)
  - else
  - elseIf
  - form
@@ -206,6 +206,7 @@ src/main/resources/views/app/index.gsp
 
 <a name="checkBox"/>
 ##### checkBox [↑](#taglib)
+Generates a checkbox form field.
 
 template:
 ```html
@@ -217,11 +218,16 @@ result:
 <input type="checkbox" name="myCheckbox" id="myCheckbox" value="true"/>
 <input type="checkbox" name="myCheckbox" id="myCheckbox_1" checked="checked"/>
 ```
+###### Attributes
+- name - The name of the checkbox
+- value (optional) - The value of the checkbox
+- checked (optional) - Expression if evaluates to true sets to checkbox to checked
 
 ---
 
 <a name="collect"/>
 ##### collect [↑](#taglib)
+Iterate over each element of the specified collection transforming the result using the expression in the closure
 
 template:
 ```html
@@ -258,9 +264,14 @@ result:
 </div>
 ```
 
+###### Attributes
+- in - The object to iterative over
+- expr - A expression
+
 ---
 <a name="createLink"/>
 ##### createLink [↑](#taglib)
+Creates a link that can be used where necessary (for example in an href, JavaScript, Ajax call etc.)
 
 Controller:
 ```java
@@ -339,6 +350,7 @@ result:
 - in - The collection to iterate over
 - status (optional) - The name of a variable to store the iteration index in. Starts with 0 and increments for each iteration.
 - var (optional) - The name of the item, defaults to "it".
+
 ---
 
 <a name="i18n"/>
