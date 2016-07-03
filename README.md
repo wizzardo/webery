@@ -208,12 +208,12 @@ src/main/resources/views/app/index.gsp
 ##### checkBox [↑](#taglib)
 Generates a checkbox form field.
 
-template:
+###### Template:
 ```html
 <g:checkBox name="myCheckbox" value="${true}"/>
 <g:checkBox name="myCheckbox" id="myCheckbox_${1}" checked="${true}"/>
 ```
-result:
+###### Result:
 ```html
 <input type="checkbox" name="myCheckbox" id="myCheckbox" value="true"/>
 <input type="checkbox" name="myCheckbox" id="myCheckbox_1" checked="checked"/>
@@ -229,7 +229,7 @@ result:
 ##### collect [↑](#taglib)
 Iterate over each element of the specified collection transforming the result using the expression in the closure
 
-template:
+###### Template:
 ```html
 <div>
     <g:collect in="${books}" expr="${it.title}">
@@ -238,12 +238,12 @@ template:
 </div>
 ```
 
-action:
+###### Action:
 ```java
 model().append("books", Arrays.asList(new Book("Book one"), new Book("Book two")))
 ```
 
-Book.java:
+###### Book.java:
 ```java
 public class Book {
     public final String title;
@@ -254,7 +254,7 @@ public class Book {
 }
 ```
 
-result:
+###### Result:
 ```html
 <div>
     Book one
@@ -293,7 +293,7 @@ app.getUrlMapping()
         .append("/book/$id", BookController.class, "show");
 ```
 
-template:
+###### Template:
 ```html
 // generates <a href="/book/1">link</a>
 <a href="${createLink([controller:'book', action:'show', id: 1])}">link</a>
@@ -326,7 +326,7 @@ template:
 ##### each [↑](#taglib)
 Iterate over each element of the specified collection.
 
-template:
+###### Template:
 ```html
 <div>
     <g:each in="[1,2,3]" var="i">
@@ -334,7 +334,7 @@ template:
     </g:each>
 </div>
 ```
-result:
+###### Result:
 ```html
 <div>
     1
