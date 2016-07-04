@@ -185,7 +185,7 @@ src/main/resources/views/app/index.gsp
  - [collect](#collect)
  - [createLink](#createLink)
  - [each](#each)
- - else
+ - [else](#else)
  - elseIf
  - form
  - formatBoolean
@@ -350,6 +350,26 @@ Iterate over each element of the specified collection.
 - in - The collection to iterate over
 - status (optional) - The name of a variable to store the iteration index in. Starts with 0 and increments for each iteration.
 - var (optional) - The name of the item, defaults to "it".
+
+---
+<a name="else"/>
+##### else [↑](#taglib)
+The logical else tag
+
+###### Template:
+```html
+<g:if test="${false}">
+    never happen
+</g:if>
+<g:else>
+    Hello, world!
+</g:else>
+```
+
+###### Result:
+```html
+    Hello, world!
+```
 
 ---
 
