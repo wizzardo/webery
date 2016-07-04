@@ -186,7 +186,7 @@ src/main/resources/views/app/index.gsp
  - [createLink](#createLink)
  - [each](#each)
  - [else](#else)
- - elseIf
+ - [elseif](#elseif)
  - form
  - formatBoolean
  - hiddenField
@@ -370,6 +370,29 @@ The logical else tag
 ```html
     Hello, world!
 ```
+
+---
+<a name="elseif"/>
+##### elseif [↑](#taglib)
+The logical elseif tag
+
+###### Template:
+```html
+<g:if test="${false}">
+    never happen
+</g:if>
+<g:elseif test="${true}">
+    Hello, world!
+</g:elseif>
+```
+
+###### Result:
+```html
+    Hello, world!
+```
+
+###### Attributes:
+- test - The expression to test
 
 ---
 
