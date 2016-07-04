@@ -187,7 +187,7 @@ src/main/resources/views/app/index.gsp
  - [each](#each)
  - [else](#else)
  - [elseif](#elseif)
- - form
+ - [form](#form)
  - formatBoolean
  - hiddenField
  - if
@@ -393,6 +393,12 @@ The logical elseif tag
 
 ###### Attributes:
 - test - The expression to test
+
+
+---
+<a name="form"/>
+##### form [↑](#taglib)
+Creates a form, extends 'createLink' tag
 
 ---
 
