@@ -27,6 +27,7 @@ public class ProxyHandler implements Handler {
 
     protected static final Pool<ExceptionDrivenStringBuilder> BUILDER_POOL = new PoolBuilder<ExceptionDrivenStringBuilder>()
             .supplier(ExceptionDrivenStringBuilder::new)
+            .queue(PoolBuilder.createThreadLocalQueueSupplier())
             .resetter(sb -> sb.setLength(0))
             .build();
 
