@@ -239,8 +239,6 @@ public class HttpConnection<H extends AbstractHttpServer, Q extends Request, S e
 
     @Override
     public void onWriteData(ReadableData readable, boolean hasMore) {
-        super.onWriteData(readable, hasMore);
-
         if (hasMore)
             return;
 

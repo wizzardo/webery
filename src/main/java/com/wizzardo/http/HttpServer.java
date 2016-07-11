@@ -71,7 +71,6 @@ public class HttpServer<T extends HttpConnection> extends AbstractHttpServer<T> 
     @Override
     public synchronized void start() {
         onStart();
-        started = true;
         super.start();
     }
 
