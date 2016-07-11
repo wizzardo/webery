@@ -63,7 +63,7 @@ public class ProxyHandlerTest extends ServerTest {
             e.printStackTrace();
             assert false;
         } finally {
-            proxy.stopEpoll();
+            proxy.close();
         }
     }
 
@@ -119,7 +119,7 @@ public class ProxyHandlerTest extends ServerTest {
             e.printStackTrace();
             assert false;
         } finally {
-            proxy.stopEpoll();
+            proxy.close();
         }
     }
 
@@ -144,7 +144,7 @@ public class ProxyHandlerTest extends ServerTest {
             e.printStackTrace();
             assert false;
         } finally {
-            proxy.stopEpoll();
+            proxy.close();
         }
     }
 

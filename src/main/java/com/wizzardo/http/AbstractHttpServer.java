@@ -1,13 +1,12 @@
 package com.wizzardo.http;
 
-import com.wizzardo.epoll.ByteBufferProvider;
-import com.wizzardo.epoll.EpollServer;
-import com.wizzardo.epoll.IOThread;
+import com.wizzardo.epoll.*;
 import com.wizzardo.http.request.Header;
 import com.wizzardo.http.response.Status;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.channels.SocketChannel;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
@@ -15,16 +14,18 @@ import java.util.concurrent.LinkedBlockingQueue;
  * @author: moxa
  * Date: 11/5/13
  */
-public abstract class AbstractHttpServer<T extends HttpConnection> extends EpollServer<T> {
+public abstract class AbstractHttpServer<T extends HttpConnection> {
 
     protected volatile BlockingQueue<T> queue = new LinkedBlockingQueue<>();
     protected volatile int workersCount;
     protected volatile int sessionTimeoutSec = 30 * 60;
     protected String context;
+    protected final EpollServer<T> server;
 
     protected MimeProvider mimeProvider;
 
     public AbstractHttpServer() {
+        this(null, 8080);
     }
 
     public AbstractHttpServer(int port) {
@@ -36,7 +37,35 @@ public abstract class AbstractHttpServer<T extends HttpConnection> extends Epoll
     }
 
     public AbstractHttpServer(String host, int port, int workersCount) {
-        super(host, port);
+        if (EpollCore.SUPPORTED) {
+            server = new EpollServer<T>(host, port) {
+                @Override
+                protected T createConnection(int fd, int ip, int port) {
+                    return AbstractHttpServer.this.createConnection(fd, ip, port);
+                }
+
+                @Override
+                protected IOThread<T> createIOThread(int number, int divider) {
+                    return AbstractHttpServer.this.createIOThread(number, divider);
+                }
+            };
+        } else {
+            server = new FallbackServerSocket<T>(host, port) {
+                @Override
+                public void onRead(T connection, ByteBufferProvider bufferProvider) {
+                    if (connection.processInputListener())
+                        return;
+                    process(connection, bufferProvider);
+                }
+
+                @Override
+                protected SelectorConnectionWrapper createConnection(SocketChannel client) throws IOException {
+                    SelectorConnectionWrapper connection = super.createConnection(client);
+                    connection.server = AbstractHttpServer.this;
+                    return connection;
+                }
+            };
+        }
         this.workersCount = workersCount;
     }
 
@@ -44,22 +73,63 @@ public abstract class AbstractHttpServer<T extends HttpConnection> extends Epoll
         return new HttpWorker<>(this, queue, name);
     }
 
-    @Override
+    public synchronized void start() {
+        run();
+    }
+
     public void run() {
         Session.createSessionsHolder(sessionTimeoutSec);
         System.out.println("worker count: " + workersCount);
         for (int i = 0; i < workersCount; i++) {
             createWorker(queue, "worker_" + i).start();
         }
-        super.run();
+        server.start();
     }
 
-    @Override
+    public int getPort() {
+        return server.getPort();
+    }
+
+    public String getNetworkInterface() {
+        return server.getNetworkInterface();
+    }
+
+    public boolean isSecured() {
+        return false;
+    }
+
+    public void setNetworkInterface(String networkInterface) {
+        server.setNetworkInterface(networkInterface);
+    }
+
+    public void setPort(int port) {
+        server.setPort(port);
+    }
+
+    public void setIoThreadsCount(int ioThreadsCount) {
+        server.setIoThreadsCount(ioThreadsCount);
+    }
+
+    public void setTTL(long milliseconds) {
+        server.setTTL(milliseconds);
+    }
+
+    public void loadCertificates(SslConfig sslConfig) {
+        server.loadCertificates(sslConfig);
+    }
+
+    public void loadCertificates(String certFile, String keyFile) {
+        server.loadCertificates(certFile, keyFile);
+    }
+
+    public void close() {
+        server.close();
+    }
+
     protected T createConnection(int fd, int ip, int port) {
         return (T) new HttpConnection(fd, ip, port, this);
     }
 
-    @Override
     protected IOThread<T> createIOThread(int number, int divider) {
         return new HttpIOThread(this, number, divider);
     }
@@ -161,6 +231,11 @@ public abstract class AbstractHttpServer<T extends HttpConnection> extends Epoll
     public void setContext(String context) {
         checkIfStarted();
         this.context = context;
+    }
+
+    protected void checkIfStarted() {
+        if (server.isStarted())
+            throw new IllegalStateException("Server is already started");
     }
 
     public String getContext() {
