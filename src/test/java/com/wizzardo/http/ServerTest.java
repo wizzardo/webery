@@ -1,13 +1,11 @@
 package com.wizzardo.http;
 
-import com.wizzardo.http.mapping.UrlMapping;
 import com.wizzardo.http.request.Header;
 import com.wizzardo.http.request.Request;
 import com.wizzardo.http.response.Response;
 import com.wizzardo.tools.http.HttpClient;
 import com.wizzardo.tools.http.HttpSession;
 import com.wizzardo.tools.io.IOTools;
-import com.wizzardo.tools.misc.Unchecked;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -73,12 +71,16 @@ public class ServerTest<S extends HttpServer> {
         };
         server.setIoThreadsCount(1);
         server.start();
+        try {
+            Thread.sleep(25); // wait for server startup
+        } catch (InterruptedException ignored) {
+        }
     }
 
     @After
     public void tearDown() throws InterruptedException {
         System.out.println("tearDown " + this.getClass().getSimpleName() + "." + name.getMethodName());
-        server.stopEpoll();
+        server.close();
         handler = null;
         context = null;
     }
