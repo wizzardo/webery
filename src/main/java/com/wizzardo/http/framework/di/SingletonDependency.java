@@ -33,6 +33,8 @@ public class SingletonDependency<T> extends Dependency<T> {
                             instance = newInstance(false);
 
                         injectDependencies(instance);
+                        if (instance instanceof PostConstruct)
+                            ((PostConstruct) instance).init();
                     }
                     init = true;
                 }
