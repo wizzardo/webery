@@ -220,4 +220,21 @@ public class TestDependencies extends WebApplicationTest {
         Assert.assertEquals("ok", makeRequest("/request_scope").get().asString());
         Assert.assertEquals("ok", makeRequest("/request_scope").get().asString());
     }
+
+    @Injectable(scope = DependencyScope.PROTOTYPE)
+    static class IntHolder implements PostConstruct {
+        int value = 0;
+
+        @Override
+        public void init() {
+            value = 1;
+        }
+    }
+
+    @Test
+    public void testPostConstruct() throws IOException {
+        IntHolder holder = DependencyFactory.get(IntHolder.class);
+        Assert.assertEquals(1, holder.value);
+        Assert.assertNotSame(holder, DependencyFactory.get(IntHolder.class));
+    }
 }
