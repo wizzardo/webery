@@ -15,6 +15,7 @@ server.start();
 <a name="up"/>
 ## Framework
 
+- [Installation](#installation)
 - [Initialization](#initialization)
 - [Url-mapping](#url-mapping)
 - [Dependency injection](#di)
@@ -23,6 +24,51 @@ server.start();
 - [Taglib](#taglib)
 - [i18n](#i18n)
 
+
+---
+
+<a name="installation"/>
+#### Installation [↑](#up)
+
+##### Gradle
+```
+build.gradle
+```
+```groovy
+apply plugin: 'java'
+apply plugin: 'application'
+
+repositories {
+    jcenter()
+    mavenCentral()
+    maven {
+        url "https://oss.sonatype.org/content/repositories/snapshots/"
+    }
+}
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+version = '0.1'
+
+mainClassName = "com.example.MyWebApp"
+
+dependencies {
+    compile 'com.wizzardo:http:0.1+'
+}
+
+//create a single Jar with all dependencies
+task fatJar(type: Jar) {
+    manifest {
+        attributes(
+                "Main-Class": mainClassName
+        )
+    }
+    baseName = project.name + '-all'
+    from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
+    with jar
+}
+```
 
 ---
 
