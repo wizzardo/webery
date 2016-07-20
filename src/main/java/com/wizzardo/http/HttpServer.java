@@ -76,17 +76,13 @@ public class HttpServer<T extends HttpConnection> extends AbstractHttpServer<T> 
 
     protected void onStart() {
         urlMapping.getTemplatesHolder()
-                .setHost(getHost())
+                .setHost(getHostname())
                 .setPort(getPort())
                 .setContext(context)
                 .setIsHttps(isSecured());
 
         urlMapping.setContext(context);
         filtersMapping.setContext(context);
-    }
-
-    protected String getHost() {
-        return getNetworkInterface();
     }
 
     protected void init() {

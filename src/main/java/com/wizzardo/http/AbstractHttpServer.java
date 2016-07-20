@@ -90,16 +90,16 @@ public abstract class AbstractHttpServer<T extends HttpConnection> {
         return server.getPort();
     }
 
-    public String getNetworkInterface() {
-        return server.getNetworkInterface();
+    public String getHostname() {
+        return server.getHostname();
     }
 
     public boolean isSecured() {
         return false;
     }
 
-    public void setNetworkInterface(String networkInterface) {
-        server.setNetworkInterface(networkInterface);
+    public void setHostname(String hostname) {
+        server.setHostname(hostname);
     }
 
     public void setPort(int port) {

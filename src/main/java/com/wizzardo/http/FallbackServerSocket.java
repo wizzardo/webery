@@ -24,10 +24,10 @@ public class FallbackServerSocket<T extends HttpConnection> extends EpollServer<
     }
 
     public FallbackServerSocket(String host, int port) {
-        this.networkInterface = host != null ? host : "0.0.0.0";
+        this.hostname = normalizeHostname(host);
         this.port = port;
         setPort(port);
-        setNetworkInterface(host);
+        setHostname(host);
     }
 
 
@@ -202,8 +202,8 @@ public class FallbackServerSocket<T extends HttpConnection> extends EpollServer<
             selector = Selector.open();
             server = ServerSocketChannel.open();
             server.socket().setReuseAddress(true);
-            System.out.println("starting fallback server on " + networkInterface + ":" + port);
-            server.socket().bind(new InetSocketAddress(networkInterface, port));
+            System.out.println("starting fallback server on " + hostname + ":" + port);
+            server.socket().bind(new InetSocketAddress(hostname, port));
             server.configureBlocking(false);
             server.register(selector, SelectionKey.OP_ACCEPT);
 
@@ -309,7 +309,7 @@ public class FallbackServerSocket<T extends HttpConnection> extends EpollServer<
 
     @Override
     public boolean bind(String host, int port) {
-        this.networkInterface = host;
+        this.hostname = host;
         this.port = port;
         return true;
     }

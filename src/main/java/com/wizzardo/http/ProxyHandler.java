@@ -214,7 +214,7 @@ public class ProxyHandler implements Handler {
                     }).append("\r\n")
 
                     .append("X-Real-IP: ").append(request.connection().getIp()).append("\r\n")
-                    .append("X-Forwarded-for: ").append(request.connection().getServer().getNetworkInterface()).append("\r\n");
+                    .append("X-Forwarded-for: ").append(request.connection().getServer().getHostname()).append("\r\n");
 
             Map<String, MultiValue> headers = request.headers();
             for (Map.Entry<String, MultiValue> header : headers.entrySet()) {

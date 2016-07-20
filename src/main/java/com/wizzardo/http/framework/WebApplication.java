@@ -92,8 +92,7 @@ public class WebApplication extends HttpServer<HttpConnection> {
 
     protected void setupApplication() {
         Config server = config.config("server");
-        setNetworkInterface(server.get("interface", (String) null));
-        setHost(server.get("host", getNetworkInterface()));
+        setHostname(server.get("hostname", (String) null));
         setPort(server.get("port", 8080));
         setContext(server.get("context", (String) null));
         setDebugOutput(server.get("debugOutput", environment != Environment.PRODUCTION));
@@ -203,13 +202,9 @@ public class WebApplication extends HttpServer<HttpConnection> {
     }
 
     @Override
-    public void setNetworkInterface(String networkInterface) {
-        super.setNetworkInterface(networkInterface);
-        config.config("server").put("interface", networkInterface);
-    }
-
-    public void setHost(String host) {
-        config.config("server").put("host", host);
+    public void setHostname(String hostname) {
+        super.setHostname(hostname);
+        config.config("server").put("hostname", hostname);
     }
 
     @Override

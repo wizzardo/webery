@@ -20,7 +20,7 @@ public class ConfigTest extends WebApplicationTest {
                 return new TestResourcesTools();
             }
         };
-        server.setHost(null);
+        server.setHostname(null);
         server.setPort(port);
         server.setContext(context);
         server.setWorkersCount(workers);

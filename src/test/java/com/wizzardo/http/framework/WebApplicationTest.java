@@ -19,7 +19,7 @@ public class WebApplicationTest extends ServerTest<WebApplication> {
             }
         };
 
-        server.setHost(null);
+        server.setHostname(null);
         server.setPort(port);
         server.setContext(context);
         server.setWorkersCount(workers);
