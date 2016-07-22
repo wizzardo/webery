@@ -21,7 +21,7 @@ apply from: 'gradle/sonatype.gradle'
 
 dependencies {
     compile 'com.wizzardo:epoll:0.1+'
-    compile 'com.wizzardo.tools:tools:0.14+'
+    compile 'com.wizzardo.tools:tools:0.15+'
 
     testCompile 'junit:junit:4.12'
 }
