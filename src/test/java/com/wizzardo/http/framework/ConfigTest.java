@@ -1,5 +1,6 @@
 package com.wizzardo.http.framework;
 
+import com.wizzardo.http.framework.di.DependencyFactory;
 import com.wizzardo.http.framework.template.ResourceTools;
 import com.wizzardo.http.framework.template.TestResourcesTools;
 import org.junit.Assert;
@@ -14,7 +15,7 @@ public class ConfigTest extends WebApplicationTest {
     @Before
     public void setUp() throws NoSuchMethodException, ClassNotFoundException, NoSuchFieldException {
         System.out.println("setUp " + this.getClass().getSimpleName() + "." + name.getMethodName());
-        server = new WebApplication(){
+        server = new WebApplication() {
             @Override
             protected ResourceTools createResourceTools() {
                 return new TestResourcesTools();
@@ -64,5 +65,22 @@ public class ConfigTest extends WebApplicationTest {
 
         Assert.assertEquals("prod", server.getConfig().get("env"));
         Assert.assertEquals("production", server.getConfig().get("environment"));
+    }
+
+    public static class ConfigItem implements Configuration {
+
+        String key;
+
+        public String prefix() {
+            return "item";
+        }
+    }
+
+    @Test
+    public void test_binding() {
+        server.start();
+
+        ConfigItem configItem = DependencyFactory.get(ConfigItem.class);
+        Assert.assertEquals("value", configItem.key);
     }
 }
