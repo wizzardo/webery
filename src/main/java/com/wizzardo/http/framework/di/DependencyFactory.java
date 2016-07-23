@@ -68,6 +68,11 @@ public class DependencyFactory {
             if (a != null) {
                 return a;
             }
+            for (Class implemented : clazz.getInterfaces()) {
+                a = getAnnotation(implemented, annotation);
+                if (a != null)
+                    return a;
+            }
             clazz = clazz.getSuperclass();
         }
         return null;
