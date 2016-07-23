@@ -35,7 +35,6 @@ public class TestDependencies extends WebApplicationTest {
 
     @Injectable(scope = DependencyScope.SESSION)
     public static class D {
-        A a;
         int counter = 0;
     }
 
@@ -43,10 +42,6 @@ public class TestDependencies extends WebApplicationTest {
         default String doIt() {
             return getClass().getSimpleName();
         }
-    }
-
-    @Injectable
-    public static class F implements E {
     }
 
     public static class J implements Service, E {
@@ -167,7 +162,7 @@ public class TestDependencies extends WebApplicationTest {
 
     @Test
     public void testInterface() throws IOException {
-        Assert.assertEquals("F", makeRequest("/interface").get().asString());
+        Assert.assertEquals("J", makeRequest("/interface").get().asString());
         J j = DependencyFactory.getDependency(J.class);
         Assert.assertNotNull(j);
         Assert.assertEquals("J", j.doIt());
