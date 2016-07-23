@@ -92,22 +92,22 @@ public class WebApplication extends HttpServer<HttpConnection> {
 
     protected void setupApplication() {
         Config server = config.config("server");
-        setHostname(server.get("hostname", (String) null));
-        setPort(server.get("port", 8080));
-        setContext(server.get("context", (String) null));
-        setDebugOutput(server.get("debugOutput", environment != Environment.PRODUCTION));
+        super.setHostname(server.get("hostname", (String) null));
+        super.setPort(server.get("port", 8080));
+        super.setContext(server.get("context", (String) null));
+        super.setDebugOutput(server.get("debugOutput", false));
 
         int workers = server.get("ioWorkersCount", -1);
         if (workers > 0)
-            setIoThreadsCount(workers);
+            super.setIoThreadsCount(workers);
 
         workers = server.get("workersCount", -1);
         if (workers > 0)
-            setWorkersCount(workers);
+            super.setWorkersCount(workers);
 
         int ttl = server.get("ttl", -1);
         if (ttl > 0)
-            setTTL(ttl);
+            super.setTTL(ttl);
 
         loadSslConfiguration(server);
 
@@ -160,6 +160,15 @@ public class WebApplication extends HttpServer<HttpConnection> {
         super.init();
         Holders.setApplication(this);
         config = new Config();
+        loadDefaultConfiguration();
+    }
+
+    protected void loadDefaultConfiguration() {
+        Config server = config.config("server");
+
+        server.put("hostname", "0.0.0.0");
+        server.put("port", 8080);
+        server.put("debugOutput", false);
     }
 
     protected MessageBundle initMessageSource() {
