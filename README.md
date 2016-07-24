@@ -188,9 +188,20 @@ environments {
     }
 }
 ```
-Configuration stored in Holders
+Configuration stored in Holders:
 ```java
     boolean key = Holders.getConfig().config("custom").get("key", defaulValue);
+```
+or it can be mapped to pojo and injected to other objects:
+```java
+public class CustomConfig implements Configuration {
+    public boolean key;
+
+    @Override
+    public String prefix() {
+        return "custom";
+    }
+}
 ```
 
 ---
