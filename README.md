@@ -21,8 +21,8 @@ server.start();
 - [Dependency injection](#di)
 - [Configuration](#configuration)
 - [Template engine](#template-engine)
-- [Taglib](#taglib)
 - [i18n](#i18n)
+- [Taglib](#taglib)
 
 
 ---
@@ -231,6 +231,27 @@ src/main/resources/views/app/index.gsp
       Hello, ${name}!
    </body>
 </html>
+```
+
+---
+
+<a name="i18n"/>
+#### i18n [↑](#up)
+
+```java
+    MessageBundle ms = DependencyFactory.getDependency(MessageBundle.class);
+
+    //load message bundle from resources/i18n/messages.properties
+    //and lazy load any other language, for example messages_en.properties, messages_fr.properties
+    ms.load("messages");
+
+    String foo = ms.get("foo");
+    String fooDe = ms.get(Locale.GERMANY,"foo");
+
+    //it also supports templates
+    //foobar = {0} {1}
+    String foobar = ms.get("foobar", "foo", "bar"); // "foo bar"
+
 ```
 
 ---
@@ -456,24 +477,3 @@ The logical elseif tag
 <a name="form"/>
 ##### form [↑](#taglib)
 Creates a form, extends 'createLink' tag
-
----
-
-<a name="i18n"/>
-#### i18n [↑](#up)
-
-```java
-    MessageBundle ms = DependencyFactory.getDependency(MessageBundle.class);
-
-    //load message bundle from resources/i18n/messages.properties
-    //and lazy load any other language, for example messages_en.properties, messages_fr.properties
-    ms.load("messages");
-
-    String foo = ms.get("foo");
-    String fooDe = ms.get(Locale.GERMANY,"foo");
-
-    //it also supports templates
-    //foobar = {0} {1}
-    String foobar = ms.get("foobar", "foo", "bar"); // "foo bar"
-
-```
