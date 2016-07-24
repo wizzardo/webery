@@ -91,40 +91,42 @@ public class WebApplication extends HttpServer<HttpConnection> {
     }
 
     protected void setupApplication() {
-        Config server = config.config("server");
-        super.setHostname(server.get("hostname", (String) null));
-        super.setPort(server.get("port", 8080));
-        super.setContext(server.get("context", (String) null));
-        super.setDebugOutput(server.get("debugOutput", false));
+        ServerConfiguration server = DependencyFactory.get(ServerConfiguration.class);
 
-        int workers = server.get("ioWorkersCount", -1);
+        super.setHostname(server.hostname);
+        super.setPort(server.port);
+        super.setContext(server.context);
+        super.setDebugOutput(server.debugOutput);
+
+        int workers = server.ioWorkersCount;
         if (workers > 0)
             super.setIoThreadsCount(workers);
 
-        workers = server.get("workersCount", -1);
+        workers = server.workersCount;
         if (workers > 0)
             super.setWorkersCount(workers);
 
-        int ttl = server.get("ttl", -1);
+        long ttl = server.ttl;
         if (ttl > 0)
             super.setTTL(ttl);
 
-        loadSslConfiguration(server);
-
-        loadBasicAuthConfiguration(server);
+        loadSslConfiguration(server.ssl);
+        loadBasicAuthConfiguration(server.basicAuth);
     }
 
-    protected void loadBasicAuthConfiguration(Config server) {
-        Config basicAuth = server.config("basicAuth");
-        String username = basicAuth.get("username", "");
-        String password = basicAuth.get("password", "");
-        if (!username.isEmpty() && !password.isEmpty()) {
+    protected void loadBasicAuthConfiguration(ServerConfiguration.BasicAuth basicAuth) {
+        if (basicAuth == null)
+            return;
+
+        String username = basicAuth.username;
+        String password = basicAuth.password;
+        if (username != null && !username.isEmpty() && password != null && !password.isEmpty()) {
             AuthFilter auth = new BasicAuthFilter();
-            Boolean tokenEnabled = basicAuth.get("token", (Boolean) null);
-            Config tokenized = basicAuth.config("tokenized");
-            if ((tokenEnabled != null && tokenEnabled) || (tokenEnabled == null && !tokenized.isEmpty())) {
+            boolean tokenEnabled = basicAuth.token;
+            Config tokenized = basicAuth.tokenized;
+            if (tokenEnabled) {
                 TokenFilter tokenFilter = new TokenFilter(auth);
-                long ttl = basicAuth.get("tokenTTL", -1l);
+                long ttl = basicAuth.tokenTTL;
                 if (ttl > 0)
                     tokenFilter.setTTL(ttl);
 
@@ -140,11 +142,13 @@ public class WebApplication extends HttpServer<HttpConnection> {
         }
     }
 
-    protected void loadSslConfiguration(Config server) {
-        Config ssl = server.config("ssl");
-        String cert = ssl.get("cert", "");
-        String key = ssl.get("key", "");
-        if (!cert.isEmpty() && !key.isEmpty())
+    protected void loadSslConfiguration(ServerConfiguration.SslConfig ssl) {
+        if (ssl == null)
+            return;
+
+        String cert = ssl.cert;
+        String key = ssl.key;
+        if (cert != null && !cert.isEmpty() && key != null && !key.isEmpty())
             loadCertificates(cert, key);
     }
 
