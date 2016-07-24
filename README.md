@@ -266,7 +266,7 @@ src/main/resources/views/app/index.gsp
  - [else](#else)
  - [elseif](#elseif)
  - [form](#form)
- - formatBoolean
+ - [formatBoolean](#formatBoolean)
  - hiddenField
  - if
  - join
@@ -477,3 +477,25 @@ The logical elseif tag
 <a name="form"/>
 ##### form [↑](#taglib)
 Creates a form, extends 'createLink' tag
+
+---
+<a name="formatBoolean"/>
+##### formatBoolean [↑](#taglib)
+Outputs the given boolean as the specified text label.
+
+###### Template:
+```html
+<g:formatBoolean boolean="${myBoolean}" />
+<g:formatBoolean boolean="${myBoolean}" true="True!" false="False!" />
+```
+
+###### Result:
+```html
+    true
+    True!
+```
+
+###### Attributes:
+- boolean - Variable to evaluate
+- true (optional) - Output if value is true. If not specified, 'boolean.true' or 'default.boolean.true' is looked up from the Message Source
+- false (optional) - Output if value is false. If not specified, 'boolean.false' or 'default.boolean.false' is looked up from the Message Source
