@@ -18,7 +18,7 @@ public class ServerConfiguration implements Configuration {
     public BasicAuth basicAuth;
 
     public static class Session {
-        public int ttl;
+        public int ttlSeconds;
     }
 
     public static class SslConfig {

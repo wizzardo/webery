@@ -97,6 +97,7 @@ public class WebApplication extends HttpServer<HttpConnection> {
         super.setPort(server.port);
         super.setContext(server.context);
         super.setDebugOutput(server.debugOutput);
+        super.setSessionTimeout(server.session.ttlSeconds);
 
         int workers = server.ioWorkersCount;
         if (workers > 0)
@@ -173,6 +174,9 @@ public class WebApplication extends HttpServer<HttpConnection> {
         server.put("hostname", "0.0.0.0");
         server.put("port", 8080);
         server.put("debugOutput", false);
+
+        Config session = server.config("session");
+        session.put("ttlSeconds", 30 * 60);
     }
 
     protected MessageBundle initMessageSource() {
@@ -235,7 +239,7 @@ public class WebApplication extends HttpServer<HttpConnection> {
     @Override
     public void setSessionTimeout(int sec) {
         super.setSessionTimeout(sec);
-        config.config("server").config("session").put("ttl", sec);
+        config.config("server").config("session").put("ttlSeconds", sec);
     }
 
     @Override
