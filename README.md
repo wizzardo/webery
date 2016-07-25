@@ -491,8 +491,8 @@ Outputs the given boolean as the specified text label.
 
 ###### Result:
 ```html
-    true
-    True!
+true
+True!
 ```
 
 ###### Attributes:
@@ -527,7 +527,7 @@ The logical if tag to switch on an expression.
 ###### Template:
 ```html
 <g:if test="${true}">
-     Hello!
+    Hello!
 </g:if>
 ```
 
