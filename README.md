@@ -267,7 +267,7 @@ src/main/resources/views/app/index.gsp
  - [elseif](#elseif)
  - [form](#form)
  - [formatBoolean](#formatBoolean)
- - hiddenField
+ - [hiddenField](#hiddenField)
  - if
  - join
  - link
@@ -499,3 +499,22 @@ Outputs the given boolean as the specified text label.
 - boolean - Variable to evaluate
 - true (optional) - Output if value is true. If not specified, 'boolean.true' or 'default.boolean.true' is looked up from the Message Source
 - false (optional) - Output if value is false. If not specified, 'boolean.false' or 'default.boolean.false' is looked up from the Message Source
+
+---
+<a name="hiddenField"/>
+##### hiddenField [↑](#taglib)
+Creates a input of type 'hidden' (a hidden field).
+
+###### Template:
+```html
+<g:hiddenField name="myField" value="myValue" />
+```
+
+###### Result:
+```html
+<input type="hidden" name="myField" id="myField" value="myValue"/>
+```
+
+###### Attributes:
+- name - The name of the text field
+- value (optional) - The value of the text field
