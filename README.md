@@ -268,7 +268,7 @@ src/main/resources/views/app/index.gsp
  - [form](#form)
  - [formatBoolean](#formatBoolean)
  - [hiddenField](#hiddenField)
- - if
+ - [if](#if)
  - join
  - link
  - message
@@ -518,3 +518,23 @@ Creates a input of type 'hidden' (a hidden field).
 ###### Attributes:
 - name - The name of the text field
 - value (optional) - The value of the text field
+
+---
+<a name="if"/>
+##### if [↑](#taglib)
+The logical if tag to switch on an expression.
+
+###### Template:
+```html
+<g:if test="${true}">
+     Hello!
+</g:if>
+```
+
+###### Result:
+```html
+    Hello!
+```
+
+###### Attributes:
+- test - The expression to test
