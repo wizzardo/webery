@@ -269,7 +269,7 @@ src/main/resources/views/app/index.gsp
  - [formatBoolean](#formatBoolean)
  - [hiddenField](#hiddenField)
  - [if](#if)
- - join
+ - [join](#join)
  - link
  - message
  - passwordField
@@ -538,3 +538,22 @@ The logical if tag to switch on an expression.
 
 ###### Attributes:
 - test - The expression to test
+
+---
+<a name="join"/>
+##### join [↑](#taglib)
+Concatenate the toString() representation of each item in this collection with the given separator.
+
+###### Template:
+```html
+<g:join in="['Hello', 'World!']" delimiter=", "/>
+```
+
+###### Result:
+```html
+Hello, World!
+```
+
+###### Attributes:
+- in - The collection to iterate over
+- delimiter (optional) - The value of the delimiter to use during the join. Default: ', '
