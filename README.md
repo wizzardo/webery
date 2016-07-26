@@ -271,7 +271,7 @@ src/main/resources/views/app/index.gsp
  - [if](#if)
  - [join](#join)
  - [link](#link)
- - message
+ - [message](#message)
  - passwordField
  - radio
  - resource
@@ -575,3 +575,25 @@ Creates an html anchor tag with the href set based on the specified parameters. 
 
 ###### Attributes:
 [same as in createLink tag](#createLink)
+
+---
+<a name="message"/>
+##### message [↑](#taglib)
+Resolves a message from the given code.
+
+###### Template:
+```html
+// test.message.1.args = test message: {0}
+<g:message code="test.message.${1}.args" args="['one']"/>
+```
+
+###### Result:
+```html
+test message: one
+```
+
+###### Attributes:
+- code - The code to resolve the message for.
+- default (optional) - The default message to output if the error or code cannot be found in messages.properties.
+- args (optional) - A list of argument values to apply to the message when code is used.
+- locale (optional) Override Locale to use instead of the one detected
