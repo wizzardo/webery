@@ -270,7 +270,7 @@ src/main/resources/views/app/index.gsp
  - [hiddenField](#hiddenField)
  - [if](#if)
  - [join](#join)
- - link
+ - [link](#link)
  - message
  - passwordField
  - radio
@@ -557,3 +557,21 @@ Hello, World!
 ###### Attributes:
 - in - The collection to iterate over
 - delimiter (optional) - The value of the delimiter to use during the join. Default: ', '
+
+---
+<a name="link"/>
+##### link [↑](#taglib)
+Creates an html anchor tag with the href set based on the specified parameters. Extends 'createLink' tag.
+
+###### Template:
+```html
+<g:link controller="book" action="show" params="[id: 1]">link</g:link>
+```
+
+###### Result:
+```html
+<a href="/book/1">link</a>
+```
+
+###### Attributes:
+[same as in createLink tag](#createLink)
