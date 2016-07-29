@@ -18,6 +18,8 @@ import com.wizzardo.tools.io.FileTools;
 import com.wizzardo.tools.misc.Consumer;
 
 import java.io.File;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
@@ -31,6 +33,14 @@ public class WebApplication extends HttpServer<HttpConnection> {
     protected Config config;
     protected ResourceTools resourcesTools;
     protected Consumer<WebApplication> onSetup;
+    protected Map<String, String> args = Collections.emptyMap();
+
+    public WebApplication() {
+    }
+
+    public WebApplication(String[] args) {
+        this.args = parseCliArgs(args);
+    }
 
     public WebApplication setEnvironment(Environment environment) {
         checkIfStarted();
@@ -166,6 +176,17 @@ public class WebApplication extends HttpServer<HttpConnection> {
         Holders.setApplication(this);
         config = new Config();
         loadDefaultConfiguration();
+        processCliArgs();
+    }
+
+    protected void processCliArgs() {
+        String value;
+        if ((value = args.get("env")) != null)
+            environment = Environment.parse(value);
+
+        if ((value = args.get("environment")) != null)
+            environment = Environment.parse(value);
+
     }
 
     protected void loadDefaultConfiguration() {
@@ -177,6 +198,15 @@ public class WebApplication extends HttpServer<HttpConnection> {
 
         Config session = server.config("session");
         session.put("ttlSeconds", 30 * 60);
+    }
+
+    protected Map<String, String> parseCliArgs(String[] args) {
+        Map<String, String> map = new HashMap<>(args.length, 1);
+        for (String arg : args) {
+            String[] kv = arg.split("=", 2);
+            map.put(kv[0], kv.length == 2 ? kv[1] : null);
+        }
+        return map;
     }
 
     protected MessageBundle initMessageSource() {
