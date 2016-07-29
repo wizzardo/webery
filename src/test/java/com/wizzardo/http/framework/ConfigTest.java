@@ -83,4 +83,113 @@ public class ConfigTest extends WebApplicationTest {
         ConfigItem configItem = DependencyFactory.get(ConfigItem.class);
         Assert.assertEquals("value", configItem.key);
     }
+
+
+    @Test
+    public void test_profiles_1() throws IOException, NoSuchMethodException, NoSuchFieldException, ClassNotFoundException, InterruptedException {
+        server.config.config("profiles").config("profile_A").put("key", "A");
+        server.config.config("profiles").config("profile_B").put("key", "B");
+        server.start();
+
+        Assert.assertEquals("value", server.getConfig().get("key"));
+        tearDown();
+
+        setUp();
+        server.config.config("profiles").config("profile_A").put("key", "A");
+        server.config.config("profiles").config("profile_B").put("key", "B");
+        server.addProfile("profile_A");
+        server.start();
+        Assert.assertEquals("A", server.getConfig().get("key"));
+        tearDown();
+
+        setUp();
+        server.config.config("profiles").config("profile_A").put("key", "A");
+        server.config.config("profiles").config("profile_B").put("key", "B");
+        server.addProfile("profile_A");
+        server.addProfile("profile_B");
+        server.start();
+        Assert.assertEquals("B", server.getConfig().get("key"));
+    }
+
+    @Test
+    public void test_profiles_2() throws IOException, NoSuchMethodException, NoSuchFieldException, ClassNotFoundException, InterruptedException {
+        server.config.config("profiles").config("profile_A").put("key", "A");
+        server.config.config("profiles").config("profile_B").put("key", "B");
+        server.config.config("profiles").config("profile_C").config("profiles").config("profile_A").put("key", "C");
+        server.addProfile("profile_A");
+        server.addProfile("profile_C");
+        server.addProfile("profile_B");
+        server.start();
+        Assert.assertEquals("B", server.getConfig().get("key"));
+        tearDown();
+
+        setUp();
+        server.config.config("profiles").config("profile_A").put("key", "A");
+        server.config.config("profiles").config("profile_C").config("profiles").config("profile_A").put("key", "C");
+        server.addProfile("profile_A");
+        server.addProfile("profile_C");
+        server.start();
+        Assert.assertEquals("C", server.getConfig().get("key"));
+        tearDown();
+
+
+        setUp();
+        server.config.config("profiles").config("profile_A").put("key", "A");
+        server.config.config("profiles").config("profile_C").config("profiles").config("profile_A").put("key", "C");
+        server.addProfile("profile_C");
+        server.addProfile("profile_A");
+        server.start();
+        Assert.assertEquals("A", server.getConfig().get("key"));
+    }
+
+    @Test
+    public void test_profiles_3() throws IOException, NoSuchMethodException, NoSuchFieldException, ClassNotFoundException, InterruptedException {
+        server.config.config("environments").config("dev").put("key", "dev");
+        server.config.config("environments").config("prod").put("key", "prod");
+        server.config.config("profiles").config("profile_A").config("environments").config("dev").put("key", "dev_A");
+        server.config.config("profiles").config("profile_A").config("environments").config("prod").put("key", "prod_A");
+        server.config.config("profiles").config("profile_B").config("environments").config("dev").put("key", "dev_B");
+        server.config.config("profiles").config("profile_B").config("environments").config("prod").put("key", "prod_B");
+        server.setEnvironment(Environment.DEVELOPMENT);
+        server.start();
+        Assert.assertEquals("dev", server.getConfig().get("key"));
+        tearDown();
+
+        setUp();
+        server.config.config("environments").config("dev").put("key", "dev");
+        server.config.config("environments").config("prod").put("key", "prod");
+        server.config.config("profiles").config("profile_A").config("environments").config("dev").put("key", "dev_A");
+        server.config.config("profiles").config("profile_A").config("environments").config("prod").put("key", "prod_A");
+        server.config.config("profiles").config("profile_B").config("environments").config("dev").put("key", "dev_B");
+        server.config.config("profiles").config("profile_B").config("environments").config("prod").put("key", "prod_B");
+        server.setEnvironment(Environment.PRODUCTION);
+        server.addProfile("profile_A");
+        server.start();
+        Assert.assertEquals("prod_A", server.getConfig().get("key"));
+        tearDown();
+
+        setUp();
+        server.config.config("environments").config("dev").put("key", "dev");
+        server.config.config("environments").config("prod").put("key", "prod");
+        server.config.config("profiles").config("profile_A").config("environments").config("dev").put("key", "dev_A");
+        server.config.config("profiles").config("profile_A").config("environments").config("prod").put("key", "prod_A");
+        server.config.config("profiles").config("profile_B").config("environments").config("dev").put("key", "dev_B");
+        server.config.config("profiles").config("profile_B").config("environments").config("prod").put("key", "prod_B");
+        server.setEnvironment(Environment.DEVELOPMENT);
+        server.addProfile("profile_B");
+        server.start();
+        Assert.assertEquals("dev_B", server.getConfig().get("key"));
+    }
+
+    @Test
+    public void test_profiles_4() throws IOException, NoSuchMethodException, NoSuchFieldException, ClassNotFoundException, InterruptedException {
+        server.config.config("environments").config("dev").config("profiles").config("profile_A").put("key", "dev_A");
+        server.config.config("environments").config("dev").config("profiles").config("profile_B").put("key", "dev_B");
+        server.config.config("environments").config("prod").config("profiles").config("profile_A").put("key", "prod_A");
+        server.config.config("environments").config("prod").config("profiles").config("profile_B").put("key", "prod_B");
+        server.setEnvironment(Environment.DEVELOPMENT);
+        server.addProfile("profile_B");
+        server.start();
+        Assert.assertEquals("dev_B", server.getConfig().get("key"));
+    }
 }
