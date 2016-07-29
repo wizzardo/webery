@@ -31,6 +31,7 @@ public class WebApplication extends HttpServer<HttpConnection> {
     protected ResourceTools resourcesTools;
     protected Consumer<WebApplication> onSetup;
     protected Map<String, String> args;
+    protected Set<String> profiles = new LinkedHashSet<>();
 
     public WebApplication() {
     }
@@ -49,6 +50,16 @@ public class WebApplication extends HttpServer<HttpConnection> {
         return environment;
     }
 
+    public Set<String> getProfiles() {
+        return profiles;
+    }
+
+    public WebApplication addProfile(String profile) {
+        checkIfStarted();
+        profiles.add(profile);
+        return this;
+    }
+
     public void onSetup(Consumer<WebApplication> onSetup) {
         this.onSetup = onSetup;
     }
@@ -64,17 +75,7 @@ public class WebApplication extends HttpServer<HttpConnection> {
         DependencyFactory.get().register(MessageBundle.class, new SingletonDependency<>(bundle));
 
         loadConfig("Config.groovy");
-
-        Map environments = (Map) this.config.remove("environments");
-        if (environments != null) {
-            Map<String, Object> env = (Map<String, Object>) environments.get(environment.shortName);
-            if (env != null)
-                this.config.merge(env);
-
-            env = (Map<String, Object>) environments.get(environment.name().toLowerCase());
-            if (env != null)
-                this.config.merge(env);
-        }
+        readProfiles(config);
 
         List<Class> classes = resourcesTools.getClasses();
         DependencyFactory.get().setClasses(classes);
@@ -95,6 +96,35 @@ public class WebApplication extends HttpServer<HttpConnection> {
         super.onStart();
         System.out.println("application has started");
         System.out.println("environment: " + environment);
+    }
+
+    protected void readProfiles(Config config) {
+        if (config == null || config.isEmpty())
+            return;
+
+        Config environments = (Config) config.remove("environments");
+        if (environments != null) {
+            Config env = environments.config(environment.shortName);
+            if (env != null)
+                config.merge(env);
+
+            env = environments.config(environment.name().toLowerCase());
+            if (env != null)
+                config.merge(env);
+        }
+
+        Config profiles = (Config) config.remove("profiles");
+        if (profiles == null || profiles.isEmpty())
+            return;
+
+        for (String profile : this.profiles) {
+            Config subConfig = profiles.config(profile);
+            readProfiles(subConfig);
+            this.config.merge(subConfig);
+        }
+
+        if (this.config != config)
+            this.config.merge(config);
     }
 
     protected void setupApplication() {
