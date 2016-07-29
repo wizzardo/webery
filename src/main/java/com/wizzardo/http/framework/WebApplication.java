@@ -18,10 +18,7 @@ import com.wizzardo.tools.io.FileTools;
 import com.wizzardo.tools.misc.Consumer;
 
 import java.io.File;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.BlockingQueue;
 
 /**
@@ -33,7 +30,7 @@ public class WebApplication extends HttpServer<HttpConnection> {
     protected Config config;
     protected ResourceTools resourcesTools;
     protected Consumer<WebApplication> onSetup;
-    protected Map<String, String> args = Collections.emptyMap();
+    protected Map<String, String> args;
 
     public WebApplication() {
     }
@@ -180,6 +177,9 @@ public class WebApplication extends HttpServer<HttpConnection> {
     }
 
     protected void processCliArgs() {
+        if (args == null || args.isEmpty())
+            return;
+
         String value;
         if ((value = args.get("env")) != null)
             environment = Environment.parse(value);
