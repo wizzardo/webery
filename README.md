@@ -90,7 +90,7 @@ public class MyWebApp {
     }
 
     public static void main(String[] args) {
-        WebApplication application = new WebApplication();
+        WebApplication application = new WebApplication(args);
         application.onSetup(app -> {
             app.getUrlMapping()
                     .append("/", AppController.class, "index");
