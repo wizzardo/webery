@@ -5,6 +5,7 @@ import com.wizzardo.epoll.SslConfig;
 import com.wizzardo.http.filter.AuthFilter;
 import com.wizzardo.http.filter.BasicAuthFilter;
 import com.wizzardo.http.filter.TokenFilter;
+import com.wizzardo.tools.collections.flow.Flow;
 import com.wizzardo.tools.evaluation.Config;
 import com.wizzardo.http.*;
 import com.wizzardo.http.framework.di.DependencyFactory;
@@ -217,6 +218,8 @@ public class WebApplication extends HttpServer<HttpConnection> {
         if ((value = args.get("environment")) != null)
             environment = Environment.parse(value);
 
+        if ((value = args.get("profiles")) != null)
+            Flow.of(value.split(",")).each(this::addProfile).execute();
     }
 
     protected void loadDefaultConfiguration() {
