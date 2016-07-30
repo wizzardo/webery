@@ -17,6 +17,7 @@ server.start();
 
 - [Installation](#installation)
 - [Initialization](#initialization)
+- [Building and running](#building-and-running)
 - [Url-mapping](#url-mapping)
 - [Dependency injection](#di)
 - [Configuration](#configuration)
@@ -98,6 +99,16 @@ public class MyWebApp {
         application.start();
     }
 }
+```
+
+---
+
+<a name="building-and-running"/>
+#### Building and running [↑](#up)
+
+```bash
+./gradlew fatJar
+java -jar build/libs/MyWebApp-all.jar env=prod profiles=profile_A,profile_B
 ```
 
 ---
@@ -185,6 +196,23 @@ environments {
     prod {
         custom.key = false
         server.ioWorkersCount = 4
+    }
+}
+
+//this configuration will be only applied for certain profiles
+profiles {
+    profile_A {
+        environments {
+            dev {
+                value = 'value_dev_A'
+            }
+            prod {
+                value = 'value_prod_A'
+            }
+        }
+    }
+    profile_B {
+        value = 'value_B'
     }
 }
 ```
