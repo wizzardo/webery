@@ -2,6 +2,7 @@ package com.wizzardo.http.framework;
 
 import com.wizzardo.http.ServerTest;
 import com.wizzardo.http.framework.message.MessageBundle;
+import com.wizzardo.tools.evaluation.Config;
 import org.junit.Before;
 
 /**
@@ -16,6 +17,16 @@ public class WebApplicationTest extends ServerTest<WebApplication> {
             @Override
             protected MessageBundle initMessageSource() {
                 return WebApplicationTest.this.initMessageSource(super.initMessageSource());
+            }
+
+            @Override
+            protected void loadEnvironmentVariables(Config config) {
+                //ignore to speed up tests
+            }
+
+            @Override
+            protected void loadSystemProperties(Config config) {
+                //ignore to speed up tests
             }
         };
 
