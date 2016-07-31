@@ -17,6 +17,7 @@ import com.wizzardo.http.mapping.UrlMapping;
 import com.wizzardo.tools.evaluation.EvalTools;
 import com.wizzardo.tools.io.FileTools;
 import com.wizzardo.tools.misc.Consumer;
+import com.wizzardo.tools.misc.Unchecked;
 
 import java.io.File;
 import java.util.*;
@@ -203,7 +204,8 @@ public class WebApplication extends HttpServer<HttpConnection> {
         super.init();
         Holders.setApplication(this);
         config = new Config();
-        loadDefaultConfiguration();
+        loadDefaultConfiguration(config);
+        loadEnvironmentVariables(config);
         processCliArgs();
     }
 
@@ -222,7 +224,7 @@ public class WebApplication extends HttpServer<HttpConnection> {
             Flow.of(value.split(",")).each(this::addProfile).execute();
     }
 
-    protected void loadDefaultConfiguration() {
+    protected void loadDefaultConfiguration(Config config) {
         Config server = config.config("server");
 
         server.put("hostname", "0.0.0.0");
@@ -231,6 +233,10 @@ public class WebApplication extends HttpServer<HttpConnection> {
 
         Config session = server.config("session");
         session.put("ttlSeconds", 30 * 60);
+    }
+
+    protected void loadEnvironmentVariables(Config config) {
+        Unchecked.ignore(() -> System.getenv().forEach(config::put));
     }
 
     protected Map<String, String> parseCliArgs(String[] args) {
