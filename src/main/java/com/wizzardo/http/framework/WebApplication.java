@@ -206,6 +206,7 @@ public class WebApplication extends HttpServer<HttpConnection> {
         config = new Config();
         loadDefaultConfiguration(config);
         loadEnvironmentVariables(config);
+        loadESystemVariables(config);
         processCliArgs();
     }
 
@@ -237,6 +238,18 @@ public class WebApplication extends HttpServer<HttpConnection> {
 
     protected void loadEnvironmentVariables(Config config) {
         Unchecked.ignore(() -> System.getenv().forEach(config::put));
+    }
+
+    protected void loadESystemVariables(Config config) {
+        Unchecked.ignore(() -> System.getProperties().forEach((key, value) -> {
+            String[] keys = String.valueOf(key).split("\\.");
+            Config subConfig = config;
+            int last = keys.length - 1;
+            for (int i = 0; i < last; i++) {
+                subConfig = subConfig.config(keys[i]);
+            }
+            subConfig.put(keys[last], value);
+        }));
     }
 
     protected Map<String, String> parseCliArgs(String[] args) {
