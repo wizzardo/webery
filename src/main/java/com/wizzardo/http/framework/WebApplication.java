@@ -206,7 +206,7 @@ public class WebApplication extends HttpServer<HttpConnection> {
         config = new Config();
         loadDefaultConfiguration(config);
         loadEnvironmentVariables(config);
-        loadESystemVariables(config);
+        loadSystemProperties(config);
         processCliArgs();
     }
 
@@ -240,7 +240,7 @@ public class WebApplication extends HttpServer<HttpConnection> {
         Unchecked.ignore(() -> System.getenv().forEach(config::put));
     }
 
-    protected void loadESystemVariables(Config config) {
+    protected void loadSystemProperties(Config config) {
         Unchecked.ignore(() -> System.getProperties().forEach((key, value) -> {
             String[] keys = String.valueOf(key).split("\\.");
             Config subConfig = config;
