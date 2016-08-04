@@ -24,7 +24,7 @@ public class Resource extends Tag implements RenderableString {
         String fileName = file.toString();
         boolean isStatic = !fileName.contains("$");
 
-        UrlTemplate template = urlMapping.getUrlTemplate("static");
+        UrlTemplate template = urlMapping.getUrlTemplate("resources");
         if (template == null)
             throw new IllegalStateException("can not find mapping for handler 'static'");
 

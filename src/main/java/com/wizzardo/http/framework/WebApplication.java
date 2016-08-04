@@ -82,12 +82,6 @@ public class WebApplication extends HttpServer<HttpConnection> {
         List<Class> classes = resourcesTools.getClasses();
         DependencyFactory.get().setClasses(classes);
 
-        String staticResourcesPath = config.config("server").get("staticResourcesPath", "public");
-        File staticResources = resourcesTools.getResourceFile(staticResourcesPath);
-        if (staticResources != null && staticResources.exists())
-            urlMapping.append("/static/*", new FileTreeHandler<>(staticResources, "/static", "static")
-                    .setShowFolder(false));
-
         TagLib.findTags(classes);
         DependencyFactory.get().register(DecoratorLib.class, new SingletonDependency<>(new DecoratorLib(classes)));
 
@@ -152,6 +146,12 @@ public class WebApplication extends HttpServer<HttpConnection> {
 
         loadSslConfiguration(server.ssl);
         loadBasicAuthConfiguration(server.basicAuth);
+
+        String resourcesPath = server.resources.path;
+        File staticResources = resourcesTools.getResourceFile(resourcesPath);
+        if (staticResources != null && staticResources.exists())
+            urlMapping.append("/" + server.resources.mapping + "/*", new FileTreeHandler<>(staticResources, "/" + server.resources.mapping, "resources")
+                    .setShowFolder(false));
     }
 
     protected void loadBasicAuthConfiguration(ServerConfiguration.BasicAuth basicAuth) {
@@ -234,6 +234,10 @@ public class WebApplication extends HttpServer<HttpConnection> {
 
         Config session = server.config("session");
         session.put("ttlSeconds", 30 * 60);
+
+        Config resources = server.config("resources");
+        resources.put("path", "public");
+        resources.put("mapping", "static");
     }
 
     protected void loadEnvironmentVariables(Config config) {

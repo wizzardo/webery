@@ -16,6 +16,7 @@ public class ServerConfiguration implements Configuration {
     public long ttl;
     public SslConfig ssl;
     public BasicAuth basicAuth;
+    public Resources resources;
 
     public static class Session {
         public int ttlSeconds;
@@ -32,6 +33,11 @@ public class ServerConfiguration implements Configuration {
         public boolean token;
         public long tokenTTL;
         public Config tokenized;
+    }
+
+    public static class Resources {
+        public String path;
+        public String mapping;
     }
 
     public String prefix() {
