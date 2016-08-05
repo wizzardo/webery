@@ -25,6 +25,10 @@ public class HttpServer<T extends HttpConnection> extends AbstractHttpServer<T> 
     protected UrlMapping<Handler> urlMapping;
     protected ServerDate serverDate = new ServerDate();
     protected boolean debug = false;
+    protected Handler notFoundHandler = (request, response) ->
+            response.setStatus(Status._404)
+                    .appendHeader(Header.KV_CONTENT_TYPE_TEXT_PLAIN)
+                    .setBody(request.path() + " not found");
 
     public HttpServer() {
         init();
@@ -99,6 +103,11 @@ public class HttpServer<T extends HttpConnection> extends AbstractHttpServer<T> 
         return urlMapping;
     }
 
+    public HttpServer<T> notFoundHandler(Handler notFoundHandler) {
+        this.notFoundHandler = notFoundHandler;
+        return this;
+    }
+
     @Override
     protected void handle(T connection) throws Exception {
         Request request = connection.getRequest();
@@ -131,7 +140,7 @@ public class HttpServer<T extends HttpConnection> extends AbstractHttpServer<T> 
         if (handler != null)
             response = handler.handle(request, response);
         else
-            response.setStatus(Status._404).setBody(request.path() + " not found");
+            response = notFoundHandler.handle(request, response);
         return response;
     }
 }
