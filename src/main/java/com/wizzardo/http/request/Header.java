@@ -46,6 +46,7 @@ public enum Header {
     VALUE_HTML_UTF8("text/html;charset=UTF-8"),
     VALUE_KEEP_ALIVE("Keep-Alive"),
     VALUE_NO_CACHE("no-cache"),
+    VALUE_TEXT_PLAIN("text/plain"),
     VALUE_TEXT_XML("text/xml"),
     VALUE_UPGRADE("Upgrade"),
     VALUE_WEBSOCKET("websocket"),
@@ -55,6 +56,7 @@ public enum Header {
     KV_CONTENT_ENCODING_GZIP("Content-Encoding: gzip\r\n", true),
     KV_CONTENT_TYPE_APPLICATION_JSON("Content-Type: application/json\r\n", true),
     KV_CONTENT_TYPE_HTML_UTF8("Content-Type: text/html;charset=UTF-8\r\n", true),
+    KV_CONTENT_TYPE_TEXT_PLAIN("Content-Type: text/plain;charset=UTF-8\r\n", true),
     KV_CONTENT_TYPE_TEXT_XML("Content-Type: text/xml\r\n", true);
 
     public final String value;
