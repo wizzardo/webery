@@ -8,7 +8,9 @@ import com.wizzardo.http.request.Request;
 import com.wizzardo.http.response.Response;
 import com.wizzardo.http.response.Status;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.PrintWriter;
 
 /**
  * Created by wizzardo on 18.02.15.
@@ -29,6 +31,16 @@ public class HttpServer<T extends HttpConnection> extends AbstractHttpServer<T> 
             response.setStatus(Status._404)
                     .appendHeader(Header.KV_CONTENT_TYPE_TEXT_PLAIN)
                     .setBody(request.path() + " not found");
+
+    protected ErrorHandler errorHandler = (request, response, e) -> {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        PrintWriter writer = new PrintWriter(out);
+        e.printStackTrace(writer);
+        writer.close();
+        return response.setStatus(Status._500)
+                .appendHeader(Header.KV_CONTENT_TYPE_TEXT_PLAIN)
+                .setBody(out.toByteArray());
+    };
 
     public HttpServer() {
         init();
@@ -106,6 +118,17 @@ public class HttpServer<T extends HttpConnection> extends AbstractHttpServer<T> 
     public HttpServer<T> notFoundHandler(Handler notFoundHandler) {
         this.notFoundHandler = notFoundHandler;
         return this;
+    }
+
+    public HttpServer<T> errorHandler(ErrorHandler errorHandler) {
+        this.errorHandler = errorHandler;
+        return this;
+    }
+
+    @Override
+    protected void onError(T connection, Exception e) throws Exception {
+        e.printStackTrace();
+        errorHandler.handle(connection.request, connection.response, e);
     }
 
     @Override

@@ -176,7 +176,6 @@ public abstract class AbstractHttpServer<T extends HttpConnection> {
     protected boolean processConnection(T connection) {
         try {
             handle(connection);
-            return finishHandling(connection);
         } catch (Exception t) {
             try {
                 onError(connection, t);
@@ -184,14 +183,18 @@ public abstract class AbstractHttpServer<T extends HttpConnection> {
                 e.printStackTrace();
             }
         }
+        try {
+            return finishHandling(connection);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         return false;
     }
 
     protected abstract void handle(T connection) throws Exception;
 
-    protected void onError(T connection, Exception e) {
+    protected void onError(T connection, Exception e) throws Exception {
         e.printStackTrace();
-        //TODO render error page
     }
 
     protected boolean finishHandling(T connection) throws IOException {
