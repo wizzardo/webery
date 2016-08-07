@@ -6,6 +6,7 @@ import com.wizzardo.http.request.Header;
 import com.wizzardo.http.request.Request;
 import com.wizzardo.http.request.RequestReader;
 import com.wizzardo.http.response.Response;
+import com.wizzardo.tools.io.IOTools;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -246,20 +247,12 @@ public class HttpConnection<H extends AbstractHttpServer, Q extends Request, S e
             return;
 
         if (!keepAlive && state != State.UPGRADED && !response.isAsync()) {
-            try {
-                close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            IOTools.close(this);
             return;
         }
 
         if (closeOnFinishWriting)
-            try {
-                close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            IOTools.close(this);
     }
 
     public Q getRequest() {

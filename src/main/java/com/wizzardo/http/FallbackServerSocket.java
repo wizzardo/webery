@@ -3,6 +3,7 @@ package com.wizzardo.http;
 import com.wizzardo.epoll.*;
 import com.wizzardo.epoll.readable.ReadableByteArray;
 import com.wizzardo.epoll.readable.ReadableData;
+import com.wizzardo.tools.io.IOTools;
 import com.wizzardo.tools.misc.Unchecked;
 
 import java.io.IOException;
@@ -124,11 +125,7 @@ public class FallbackServerSocket<T extends HttpConnection> extends EpollServer<
 
             } catch (Exception e) {
                 e.printStackTrace();
-                try {
-                    close();
-                } catch (IOException e1) {
-                    e1.printStackTrace();
-                }
+                IOTools.close(this);
             }
         }
 
@@ -175,7 +172,11 @@ public class FallbackServerSocket<T extends HttpConnection> extends EpollServer<
 
         @Override
         public void close() throws IOException {
-            channel.close();
+            if (sending != null)
+                for (ReadableData data : sending)
+                    IOTools.close(data);
+
+            IOTools.close(channel);
         }
 
         @Override
@@ -253,9 +254,9 @@ public class FallbackServerSocket<T extends HttpConnection> extends EpollServer<
             throw Unchecked.rethrow(e);
         } finally {
             try {
-                selector.close();
-                server.socket().close();
-                server.close();
+                IOTools.close(selector);
+                IOTools.close(server.socket());
+                IOTools.close(server);
             } catch (Exception ignored) {
             }
         }
