@@ -6,6 +6,7 @@ import com.wizzardo.http.HttpDateFormatterHolder;
 import com.wizzardo.http.request.Header;
 import com.wizzardo.http.request.Request;
 import com.wizzardo.tools.cache.MemoryLimitedCache;
+import com.wizzardo.tools.io.IOTools;
 import com.wizzardo.tools.misc.Unchecked;
 import com.wizzardo.tools.security.MD5;
 
@@ -26,14 +27,17 @@ public class RangeResponseHelper {
     public static final long CACHE_TTL = 5 * 60;
 
     public static MemoryLimitedCache<String, FileHolder> filesCache = new MemoryLimitedCache<>(CACHE_MEMORY_LIMIT, CACHE_TTL, s -> {
+        FileChannel inChannel = null;
         try {
             RandomAccessFile aFile = new RandomAccessFile(s, "r");
-            FileChannel inChannel = aFile.getChannel();
+            inChannel = aFile.getChannel();
             ByteBuffer buffer = ByteBuffer.allocateDirect((int) inChannel.size());
             inChannel.read(buffer);
             return new FileHolder(new ReadableByteBuffer(buffer), MD5.create().update(s).asString());
         } catch (IOException e) {
             throw Unchecked.rethrow(e);
+        } finally {
+            IOTools.close(inChannel);
         }
     });
 
