@@ -281,10 +281,14 @@ public class FallbackServerSocket<T extends HttpConnection> extends EpollServer<
 
     @Override
     public void close() {
-        running = false;
-        try {
-            join();
-        } catch (InterruptedException ignored) {
+        synchronized (this) {
+            if (running) {
+                running = false;
+                try {
+                    join();
+                } catch (InterruptedException ignored) {
+                }
+            }
         }
     }
 
