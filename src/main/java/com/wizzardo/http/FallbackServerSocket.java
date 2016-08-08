@@ -177,6 +177,7 @@ public class FallbackServerSocket<T extends HttpConnection> extends EpollServer<
                     IOTools.close(data);
 
             IOTools.close(channel);
+            IOTools.close(getInputListener());
         }
 
         @Override
