@@ -53,8 +53,8 @@ public class HttpConnection<H extends AbstractHttpServer, Q extends Request, S e
 
     @Override
     public void close() throws IOException {
-        super.close();
         IOTools.close(inputListener);
+        super.close();
     }
 
     int getBufferSize() {
