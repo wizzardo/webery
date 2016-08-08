@@ -7,8 +7,11 @@ import com.wizzardo.epoll.Connection;
  * Date: 30.09.14
  */
 public interface InputListener<C extends Connection> {
-    public void onReadyToRead(C connection);
+    void onReadyToRead(C connection);
 
-    default public void onReady(C connection) {
+    default void onReady(C connection) {
+    }
+
+    default void onDisconnect(C connection) {
     }
 }
