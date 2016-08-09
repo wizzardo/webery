@@ -100,12 +100,13 @@ public class WebSocketTest extends ServerTest {
         handler = new WebSocketHandler() {
             @Override
             public void onMessage(WebSocketListener listener, Message message) {
-                listener.close();
+                if ("close".equals(message.asString()))
+                    listener.close();
             }
 
             @Override
             public void onDisconnect(WebSocketListener listener) {
-                messageHolder.set("closed");
+                Assert.assertTrue(messageHolder.compareAndSet(null, "closed"));
             }
         };
 
@@ -113,10 +114,29 @@ public class WebSocketTest extends ServerTest {
         client.send("close");
         client.waitForMessage();
         Assert.assertTrue(client.isClosed());
+        Assert.assertEquals("closed", messageHolder.get());
 
+        messageHolder.set(null);
         client = new SimpleWebSocketClient("ws://localhost:" + getPort());
         client.close();
+        Thread.sleep(10);
         Assert.assertTrue(client.isClosed());
+        Assert.assertEquals("closed", messageHolder.get());
+    }
+
+    @Test
+    public void closeTest_2() throws IOException, URISyntaxException, InterruptedException {
+        AtomicReference<String> messageHolder = new AtomicReference<>();
+        handler = new WebSocketHandler() {
+            @Override
+            public void onDisconnect(WebSocketListener listener) {
+                Assert.assertTrue(messageHolder.compareAndSet(null, "closed"));
+            }
+        };
+
+        SimpleWebSocketClient client = new SimpleWebSocketClient("ws://localhost:" + getPort());
+        client.in.close();
+        Thread.sleep(10);
         Assert.assertEquals("closed", messageHolder.get());
     }
 

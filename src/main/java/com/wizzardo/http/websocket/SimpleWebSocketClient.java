@@ -19,12 +19,12 @@ import java.util.Map;
  * Date: 03.10.14
  */
 public class SimpleWebSocketClient extends Thread {
-    private InputStream in;
-    private OutputStream out;
-    private byte[] buffer = new byte[1024];
-    private volatile int bufferOffset = 0;
-    private volatile boolean closed = false;
-    private Message message = new Message();
+    protected InputStream in;
+    protected OutputStream out;
+    protected byte[] buffer = new byte[1024];
+    protected volatile int bufferOffset = 0;
+    protected volatile boolean closed = false;
+    protected Message message = new Message();
 
     public static class Request {
         private URI uri;
