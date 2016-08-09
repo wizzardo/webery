@@ -119,7 +119,6 @@ public class WebSocketHandler<T extends WebSocketHandler.WebSocketListener> impl
                 e.printStackTrace();
                 try {
                     connection.close();
-                    webSocketHandler.onDisconnect(this);
                 } catch (IOException e1) {
                     e1.printStackTrace();
                 }
@@ -139,7 +138,6 @@ public class WebSocketHandler<T extends WebSocketHandler.WebSocketListener> impl
         private boolean handleClose() {
             if (tempFrame.isClose()) {
                 connection.setCloseOnFinishWriting(true);
-                webSocketHandler.onDisconnect(this);
                 sendFrame(tempFrame);
                 tempFrame = null;
                 return true;
@@ -163,7 +161,10 @@ public class WebSocketHandler<T extends WebSocketHandler.WebSocketListener> impl
         }
 
         public void close() {
-            sendFrame(new Frame(Frame.OPCODE_CONNECTION_CLOSE));
+            if (connection.isAlive())
+                sendFrame(new Frame(Frame.OPCODE_CONNECTION_CLOSE));
+
+            webSocketHandler.onDisconnect(this);
         }
 
         private ReadableData convertFrameToReadableData(Frame frame) {
