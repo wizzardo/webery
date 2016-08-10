@@ -172,6 +172,7 @@ public class FallbackServerSocket<T extends HttpConnection> extends EpollServer<
 
         @Override
         public void close() throws IOException {
+            setIsAlive(false);
             if (sending != null)
                 for (ReadableData data : sending)
                     IOTools.close(data);
