@@ -17,6 +17,7 @@ public class GzipFilter implements Filter {
     protected Pool<ByteArrayOutputStream> buffers = new PoolBuilder<ByteArrayOutputStream>()
             .supplier(ByteArrayOutputStream::new)
             .resetter(ByteArrayOutputStream::reset)
+            .queue(PoolBuilder.createThreadLocalQueueSupplier())
             .build();
 
     @Override
