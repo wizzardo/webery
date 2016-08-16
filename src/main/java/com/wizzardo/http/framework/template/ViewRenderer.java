@@ -58,10 +58,9 @@ public class ViewRenderer extends Renderer {
         Node html = new GspParser().parse(template);
         List<String> imports = null;
 
-        Node page;
-        if (html.children().size() == 1 && "%@".equals((page = html.children().get(0)).name()) && page.hasAttr("page")) {
-            html.children().remove(0);
-            html.children().addAll(page.children());
+        Node page = html.get("%@");
+        if (page != null && page.hasAttr("page")) {
+            html.children().remove(page);
 
             if (page.hasAttr("import")) {
                 imports = Arrays.asList(page.attr("import").split("; *"));
