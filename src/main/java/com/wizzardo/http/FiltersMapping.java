@@ -35,6 +35,10 @@ public class FiltersMapping {
         return this;
     }
 
+    public FiltersMapping addBeforeAndAfter(String url, Filter handler) {
+        return addBefore(url, handler).addAfter(url, handler);
+    }
+
     public boolean filter(Request request, Response response, ChainUrlMapping<Filter> mapping) {
         ChainUrlMapping.Chain<Filter> filters = mapping.get(request);
         if (filters != null)
