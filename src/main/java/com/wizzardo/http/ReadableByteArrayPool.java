@@ -12,17 +12,7 @@ public class ReadableByteArrayPool {
     private static Pool<PooledReadableByteArray> pool = new PoolBuilder<PooledReadableByteArray>()
             .queue(PoolBuilder.createThreadLocalQueueSupplier())
             .supplier(() -> new PooledReadableByteArray(new byte[10240]))
-            .holder((pool, value, resetter) -> {
-                SoftHolder<PooledReadableByteArray> holder = new SoftHolder<PooledReadableByteArray>(pool, value) {
-                    public PooledReadableByteArray get() {
-                        PooledReadableByteArray t = super.get();
-                        resetter.consume(t);
-                        return t;
-                    }
-                };
-                value.holder = holder;
-                return holder;
-            })
+            .holder((pool, value) -> value.holder = new SoftHolder<>(pool, value))
             .resetter(it -> it.unread((int) it.complete()))
             .build();
 
