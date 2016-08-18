@@ -1,5 +1,6 @@
 package com.wizzardo.http.framework.template.taglib.g;
 
+import com.wizzardo.http.FileTreeHandler;
 import com.wizzardo.http.framework.di.DependencyFactory;
 import com.wizzardo.http.framework.template.*;
 import com.wizzardo.http.mapping.UrlMapping;
@@ -14,6 +15,7 @@ import java.util.Map;
 public class Resource extends Tag implements RenderableString {
 
     protected UrlMapping urlMapping = DependencyFactory.getDependency(UrlMapping.class);
+    protected FileTreeHandler fileTreeHandler = DependencyFactory.getDependency(FileTreeHandler.class);
 
     @Override
     public Tag init(Map<String, String> attrs, Body body, String offset) {
@@ -52,11 +54,12 @@ public class Resource extends Tag implements RenderableString {
                     path.append(d).append('/').append(f);
             }
 
+            String p = fileTreeHandler.getVersionedPath(path.toString());
             String url;
             if (absolute != null && AsBooleanExpression.toBoolean(absolute.raw(model)))
-                url = template.getAbsoluteUrl(path.toString());
+                url = template.getAbsoluteUrl(p);
             else
-                url = template.getRelativeUrl(path.toString());
+                url = template.getRelativeUrl(p);
 
             if (isStatic)
                 return new RenderResult(url);
@@ -109,12 +112,11 @@ public class Resource extends Tag implements RenderableString {
         if (template == null)
             throw new IllegalStateException("can not find mapping for handler 'resources'");
 
-        String url;
-        if (absolute != null && absolute)
-            url = template.getAbsoluteUrl(path.toString());
-        else
-            url = template.getRelativeUrl(path.toString());
 
-        return url;
+        String p = fileTreeHandler.getVersionedPath(path.toString());
+        if (absolute != null && absolute)
+            return template.getAbsoluteUrl(p);
+        else
+            return template.getRelativeUrl(p);
     }
 }

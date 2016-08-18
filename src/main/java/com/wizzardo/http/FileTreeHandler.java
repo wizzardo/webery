@@ -66,6 +66,20 @@ public class FileTreeHandler<T extends FileTreeHandler.HandlerContext> implement
         return name;
     }
 
+    public String getVersionedPath(String path) {
+        File file = new File(workDir, path);
+        if (!file.exists())
+            return path;
+
+        RangeResponseHelper.FileHolder fileHolder = RangeResponseHelper.filesCache.get(file.getAbsolutePath());
+
+        int last = path.lastIndexOf(".");
+        if (last == -1)
+            return path;
+
+        return path.substring(0, last) + ".v" + fileHolder.md5.substring(0, 4).toUpperCase() + path.substring(last);
+    }
+
     @Override
     public Response handle(Request request, Response response) {
         Path p = request.path();
@@ -122,13 +136,13 @@ public class FileTreeHandler<T extends FileTreeHandler.HandlerContext> implement
     protected Tag createTableHeader(String path, String sort, String order) {
         return tr()
                 .add(th().add(a().href(path + "?sort=name&order=" + ("name".equals(sort) ? (ORDER_DESC.equals(order) ? ORDER_ASC : ORDER_DESC) : ORDER_ASC))
-                                .text("Name"))
+                        .text("Name"))
                 )
                 .add(th().add(a().href(path + "?sort=modified&order=" + ("modified".equals(sort) ? (ORDER_DESC.equals(order) ? ORDER_ASC : ORDER_DESC) : ORDER_DESC))
-                                .text("Last modified"))
+                        .text("Last modified"))
                 )
                 .add(th().add(a().href(path + "?sort=size&order=" + ("size".equals(sort) ? (ORDER_DESC.equals(order) ? ORDER_ASC : ORDER_DESC) : ORDER_DESC))
-                                .text("Size"))
+                        .text("Size"))
                 )
                 ;
     }
@@ -193,19 +207,19 @@ public class FileTreeHandler<T extends FileTreeHandler.HandlerContext> implement
         HtmlBuilder html = new HtmlBuilder();
         html.add(header().add(Meta.charset("utf-8").add(title(path))));
         html.add(body()
-                        .add(createHeader(dir, h(1)))
-                        .add(table()
-                                .attr("border", "0")
-                                .add(createTableHeader(path, sort, order))
-                                .text("\n")
-                                .each(files, (file, table) -> {
-                                    String url = generateUrl(file, handlerContext);
-                                    table.add(tr()
-                                                    .add(td().add(a().href(url).text(file.getName() + (file.isDirectory() ? "/" : ""))))
-                                                    .add(td().text(DateIso8601.format(new Date(file.lastModified()))))
-                                                    .add(td().attr("align", "right").text(formatFileSize(file.length())))
-                                    ).text("\n");
-                                }))
+                .add(createHeader(dir, h(1)))
+                .add(table()
+                        .attr("border", "0")
+                        .add(createTableHeader(path, sort, order))
+                        .text("\n")
+                        .each(files, (file, table) -> {
+                            String url = generateUrl(file, handlerContext);
+                            table.add(tr()
+                                    .add(td().add(a().href(url).text(file.getName() + (file.isDirectory() ? "/" : ""))))
+                                    .add(td().text(DateIso8601.format(new Date(file.lastModified()))))
+                                    .add(td().attr("align", "right").text(formatFileSize(file.length())))
+                            ).text("\n");
+                        }))
         );
 
         return html;
@@ -224,10 +238,10 @@ public class FileTreeHandler<T extends FileTreeHandler.HandlerContext> implement
     }
 
     private String decodePath(String path) {
-        return Unchecked.call(() -> URLDecoder.decode(path, "utf-8"));
+        return Unchecked.call(() -> URLDecoder.decode(RangeResponseHelper.VERSION_PATTERN.matcher(path).replaceAll(""), "utf-8"));
     }
 
-    protected static class HandlerContext {
+    public static class HandlerContext {
         protected final String path;
 
         public HandlerContext(String path) {

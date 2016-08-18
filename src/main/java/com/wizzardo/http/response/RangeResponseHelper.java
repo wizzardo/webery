@@ -16,12 +16,14 @@ import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.Date;
+import java.util.regex.Pattern;
 
 /**
  * @author: wizzardo
  * Date: 8/4/14
  */
 public class RangeResponseHelper {
+    public static final Pattern VERSION_PATTERN = Pattern.compile("\\.v[0-9A-F]{4}");
     public static final long CACHE_MEMORY_LIMIT = 1024 * 1024 * 1024;
     public static final long CACHE_FILE_LENGTH_LIMIT = 10 * 1024 * 1024;
     public static final long CACHE_TTL = 5 * 60;
