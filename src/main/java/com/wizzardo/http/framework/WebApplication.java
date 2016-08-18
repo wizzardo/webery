@@ -149,9 +149,11 @@ public class WebApplication extends HttpServer<HttpConnection> {
 
         String resourcesPath = server.resources.path;
         File staticResources = resourcesTools.getResourceFile(resourcesPath);
-        if (staticResources != null && staticResources.exists())
-            urlMapping.append("/" + server.resources.mapping + "/*", new FileTreeHandler<>(staticResources, "/" + server.resources.mapping, "resources")
-                    .setShowFolder(false));
+        if (staticResources != null && staticResources.exists()) {
+            FileTreeHandler<FileTreeHandler.HandlerContext> resources = new FileTreeHandler<>(staticResources, "/" + server.resources.mapping, "resources");
+            DependencyFactory.get().register(FileTreeHandler.class, new SingletonDependency<>(resources));
+            urlMapping.append("/" + server.resources.mapping + "/*", resources.setShowFolder(false));
+        }
     }
 
     protected void loadBasicAuthConfiguration(ServerConfiguration.BasicAuth basicAuth) {
