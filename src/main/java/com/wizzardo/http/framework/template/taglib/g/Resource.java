@@ -105,9 +105,9 @@ public class Resource extends Tag implements RenderableString {
                 path.append(dir).append('/').append(file);
         }
 
-        UrlTemplate template = urlMapping.getUrlTemplate("static");
+        UrlTemplate template = urlMapping.getUrlTemplate("resources");
         if (template == null)
-            throw new IllegalStateException("can not find mapping for handler 'static'");
+            throw new IllegalStateException("can not find mapping for handler 'resources'");
 
         String url;
         if (absolute != null && absolute)
