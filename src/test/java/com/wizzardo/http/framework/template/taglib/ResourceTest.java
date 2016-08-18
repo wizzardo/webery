@@ -14,7 +14,7 @@ public class ResourceTest extends WebApplicationTest implements TagTest {
     public void test_1() {
         Assert.assertEquals("" +
                 "<div>\n" +
-                "    <script type=\"text/javascript\" src=\"/static/js/test.js\"></script>\n" +
+                "    <script type=\"text/javascript\" src=\"/static/js/test.v569C.js\"></script>\n" +
                 "</div>\n", prepare("<div><g:resource dir=\"js\" file=\"test.js\"/></div>")
                 .get(new Model()).toString());
     }
@@ -23,7 +23,7 @@ public class ResourceTest extends WebApplicationTest implements TagTest {
     public void test_2() {
         Assert.assertEquals("" +
                 "<div>\n" +
-                "    <link rel=\"stylesheet\" href=\"/static/css/test.css\">\n" +
+                "    <link rel=\"stylesheet\" href=\"/static/css/test.vB5CB.css\">\n" +
                 "</div>\n", prepare("<div><g:resource dir=\"css\" file=\"test.css\"/></div>")
                 .get(new Model()).toString());
     }
