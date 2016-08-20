@@ -38,7 +38,7 @@ public class ProxyHandlerTest extends ServerTest {
 
     @Test
     public void test_lazy_writing() {
-        byte[] data = new byte[10 * 1024 * 1024];
+        byte[] data = new byte[20 * 1024 * 1024];
         ThreadLocalRandom.current().nextBytes(data);
 
         handler = new UrlHandler()
@@ -57,8 +57,8 @@ public class ProxyHandlerTest extends ServerTest {
         proxy.start();
 
         try {
-            Assert.assertTrue(writeSocket(data, 0) == 0);
-            Assert.assertTrue(writeSocket(data, 1) > 10);
+            writeSocket(data, 0);
+            writeSocket(data, 10);
         } catch (Exception e) {
             e.printStackTrace();
             assert false;
@@ -78,6 +78,9 @@ public class ProxyHandlerTest extends ServerTest {
 
             out.write(("GET / HTTP/1.1\r\nHost:localhost:" + (port + 1) + "\r\nConnection:Keep-alive\r\n\r\n").getBytes());
             out.flush();
+
+            if (pause > 0)
+                Thread.sleep(pause);
 
             while (bytes.length - total > 0 && (r = in.read(bytes, total, Math.min(bytes.length - total, 128 * 1024))) != -1) {
                 total += r;
