@@ -72,13 +72,18 @@ public class ProxyHandler implements Handler {
         final AtomicReference<Thread> processingBy = new AtomicReference<>();
 
         final byte[] buffer = new byte[16 * 1024];
+        volatile boolean recursive = false;
         volatile long limit;
+        volatile boolean continueWrite = false;
 
         public ProxyConnection(int fd, int ip, int port) {
             super(fd, ip, port);
         }
 
         protected void read(ByteBufferProvider byteBufferProvider) {
+            if (recursive)
+                return;
+
             Thread current = Thread.currentThread();
             Thread processing = processingBy.get();
             if (processing != current && processing != null)
@@ -142,7 +147,8 @@ public class ProxyHandler implements Handler {
                         return;
                     }
 
-                    break;
+                    if (!continueWrite)
+                        break;
                 }
             } catch (Exception e) {
                 try {
@@ -160,7 +166,10 @@ public class ProxyHandler implements Handler {
         }
 
         protected void proxyWrite(CustomReadableByteArray readable, ByteBufferProvider bufferProvider) {
+            recursive = true;
             srcRequest.connection().write(readable, bufferProvider);
+            recursive = false;
+            continueWrite = readable.isComplete();
         }
 
         protected void end() {
