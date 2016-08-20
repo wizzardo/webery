@@ -117,9 +117,10 @@ public class FallbackServerSocket<T extends HttpConnection> extends EpollServer<
                     if (!readable.isComplete())
                         return;
 
+                    queue.poll();
                     readable.close();
                     readable.onComplete();
-                    onWriteData(queue.poll(), !queue.isEmpty());
+                    onWriteData(readable, !queue.isEmpty());
                 }
 //                close();
 
