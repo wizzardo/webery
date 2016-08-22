@@ -24,24 +24,38 @@ import java.util.regex.Pattern;
  */
 public class RangeResponseHelper {
     public static final Pattern VERSION_PATTERN = Pattern.compile("\\.v[0-9A-F]{4}");
-    public static final long CACHE_MEMORY_LIMIT = 1024 * 1024 * 1024;
-    public static final long CACHE_FILE_LENGTH_LIMIT = 10 * 1024 * 1024;
-    public static final long CACHE_TTL = 5 * 60;
+    protected static final long DEFAULT_CACHE_MEMORY_LIMIT = 32 * 1024 * 1024;
+    protected static final long DEFAULT_CACHE_MAX_FILE_SIZE = 5 * 1024 * 1024;
+    protected static final long DEFAULT_CACHE_TTL = 5 * 60;
 
-    public static MemoryLimitedCache<String, FileHolder> filesCache = new MemoryLimitedCache<>(CACHE_MEMORY_LIMIT, CACHE_TTL, s -> {
-        FileChannel inChannel = null;
-        try {
-            RandomAccessFile aFile = new RandomAccessFile(s, "r");
-            inChannel = aFile.getChannel();
-            ByteBuffer buffer = ByteBuffer.allocateDirect((int) inChannel.size());
-            inChannel.read(buffer);
-            return new FileHolder(new ReadableByteBuffer(buffer), MD5.create().update(s).asString());
-        } catch (IOException e) {
-            throw Unchecked.rethrow(e);
-        } finally {
-            IOTools.close(inChannel);
-        }
-    });
+    protected MemoryLimitedCache<String, FileHolder> filesCache;
+    protected final long maxCachedFileSize;
+
+    public RangeResponseHelper() {
+        this(DEFAULT_CACHE_MEMORY_LIMIT, DEFAULT_CACHE_TTL, DEFAULT_CACHE_MAX_FILE_SIZE);
+    }
+
+    public RangeResponseHelper(long cacheMemoryLimit, long cacheTTL, long maxCachedFileSize) {
+        this.maxCachedFileSize = maxCachedFileSize;
+        filesCache = createFileHolderCache(cacheMemoryLimit, cacheTTL);
+    }
+
+    protected MemoryLimitedCache<String, FileHolder> createFileHolderCache(long cacheMemoryLimit, long cacheTTL) {
+        return new MemoryLimitedCache<>(cacheMemoryLimit, cacheTTL, s -> {
+            FileChannel inChannel = null;
+            try {
+                RandomAccessFile aFile = new RandomAccessFile(s, "r");
+                inChannel = aFile.getChannel();
+                ByteBuffer buffer = ByteBuffer.allocateDirect((int) inChannel.size());
+                inChannel.read(buffer);
+                return new FileHolder(new ReadableByteBuffer(buffer), MD5.create().update(s).asString());
+            } catch (IOException e) {
+                throw Unchecked.rethrow(e);
+            } finally {
+                IOTools.close(inChannel);
+            }
+        });
+    }
 
     public static class FileHolder implements MemoryLimitedCache.SizeProvider {
         public final ReadableByteBuffer buffer;
@@ -58,15 +72,16 @@ public class RangeResponseHelper {
         }
     }
 
-    public static Response makeRangeResponse(Request request, Response response, File file) {
+    public FileHolder getFileHolder(File file) {
+        return file.length() <= maxCachedFileSize ? filesCache.get(file.getAbsolutePath()) : null;
+    }
+
+    public Response makeRangeResponse(Request request, Response response, File file) {
         response.appendHeader(Header.KEY_ACCEPT_RANGES, Header.VALUE_BYTES);
 
         Range range;
         String rangeHeader = request.header(Header.KEY_RANGE);
-        FileHolder fileHolder = null;
-
-        if (file.length() <= CACHE_FILE_LENGTH_LIMIT)
-            fileHolder = filesCache.get(file.getAbsolutePath());
+        FileHolder fileHolder = getFileHolder(file);
 
         if (rangeHeader != null) {
             range = new Range(rangeHeader, file.length());

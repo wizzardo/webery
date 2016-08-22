@@ -38,6 +38,9 @@ public class ServerConfiguration implements Configuration {
     public static class Resources {
         public String path;
         public String mapping;
+        public long cacheTTL;
+        public long cacheMemoryLimit;
+        public long cacheMaxFileSize;
     }
 
     public String prefix() {

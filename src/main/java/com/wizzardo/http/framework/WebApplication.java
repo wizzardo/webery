@@ -5,6 +5,7 @@ import com.wizzardo.epoll.SslConfig;
 import com.wizzardo.http.filter.AuthFilter;
 import com.wizzardo.http.filter.BasicAuthFilter;
 import com.wizzardo.http.filter.TokenFilter;
+import com.wizzardo.http.response.RangeResponseHelper;
 import com.wizzardo.tools.collections.flow.Flow;
 import com.wizzardo.tools.evaluation.Config;
 import com.wizzardo.http.*;
@@ -160,8 +161,10 @@ public class WebApplication extends HttpServer<HttpConnection> {
         String resourcesPath = resources.path;
         File staticResources = resourcesTools.getResourceFile(resourcesPath);
         if (staticResources != null && staticResources.exists()) {
-            FileTreeHandler<FileTreeHandler.HandlerContext> handler = new FileTreeHandler<>(staticResources, "/" + resources.mapping, "resources");
-            handler.setShowFolder(false);
+            FileTreeHandler<FileTreeHandler.HandlerContext> handler = new FileTreeHandler<>(staticResources, "/" + resources.mapping, "resources")
+                    .setShowFolder(false)
+                    .setRangeResponseHelper(new RangeResponseHelper(resources.cacheMemoryLimit, resources.cacheTTL, resources.cacheMaxFileSize));
+
             DependencyFactory.get().register(FileTreeHandler.class, new SingletonDependency<>(handler));
             urlMapping.append("/" + resources.mapping + "/*", handler);
         }
@@ -251,6 +254,9 @@ public class WebApplication extends HttpServer<HttpConnection> {
         Config resources = server.config("resources");
         resources.put("path", "public");
         resources.put("mapping", "static");
+        resources.put("cacheTTL", "-1l");
+        resources.put("cacheMemoryLimit", 32 * 1024 * 1024 + "l");
+        resources.put("cacheMaxFileSize", 5 * 1024 * 1024 + "l");
     }
 
     protected void loadEnvironmentVariables(Config config) {

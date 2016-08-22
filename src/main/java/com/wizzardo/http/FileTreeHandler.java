@@ -36,6 +36,7 @@ public class FileTreeHandler<T extends FileTreeHandler.HandlerContext> implement
     private File workDir;
     protected boolean showFolder = true;
     protected final String name;
+    protected RangeResponseHelper rangeResponseHelper;
 
     public FileTreeHandler(File workDir, String prefix) {
         this(workDir, prefix, null);
@@ -66,12 +67,19 @@ public class FileTreeHandler<T extends FileTreeHandler.HandlerContext> implement
         return name;
     }
 
+    public FileTreeHandler<T> setRangeResponseHelper(RangeResponseHelper rangeResponseHelper) {
+        this.rangeResponseHelper = rangeResponseHelper;
+        return this;
+    }
+
     public String getVersionedPath(String path) {
         File file = new File(workDir, path);
         if (!file.exists())
             return path;
 
-        RangeResponseHelper.FileHolder fileHolder = RangeResponseHelper.filesCache.get(file.getAbsolutePath());
+        RangeResponseHelper.FileHolder fileHolder = rangeResponseHelper.getFileHolder(file);
+        if (fileHolder == null)
+            return path;
 
         int last = path.lastIndexOf(".");
         if (last == -1)
@@ -112,7 +120,7 @@ public class FileTreeHandler<T extends FileTreeHandler.HandlerContext> implement
             else
                 return response.setStatus(Status._403).setBody(path + " is forbidden");
 
-        return RangeResponseHelper.makeRangeResponse(request, response, file);
+        return rangeResponseHelper.makeRangeResponse(request, response, file);
     }
 
     public FileTreeHandler<T> setShowFolder(boolean showFolder) {
