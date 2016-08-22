@@ -17,6 +17,7 @@ import com.wizzardo.http.mapping.UrlMapping;
 import com.wizzardo.tools.evaluation.EvalTools;
 import com.wizzardo.tools.io.FileTools;
 import com.wizzardo.tools.misc.Consumer;
+import com.wizzardo.tools.misc.TextTools;
 import com.wizzardo.tools.misc.Unchecked;
 
 import java.io.File;
@@ -146,13 +147,23 @@ public class WebApplication extends HttpServer<HttpConnection> {
 
         loadSslConfiguration(server.ssl);
         loadBasicAuthConfiguration(server.basicAuth);
+        loadResourcesConfiguration(server.resources);
+    }
 
-        String resourcesPath = server.resources.path;
+    protected void loadResourcesConfiguration(ServerConfiguration.Resources resources) {
+        if (resources == null)
+            return;
+
+        if (TextTools.isBlank(resources.mapping))
+            throw new IllegalArgumentException("server.resources.mapping cannot be null or empty");
+
+        String resourcesPath = resources.path;
         File staticResources = resourcesTools.getResourceFile(resourcesPath);
         if (staticResources != null && staticResources.exists()) {
-            FileTreeHandler<FileTreeHandler.HandlerContext> resources = new FileTreeHandler<>(staticResources, "/" + server.resources.mapping, "resources");
-            DependencyFactory.get().register(FileTreeHandler.class, new SingletonDependency<>(resources));
-            urlMapping.append("/" + server.resources.mapping + "/*", resources.setShowFolder(false));
+            FileTreeHandler<FileTreeHandler.HandlerContext> handler = new FileTreeHandler<>(staticResources, "/" + resources.mapping, "resources");
+            handler.setShowFolder(false);
+            DependencyFactory.get().register(FileTreeHandler.class, new SingletonDependency<>(handler));
+            urlMapping.append("/" + resources.mapping + "/*", handler);
         }
     }
 
