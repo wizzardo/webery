@@ -44,6 +44,7 @@ public class ServerConfiguration implements Configuration {
             public long ttl;
             public long memoryLimit;
             public long maxFileSize;
+            public boolean enabled;
         }
     }
 

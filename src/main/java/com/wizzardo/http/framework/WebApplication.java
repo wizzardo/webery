@@ -163,7 +163,7 @@ public class WebApplication extends HttpServer<HttpConnection> {
         if (staticResources != null && staticResources.exists()) {
             FileTreeHandler<FileTreeHandler.HandlerContext> handler = new FileTreeHandler<>(staticResources, "/" + resources.mapping, "resources")
                     .setShowFolder(false)
-                    .setRangeResponseHelper(new RangeResponseHelper(resources.cache.memoryLimit, resources.cache.ttl, resources.cache.maxFileSize));
+                    .setRangeResponseHelper(new RangeResponseHelper(resources.cache));
 
             DependencyFactory.get().register(FileTreeHandler.class, new SingletonDependency<>(handler));
             urlMapping.append("/" + resources.mapping + "/*", handler);
@@ -256,9 +256,10 @@ public class WebApplication extends HttpServer<HttpConnection> {
         resources.put("mapping", "static");
 
         Config resourcesCache = server.config("cache");
-        resourcesCache.put("ttl", "-1l");
-        resourcesCache.put("memoryLimit", 32 * 1024 * 1024 + "l");
-        resourcesCache.put("maxFileSize", 5 * 1024 * 1024 + "l");
+        resourcesCache.put("ttl", -1L);
+        resourcesCache.put("memoryLimit", 32 * 1024 * 1024L);
+        resourcesCache.put("maxFileSize", 5 * 1024 * 1024L);
+        resourcesCache.put("enabled", true);
     }
 
     protected void loadEnvironmentVariables(Config config) {

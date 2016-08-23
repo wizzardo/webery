@@ -3,6 +3,7 @@ package com.wizzardo.http.response;
 import com.wizzardo.epoll.readable.ReadableByteBuffer;
 import com.wizzardo.epoll.readable.ReadableFile;
 import com.wizzardo.http.HttpDateFormatterHolder;
+import com.wizzardo.http.framework.ServerConfiguration;
 import com.wizzardo.http.request.Header;
 import com.wizzardo.http.request.Request;
 import com.wizzardo.tools.cache.MemoryLimitedCache;
@@ -38,6 +39,15 @@ public class RangeResponseHelper {
     public RangeResponseHelper(long cacheMemoryLimit, long cacheTTL, long maxCachedFileSize) {
         this.maxCachedFileSize = maxCachedFileSize;
         filesCache = createFileHolderCache(cacheMemoryLimit, cacheTTL);
+    }
+
+    public RangeResponseHelper(ServerConfiguration.Resources.Cache cache) {
+        if (!cache.enabled) {
+            this.maxCachedFileSize = -1;
+        } else {
+            this.maxCachedFileSize = cache.maxFileSize;
+            filesCache = createFileHolderCache(cache.memoryLimit, cache.ttl);
+        }
     }
 
     protected MemoryLimitedCache<String, FileHolder> createFileHolderCache(long cacheMemoryLimit, long cacheTTL) {
