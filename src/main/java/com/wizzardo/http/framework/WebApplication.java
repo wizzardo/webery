@@ -255,7 +255,7 @@ public class WebApplication extends HttpServer<HttpConnection> {
         resources.put("path", "public");
         resources.put("mapping", "static");
 
-        Config resourcesCache = server.config("cache");
+        Config resourcesCache = resources.config("cache");
         resourcesCache.put("ttl", -1L);
         resourcesCache.put("memoryLimit", 32 * 1024 * 1024L);
         resourcesCache.put("maxFileSize", 5 * 1024 * 1024L);
