@@ -260,6 +260,7 @@ public class WebApplication extends HttpServer<HttpConnection> {
         resourcesCache.put("memoryLimit", 32 * 1024 * 1024L);
         resourcesCache.put("maxFileSize", 5 * 1024 * 1024L);
         resourcesCache.put("enabled", true);
+        resourcesCache.put("gzip", true);
     }
 
     protected void loadEnvironmentVariables(Config config) {

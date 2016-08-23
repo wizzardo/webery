@@ -45,6 +45,7 @@ public class ServerConfiguration implements Configuration {
             public long memoryLimit;
             public long maxFileSize;
             public boolean enabled;
+            public boolean gzip;
         }
     }
 

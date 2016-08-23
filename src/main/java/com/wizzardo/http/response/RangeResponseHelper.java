@@ -7,17 +7,17 @@ import com.wizzardo.http.framework.ServerConfiguration;
 import com.wizzardo.http.request.Header;
 import com.wizzardo.http.request.Request;
 import com.wizzardo.tools.cache.MemoryLimitedCache;
-import com.wizzardo.tools.io.IOTools;
+import com.wizzardo.tools.io.FileTools;
 import com.wizzardo.tools.misc.Unchecked;
 import com.wizzardo.tools.security.MD5;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
-import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
-import java.nio.channels.FileChannel;
 import java.util.Date;
 import java.util.regex.Pattern;
+import java.util.zip.GZIPOutputStream;
 
 /**
  * @author: wizzardo
@@ -28,17 +28,18 @@ public class RangeResponseHelper {
     protected static final long DEFAULT_CACHE_MEMORY_LIMIT = 32 * 1024 * 1024;
     protected static final long DEFAULT_CACHE_MAX_FILE_SIZE = 5 * 1024 * 1024;
     protected static final long DEFAULT_CACHE_TTL = 5 * 60;
+    protected static final boolean DEFAULT_CACHE_GZIP = true;
 
     protected MemoryLimitedCache<String, FileHolder> filesCache;
     protected final long maxCachedFileSize;
 
     public RangeResponseHelper() {
-        this(DEFAULT_CACHE_MEMORY_LIMIT, DEFAULT_CACHE_TTL, DEFAULT_CACHE_MAX_FILE_SIZE);
+        this(DEFAULT_CACHE_MEMORY_LIMIT, DEFAULT_CACHE_TTL, DEFAULT_CACHE_MAX_FILE_SIZE, DEFAULT_CACHE_GZIP);
     }
 
-    public RangeResponseHelper(long cacheMemoryLimit, long cacheTTL, long maxCachedFileSize) {
+    public RangeResponseHelper(long cacheMemoryLimit, long cacheTTL, long maxCachedFileSize, boolean gzip) {
         this.maxCachedFileSize = maxCachedFileSize;
-        filesCache = createFileHolderCache(cacheMemoryLimit, cacheTTL);
+        filesCache = createFileHolderCache(cacheMemoryLimit, cacheTTL, gzip);
     }
 
     public RangeResponseHelper(ServerConfiguration.Resources.Cache cache) {
@@ -46,34 +47,43 @@ public class RangeResponseHelper {
             this.maxCachedFileSize = -1;
         } else {
             this.maxCachedFileSize = cache.maxFileSize;
-            filesCache = createFileHolderCache(cache.memoryLimit, cache.ttl);
+            filesCache = createFileHolderCache(cache.memoryLimit, cache.ttl, cache.gzip);
         }
     }
 
-    protected MemoryLimitedCache<String, FileHolder> createFileHolderCache(long cacheMemoryLimit, long cacheTTL) {
-        return new MemoryLimitedCache<>(cacheMemoryLimit, cacheTTL, s -> {
-            FileChannel inChannel = null;
-            try {
-                RandomAccessFile aFile = new RandomAccessFile(s, "r");
-                inChannel = aFile.getChannel();
-                ByteBuffer buffer = ByteBuffer.allocateDirect((int) inChannel.size());
-                inChannel.read(buffer);
-                return new FileHolder(new ReadableByteBuffer(buffer), MD5.create().update(s).asString());
-            } catch (IOException e) {
-                throw Unchecked.rethrow(e);
-            } finally {
-                IOTools.close(inChannel);
+    protected MemoryLimitedCache<String, FileHolder> createFileHolderCache(long cacheMemoryLimit, long cacheTTL, boolean gzip) {
+        return new MemoryLimitedCache<>(cacheMemoryLimit, cacheTTL, path -> {
+            byte[] bytes = FileTools.bytes(path);
+            if (gzip) {
+                ByteArrayOutputStream out = new ByteArrayOutputStream(bytes.length);
+                GZIPOutputStream gout = new GZIPOutputStream(out);
+                gout.write(bytes);
+                gout.close();
+                bytes = out.toByteArray();
             }
+
+            ByteBuffer buffer = ByteBuffer.allocateDirect(bytes.length);
+            buffer.put(bytes);
+            buffer.flip();
+
+            String lastModified = HttpDateFormatterHolder.get().format(new Date(new File(path).lastModified()));
+            String md5 = MD5.create().update(bytes).asString().toUpperCase();
+
+            return new FileHolder(new ReadableByteBuffer(buffer), md5, lastModified, gzip);
         });
     }
 
     public static class FileHolder implements MemoryLimitedCache.SizeProvider {
         public final ReadableByteBuffer buffer;
         public final String md5;
+        public final String lastModified;
+        public final boolean gzip;
 
-        public FileHolder(ReadableByteBuffer buffer, String md5) {
+        public FileHolder(ReadableByteBuffer buffer, String md5, String lastModified, boolean gzip) {
             this.buffer = buffer;
             this.md5 = md5;
+            this.lastModified = lastModified;
+            this.gzip = gzip;
         }
 
         @Override
@@ -108,14 +118,22 @@ public class RangeResponseHelper {
             if (modifiedSince != null && modifiedSince.getTime() >= file.lastModified())
                 return response.status(Status._304);
 
-            if (fileHolder != null && fileHolder.md5.equals(request.header(Header.KEY_IF_NONE_MATCH)))
-                return response.status(Status._304);
+            if (fileHolder != null) {
+                if (fileHolder.md5.equals(request.header(Header.KEY_IF_NONE_MATCH)))
+                    return response.status(Status._304);
 
-            range = new Range(0, file.length() - 1, file.length());
-            response.appendHeader(Header.KEY_CONTENT_LENGTH, String.valueOf(file.length()));
-            if (fileHolder != null)
+                if (fileHolder.gzip)
+                    response.appendHeader(Header.KV_CONTENT_ENCODING_GZIP);
+
                 response.appendHeader(Header.KEY_ETAG, fileHolder.md5);
-            response.appendHeader(Header.KEY_LAST_MODIFIED, HttpDateFormatterHolder.get().format(new Date(file.lastModified())));
+                response.appendHeader(Header.KEY_LAST_MODIFIED, fileHolder.lastModified);
+                response.appendHeader(Header.KEY_CONTENT_LENGTH, String.valueOf(fileHolder.buffer.length()));
+                range = new Range(0, fileHolder.buffer.length() - 1, fileHolder.buffer.length());
+            } else {
+                response.appendHeader(Header.KEY_CONTENT_LENGTH, String.valueOf(file.length()));
+                response.appendHeader(Header.KEY_LAST_MODIFIED, HttpDateFormatterHolder.get().format(new Date(file.lastModified())));
+                range = new Range(0, file.length() - 1, file.length());
+            }
         }
         response.appendHeader(Header.KEY_CONNECTION, Header.VALUE_KEEP_ALIVE);
 
