@@ -17,6 +17,7 @@ import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.regex.Pattern;
 
 import static com.wizzardo.http.html.HtmlBuilder.*;
 
@@ -25,6 +26,7 @@ import static com.wizzardo.http.html.HtmlBuilder.*;
  * Date: 19.09.14
  */
 public class FileTreeHandler<T extends FileTreeHandler.HandlerContext> implements Handler {
+    protected static final Pattern VERSION_PATTERN = Pattern.compile("\\.v[0-9A-F]{4}");
     protected static final int SIZE_GB = 1024 * 1024 * 1024;
     protected static final int SIZE_MB = 1024 * 1024;
     protected static final int SIZE_KB = 1024;
@@ -85,7 +87,7 @@ public class FileTreeHandler<T extends FileTreeHandler.HandlerContext> implement
         if (last == -1)
             return path;
 
-        return path.substring(0, last) + ".v" + fileHolder.md5.substring(0, 4).toUpperCase() + path.substring(last);
+        return path.substring(0, last) + ".v" + fileHolder.md5.substring(0, 4) + path.substring(last);
     }
 
     @Override
@@ -246,7 +248,7 @@ public class FileTreeHandler<T extends FileTreeHandler.HandlerContext> implement
     }
 
     private String decodePath(String path) {
-        return Unchecked.call(() -> URLDecoder.decode(RangeResponseHelper.VERSION_PATTERN.matcher(path).replaceAll(""), "utf-8"));
+        return Unchecked.call(() -> URLDecoder.decode(VERSION_PATTERN.matcher(path).replaceAll(""), "utf-8"));
     }
 
     public static class HandlerContext {

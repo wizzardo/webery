@@ -24,7 +24,6 @@ import java.util.zip.GZIPOutputStream;
  * Date: 8/4/14
  */
 public class RangeResponseHelper {
-    public static final Pattern VERSION_PATTERN = Pattern.compile("\\.v[0-9A-F]{4}");
     protected static final long DEFAULT_CACHE_MEMORY_LIMIT = 32 * 1024 * 1024;
     protected static final long DEFAULT_CACHE_MAX_FILE_SIZE = 5 * 1024 * 1024;
     protected static final long DEFAULT_CACHE_TTL = 5 * 60;
