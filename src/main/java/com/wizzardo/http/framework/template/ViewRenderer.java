@@ -47,7 +47,7 @@ public class ViewRenderer extends Renderer {
     }
 
     private static RenderableList prepareView(String view, String offset) {
-        ResourceTools resourceTools = DependencyFactory.getDependency(ResourceTools.class);
+        ResourceTools resourceTools = DependencyFactory.get(ResourceTools.class);
         String template = resourceTools.getResourceAsString(view);
         if (template == null)
             throw new IllegalArgumentException("view '" + view + "' not found");
@@ -72,7 +72,7 @@ public class ViewRenderer extends Renderer {
             layoutTag.parent().children().remove(layoutTag);
 
             Node layout = new GspParser().parse(resourceTools.getResourceAsString("layouts/" + layoutTag.attr("content") + ".gsp"));
-            for (Decorator decorator : DependencyFactory.getDependency(DecoratorLib.class).list()) {
+            for (Decorator decorator : DependencyFactory.get(DecoratorLib.class).list()) {
                 decorator.decorate(html, layout);
             }
             html = layout;

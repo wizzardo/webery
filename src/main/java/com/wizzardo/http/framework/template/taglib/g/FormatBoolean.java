@@ -12,7 +12,7 @@ import java.util.Map;
  */
 public class FormatBoolean extends Tag implements RenderableString {
 
-    protected MessageSource messageSource = DependencyFactory.getDependency(MessageSource.class);
+    protected MessageSource messageSource = DependencyFactory.get(MessageSource.class);
 
     @Override
     public Tag init(Map<String, String> attrs, Body body, String offset) {

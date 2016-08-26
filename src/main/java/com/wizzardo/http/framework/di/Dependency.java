@@ -77,7 +77,7 @@ public abstract class Dependency<T> {
     protected void injectDependencies(Object ob) {
         try {
             for (FieldReflection f : dependencies.get(ob.getClass())) {
-                f.setObject(ob, DependencyFactory.getDependency(f.getField().getType()));
+                f.setObject(ob, DependencyFactory.get(f.getField()));
             }
         } catch (Exception e) {
             synchronized (ob.getClass()) {
@@ -87,7 +87,7 @@ public abstract class Dependency<T> {
                 while (iterator.hasNext()) {
                     FieldReflection f = iterator.next();
                     try {
-                        f.setObject(ob, DependencyFactory.getDependency(f.getField().getType()));
+                        f.setObject(ob, DependencyFactory.get(f.getField()));
                     } catch (Exception ex) {
                         iterator.remove();
                     }

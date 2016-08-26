@@ -57,7 +57,7 @@ public class ControllerHandler<T extends Controller> implements Handler {
         context.setController(controllerName);
         context.setAction(actionName);
 
-        T c = DependencyFactory.getDependency(controller);
+        T c = DependencyFactory.get(controller);
         c.request = request;
         c.response = response;
 

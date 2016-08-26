@@ -18,7 +18,7 @@ import java.util.Map;
  */
 public class Message extends Tag {
 
-    protected MessageBundle messageSource = DependencyFactory.getDependency(MessageBundle.class);
+    protected MessageBundle messageSource = DependencyFactory.get(MessageBundle.class);
 
     @Override
     public Tag init(Map<String, String> attrs, Body body, String offset) {

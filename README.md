@@ -267,7 +267,7 @@ src/main/resources/views/app/index.gsp
 #### i18n [↑](#up)
 
 ```java
-    MessageBundle ms = DependencyFactory.getDependency(MessageBundle.class);
+    MessageBundle ms = DependencyFactory.get(MessageBundle.class);
 
     //load message bundle from resources/i18n/messages.properties
     //and lazy load any other language, for example messages_en.properties, messages_fr.properties

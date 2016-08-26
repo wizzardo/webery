@@ -4,6 +4,7 @@ import com.wizzardo.tools.cache.Cache;
 import com.wizzardo.tools.cache.Computable;
 
 import java.lang.annotation.Annotation;
+import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.HashMap;
 import java.util.List;
@@ -16,7 +17,8 @@ import java.util.Map;
 public class DependencyFactory {
 
     private List<Class> classes;
-    private Map<Class, Class> mapping = new HashMap<Class, Class>();
+    private Map<Class, Class> mappingByClass = new HashMap<>();
+    private Map<String, Dependency> mappingByName = new HashMap<>();
 
     @SuppressWarnings("unchecked")
     private Cache<Class, Dependency> dependencies = new Cache<>(0, new Computable<Class, Dependency>() {
@@ -28,7 +30,7 @@ public class DependencyFactory {
                 return injectable.scope().createDependency(clazz);
 
             if (Modifier.isAbstract(clazz.getModifiers()) || Modifier.isInterface(clazz.getModifiers())) {
-                Class implementation = mapping.get(clazz);
+                Class implementation = mappingByClass.get(clazz);
                 if (implementation == null) {
                     for (Class cl : classes) {
                         if (clazz.isAssignableFrom(cl)
@@ -82,8 +84,12 @@ public class DependencyFactory {
         private static final DependencyFactory instance = new DependencyFactory();
     }
 
-    public static <T> T getDependency(Class<T> clazz) {
-        return DependencyFactoryHolder.instance.resolve(clazz);
+    public static <T> T get(Field field) {
+        Dependency<T> dependency = DependencyFactoryHolder.instance.mappingByName.get(field.getName());
+        if (dependency != null)
+            return dependency.get();
+
+        return DependencyFactoryHolder.instance.resolve((Class<T>) field.getType());
     }
 
     public static <T> T get(Class<T> clazz) {
@@ -103,13 +109,17 @@ public class DependencyFactory {
         this.classes = classes;
     }
 
-    public void bind(Class abstractClass, Class implementation) {
-        mapping.put(abstractClass, implementation);
+    public void register(Class abstractClass, Class implementation) {
+        mappingByClass.put(abstractClass, implementation);
         dependencies.get(abstractClass);
     }
 
     public <T> void register(Class<T> clazz, Dependency<T> dependency) {
         dependencies.put(clazz, dependency);
+    }
+
+    public <T> void register(String name, Dependency<T> dependency) {
+        mappingByName.put(name, dependency);
     }
 
     public boolean contains(Class clazz) {

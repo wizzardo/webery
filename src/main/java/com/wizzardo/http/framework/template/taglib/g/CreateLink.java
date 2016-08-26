@@ -17,7 +17,7 @@ import java.util.Map;
  */
 public class CreateLink extends Tag implements RenderableString {
 
-    protected ControllerUrlMapping urlMapping = DependencyFactory.getDependency(ControllerUrlMapping.class);
+    protected ControllerUrlMapping urlMapping = DependencyFactory.get(ControllerUrlMapping.class);
 
     @Override
     public Tag init(Map<String, String> attrs, Body body, String offset) {

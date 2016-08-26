@@ -64,8 +64,8 @@ public class TestDependencies extends WebApplicationTest {
         }
 
         public Renderer check() {
-//            System.out.println(DependencyFactory.getDependency(F.class));
-//            System.out.println(DependencyFactory.getDependency(E.class));
+//            System.out.println(DependencyFactory.get(F.class));
+//            System.out.println(DependencyFactory.get(E.class));
 
             return renderString(e.doIt());
         }
@@ -113,25 +113,25 @@ public class TestDependencies extends WebApplicationTest {
 
         DependencyFactory.get().register(Holder.class, new SingletonDependency<>(holder));
 
-        Holder test = DependencyFactory.getDependency(Holder.class);
+        Holder test = DependencyFactory.get(Holder.class);
         Assert.assertNotNull(test);
         Assert.assertSame(holder, test);
 
-        test = DependencyFactory.getDependency(HolderService.class).holder;
+        test = DependencyFactory.get(HolderService.class).holder;
         Assert.assertNotNull(test);
         Assert.assertSame(holder, test);
     }
 
     @Test
     public void testCircularDependencies() {
-        A a = DependencyFactory.getDependency(A.class);
+        A a = DependencyFactory.get(A.class);
 
         Assert.assertNotNull(a);
         Assert.assertNotNull(a.b);
         Assert.assertNotNull(a.b.a);
 
 
-        B b = DependencyFactory.getDependency(B.class);
+        B b = DependencyFactory.get(B.class);
 
         Assert.assertNotNull(b);
         Assert.assertNotNull(b.a);
@@ -143,9 +143,9 @@ public class TestDependencies extends WebApplicationTest {
 
     @Test
     public void testSimplePrototype() {
-        A a = DependencyFactory.getDependency(A.class);
-        C c1 = DependencyFactory.getDependency(C.class);
-        C c2 = DependencyFactory.getDependency(C.class);
+        A a = DependencyFactory.get(A.class);
+        C c1 = DependencyFactory.get(C.class);
+        C c2 = DependencyFactory.get(C.class);
 
         Assert.assertTrue(c1 != c2);
         Assert.assertTrue(c1.a == c2.a);
@@ -163,11 +163,11 @@ public class TestDependencies extends WebApplicationTest {
     @Test
     public void testInterface() throws IOException {
         Assert.assertEquals("J", makeRequest("/interface").get().asString());
-        J j = DependencyFactory.getDependency(J.class);
+        J j = DependencyFactory.get(J.class);
         Assert.assertNotNull(j);
         Assert.assertEquals("J", j.doIt());
 
-        SimplesController3 controller = DependencyFactory.getDependency(SimplesController3.class);
+        SimplesController3 controller = DependencyFactory.get(SimplesController3.class);
         Assert.assertNotNull(controller.j);
         Assert.assertEquals("J", controller.j.doIt());
 
@@ -182,19 +182,19 @@ public class TestDependencies extends WebApplicationTest {
 
     @Test
     public void testThreadLocal() throws InterruptedException {
-        Counter counter = DependencyFactory.getDependency(Counter.class);
+        Counter counter = DependencyFactory.get(Counter.class);
         Assert.assertEquals(0, counter.value);
 
         counter.value++;
         Assert.assertEquals(1, counter.value);
-        Assert.assertEquals(1, DependencyFactory.getDependency(Counter.class).value);
+        Assert.assertEquals(1, DependencyFactory.get(Counter.class).value);
         Thread thread = new Thread(() -> {
-            Assert.assertEquals(0, DependencyFactory.getDependency(Counter.class).value);
+            Assert.assertEquals(0, DependencyFactory.get(Counter.class).value);
         });
         thread.start();
         thread.join();
 
-        Assert.assertEquals(1, DependencyFactory.getDependency(Counter.class).value);
+        Assert.assertEquals(1, DependencyFactory.get(Counter.class).value);
     }
 
     @Injectable(scope = DependencyScope.REQUEST)

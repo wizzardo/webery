@@ -14,8 +14,8 @@ import java.util.Map;
  */
 public class Resource extends Tag implements RenderableString {
 
-    protected UrlMapping urlMapping = DependencyFactory.getDependency(UrlMapping.class);
-    protected FileTreeHandler fileTreeHandler = DependencyFactory.getDependency(FileTreeHandler.class);
+    protected UrlMapping urlMapping = DependencyFactory.get(UrlMapping.class);
+    protected FileTreeHandler fileTreeHandler = DependencyFactory.get(FileTreeHandler.class);
 
     @Override
     public Tag init(Map<String, String> attrs, Body body, String offset) {
