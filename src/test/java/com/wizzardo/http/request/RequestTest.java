@@ -332,7 +332,7 @@ public class RequestTest extends ServerTest {
         file.deleteOnExit();
         FileTools.bytes(file, data);
 
-        handler = (request, response) -> new RangeResponseHelper().makeRangeResponse(request, response, file);
+        handler = (request, response) -> new RangeResponseHelper(0, 0, 0, false).makeRangeResponse(request, response, file);
 
         byte[] test;
         test = new byte[100];
