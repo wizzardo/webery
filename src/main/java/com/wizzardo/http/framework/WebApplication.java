@@ -34,6 +34,7 @@ public class WebApplication extends HttpServer<HttpConnection> {
     protected Config config;
     protected ResourceTools resourcesTools;
     protected Consumer<WebApplication> onSetup;
+    protected Consumer<WebApplication> onLoadConfiguration;
     protected Map<String, String> args;
     protected Set<String> profiles = new LinkedHashSet<>();
 
@@ -64,8 +65,14 @@ public class WebApplication extends HttpServer<HttpConnection> {
         return this;
     }
 
-    public void onSetup(Consumer<WebApplication> onSetup) {
+    public WebApplication onSetup(Consumer<WebApplication> onSetup) {
         this.onSetup = onSetup;
+        return this;
+    }
+
+    public WebApplication onLoadConfiguration(Consumer<WebApplication> onLoadConfiguration) {
+        this.onLoadConfiguration = onLoadConfiguration;
+        return this;
     }
 
     protected void onStart() {
@@ -79,6 +86,8 @@ public class WebApplication extends HttpServer<HttpConnection> {
         DependencyFactory.get().register(MessageBundle.class, new SingletonDependency<>(bundle));
 
         loadConfig("Config.groovy");
+        processListener(onLoadConfiguration);
+
         readProfiles(config);
 
         List<Class> classes = resourcesTools.getClasses();
@@ -88,8 +97,7 @@ public class WebApplication extends HttpServer<HttpConnection> {
         DependencyFactory.get().register(DecoratorLib.class, new SingletonDependency<>(new DecoratorLib(classes)));
 
         setupApplication();
-        if (onSetup != null)
-            onSetup.consume(this);
+        processListener(onSetup);
 
         super.onStart();
         System.out.println("application has started");
@@ -293,6 +301,11 @@ public class WebApplication extends HttpServer<HttpConnection> {
                 .appendDefault("default.boolean.true", "true")
                 .appendDefault("default.boolean.false", "false")
                 ;
+    }
+
+    protected void processListener(Consumer<WebApplication> listner) {
+        if (listner != null)
+            listner.consume(this);
     }
 
     @Override
