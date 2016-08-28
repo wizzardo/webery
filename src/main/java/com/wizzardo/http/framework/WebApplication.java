@@ -138,9 +138,9 @@ public class WebApplication extends HttpServer<HttpConnection> {
 
         super.setHostname(server.hostname);
         super.setPort(server.port);
-        super.setContext(server.context);
         super.setDebugOutput(server.debugOutput);
         super.setSessionTimeout(server.session.ttlSeconds);
+        setContext(server.context);
 
         int workers = server.ioWorkersCount;
         if (workers > 0)
