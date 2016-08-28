@@ -1,6 +1,7 @@
 package com.wizzardo.http;
 
 import com.wizzardo.http.mapping.TemplatesHolder;
+import com.wizzardo.http.request.Parameters;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -40,6 +41,22 @@ public class UrlMappingTest extends ServerTest {
         Assert.assertEquals("any", makeRequest("/any/foo/bar").get().asString());
 
         Assert.assertEquals("foo-bar", makeRequest("/pattern/foo-bar").get().asString());
+    }
+
+    @Test
+    public void testMappingVariables() throws IOException {
+        Handler testHandler = (request, response) -> {
+            Parameters params = request.params();
+            return response.setBody(params.get("a", " ") + "-" + params.get("b", " ") + "-" + params.get("c", " ") + "-" + params.get("d", " ") + "-" + params.get("e", " "));
+        };
+
+        this.handler = new UrlHandler()
+                .append("/$a/$b/$c", testHandler)
+                .append("/$a/$c/$d/$e", testHandler)
+        ;
+
+        Assert.assertEquals("a-b-c- - ", makeRequest("/a/b/c").get().asString());
+        Assert.assertEquals("a- -c-d-e", makeRequest("/a/c/d/e").get().asString());
     }
 
     @Test
