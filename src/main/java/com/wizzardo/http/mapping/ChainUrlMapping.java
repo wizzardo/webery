@@ -83,6 +83,25 @@ public class ChainUrlMapping<T> extends UrlMapping<ChainUrlMapping.Chain<T>> {
     }
 
     @Override
+    protected UrlMapping<Chain<T>> find(Path path) {
+        return find(path.parts());
+    }
+
+    protected UrlMapping<Chain<T>> find(List<String> parts) {
+        UrlMapping<Chain<T>> tree = this;
+        for (int i = 0; i < parts.size() && tree != null; i++) {
+            String part = parts.get(i);
+            if (part.isEmpty())
+                continue;
+
+            tree = tree.find(part, parts);
+            if (tree != null && !tree.checkNextPart())
+                break;
+        }
+
+        return tree;
+    }
+
     protected UrlMapping<Chain<T>> find(String part, List<String> parts) {
         List<UrlMapping<Chain<T>>> endsWith = findAllEndsWith(parts);
 

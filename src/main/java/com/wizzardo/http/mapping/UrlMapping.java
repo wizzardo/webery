@@ -67,7 +67,7 @@ public class UrlMapping<T extends Named> {
     }
 
     public T get(String path) {
-        UrlMapping<T> last = find(Arrays.asList(path.split("/")));
+        UrlMapping<T> last = findRecursive(Arrays.asList(path.split("/")), 0);
         return last == null ? null : last.value;
     }
 
@@ -86,23 +86,54 @@ public class UrlMapping<T extends Named> {
         return last == null ? null : last.value;
     }
 
-    private UrlMapping<T> find(Path path) {
-        return find(path.parts());
+    protected UrlMapping<T> find(Path path) {
+        return findRecursive(path.parts(), 0);
     }
 
-    private UrlMapping<T> find(List<String> parts) {
-        UrlMapping<T> tree = this;
-        for (int i = 0; i < parts.size() && tree != null; i++) {
-            String part = parts.get(i);
-            if (part.isEmpty())
-                continue;
+    protected UrlMapping<T> findRecursive(List<String> parts, int index) {
+        if (index == parts.size())
+            return this.value != null ? this : null;
 
-            tree = tree.find(part, parts);
-            if (tree != null && !tree.checkNextPart())
-                break;
+        String part = parts.get(index);
+        if (part.isEmpty())
+            return findRecursive(parts, index + 1);
+
+        UrlMapping<T> tree = findStatic(part);
+        if (tree != null) {
+            if (!tree.checkNextPart()) {
+                return tree;
+            } else {
+                tree = tree.findRecursive(parts, index + 1);
+                if (tree != null)
+                    return tree;
+            }
         }
 
-        return tree;
+        for (Map.Entry<String, UrlMappingMatcher<T>> entry : regexpMapping.entrySet()) {
+            if (entry.getValue().matches(part)) {
+                tree = entry.getValue();
+                if (!tree.checkNextPart()) {
+                    return tree;
+                } else {
+                    tree = tree.findRecursive(parts, index + 1);
+                    if (tree != null)
+                        return tree;
+                }
+            }
+        }
+
+        tree = findEndsWith(parts);
+        if (tree != null) {
+            if (!tree.checkNextPart()) {
+                return tree;
+            } else {
+                tree = tree.findRecursive(parts, index + 1);
+                if (tree != null)
+                    return tree;
+            }
+        }
+
+        return null;
     }
 
     protected UrlMapping<T> find(String part, List<String> parts) {
@@ -177,7 +208,7 @@ public class UrlMapping<T extends Named> {
 
                     next = tree.endsWithMapping.append(part);
                 } else {
-                    if(part.equals("*")){
+                    if (part.equals("*")) {
                         next = tree.regexpMapping.get(".*");
                         if (next == null) {
                             UrlMappingMatcher<T> t = new UrlMappingMatcherAny<>(tree);
@@ -186,7 +217,7 @@ public class UrlMapping<T extends Named> {
                         }
                     } else {
                         next = tree.regexpMapping.get(part);
-                        if (next == null){
+                        if (next == null) {
                             UrlMappingMatcher<T> t = new UrlMappingMatcherPattern<>(tree, part);
                             tree.regexpMapping.put(part, t);
                             next = t;
@@ -196,14 +227,14 @@ public class UrlMapping<T extends Named> {
                 }
             } else if (part.contains("$")) {
                 String pattern = convertRegexpVariables(part);
-                next = tree.regexpMapping.get(pattern);
+                next = tree.regexpMapping.get(part);
                 if (next == null) {
                     UrlMappingWithVariables<T> t;
                     if (pattern.equals("(.+)") || pattern.equals("(.+)?"))
                         t = new UrlMappingMatcherAnyVariable<>(tree, part, counter);
                     else
                         t = new UrlMappingWithVariables<>(tree, part, counter);
-                    tree.regexpMapping.put(pattern, t);
+                    tree.regexpMapping.put(part, t);
                     next = t;
                 }
             } else {
