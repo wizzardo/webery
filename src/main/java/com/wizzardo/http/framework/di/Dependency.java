@@ -7,7 +7,6 @@ import com.wizzardo.tools.reflection.FieldReflectionFactory;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 import static com.wizzardo.http.framework.di.DependencyFactory.getAnnotation;
@@ -75,25 +74,8 @@ public abstract class Dependency<T> {
     }
 
     protected void injectDependencies(Object ob) {
-        try {
-            for (FieldReflection f : dependencies.get(ob.getClass())) {
-                f.setObject(ob, DependencyFactory.get(f.getField()));
-            }
-        } catch (Exception e) {
-            synchronized (ob.getClass()) {
-                List<FieldReflection> list = new ArrayList<>(dependencies.get(ob.getClass()));
-                Iterator<FieldReflection> iterator = list.iterator();
-
-                while (iterator.hasNext()) {
-                    FieldReflection f = iterator.next();
-                    try {
-                        f.setObject(ob, DependencyFactory.get(f.getField()));
-                    } catch (Exception ex) {
-                        iterator.remove();
-                    }
-                }
-                dependencies.put(ob.getClass(), list);
-            }
+        for (FieldReflection f : dependencies.get(ob.getClass())) {
+            f.setObject(ob, DependencyFactory.get(f.getField()));
         }
     }
 }
