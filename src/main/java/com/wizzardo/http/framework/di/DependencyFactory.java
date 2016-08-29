@@ -25,7 +25,7 @@ public class DependencyFactory {
         @Override
         public Dependency compute(Class clazz) {
 
-            Injectable injectable = (Injectable) getAnnotation(clazz, Injectable.class);
+            Injectable injectable = getAnnotation(clazz, Injectable.class);
             if (injectable != null)
                 return injectable.scope().createDependency(clazz);
 
@@ -36,7 +36,7 @@ public class DependencyFactory {
                         if (clazz.isAssignableFrom(cl)
                                 && !Modifier.isInterface(cl.getModifiers())
                                 && !Modifier.isAbstract(cl.getModifiers())
-                                && (injectable = (Injectable) getAnnotation(cl, Injectable.class)) != null
+                                && (injectable = getAnnotation(cl, Injectable.class)) != null
                                 ) {
                             if (implementation != null) {
                                 throw new IllegalStateException("can't resolve dependency '" + clazz + "'. Found more than one implementation: " + implementation + " and " + cl);
@@ -47,7 +47,7 @@ public class DependencyFactory {
                 }
                 if (implementation != null) {
                     if (injectable == null)
-                        injectable = (Injectable) getAnnotation(implementation, Injectable.class);
+                        injectable = getAnnotation(implementation, Injectable.class);
 
                     if (injectable != null)
                         return injectable.scope().createDependency(implementation);
@@ -64,9 +64,14 @@ public class DependencyFactory {
         }
     });
 
-    static Annotation getAnnotation(Class clazz, Class annotation) {
+
+    static <A extends Annotation> boolean hasAnnotation(Class clazz, Class<A> annotation) {
+        return getAnnotation(clazz, annotation) != null;
+    }
+
+    static <A extends Annotation> A getAnnotation(Class<?> clazz, Class<A> annotation) {
         while (clazz != null) {
-            Annotation a = clazz.getAnnotation(annotation);
+            A a = clazz.getAnnotation(annotation);
             if (a != null) {
                 return a;
             }

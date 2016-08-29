@@ -1,15 +1,17 @@
 package com.wizzardo.http.framework.di;
 
 import com.wizzardo.tools.cache.Cache;
+import com.wizzardo.tools.misc.Unchecked;
 import com.wizzardo.tools.reflection.FieldReflection;
 import com.wizzardo.tools.reflection.FieldReflectionFactory;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
-import static com.wizzardo.http.framework.di.DependencyFactory.getAnnotation;
+import static com.wizzardo.http.framework.di.DependencyFactory.hasAnnotation;
 
 /**
  * Created by wizzardo on 05.05.15.
@@ -35,13 +37,13 @@ public abstract class Dependency<T> {
                     continue;
                 }
 
-                if (getAnnotation(f.getType(), Injectable.class) != null
+                if (hasAnnotation(f.getType(), Injectable.class)
                         || Modifier.isAbstract(mod)
                         || Modifier.isInterface(mod)) {
                     l.add(reflectionFactory.create(f, true));
                 } else {
                     for (Class i : f.getType().getInterfaces()) {
-                        if (getAnnotation(i, Injectable.class) != null) {
+                        if (hasAnnotation(i, Injectable.class)) {
                             l.add(reflectionFactory.create(f, true));
                             break;
                         }
@@ -74,8 +76,28 @@ public abstract class Dependency<T> {
     }
 
     protected void injectDependencies(Object ob) {
-        for (FieldReflection f : dependencies.get(ob.getClass())) {
-            f.setObject(ob, DependencyFactory.get(f.getField()));
+        try {
+            for (FieldReflection f : dependencies.get(ob.getClass())) {
+                f.setObject(ob, DependencyFactory.get(f.getField()));
+            }
+        } catch (Exception e) {
+            synchronized (ob.getClass()) {
+                List<FieldReflection> list = new ArrayList<>(dependencies.get(ob.getClass()));
+                Iterator<FieldReflection> iterator = list.iterator();
+
+                while (iterator.hasNext()) {
+                    FieldReflection f = iterator.next();
+                    try {
+                        f.setObject(ob, DependencyFactory.get(f.getField()));
+                    } catch (Exception ex) {
+                        if (hasAnnotation(f.getField().getType(), Injectable.class))
+                            throw Unchecked.rethrow(ex);
+
+                        iterator.remove();
+                    }
+                }
+                dependencies.put(ob.getClass(), list);
+            }
         }
     }
 }
