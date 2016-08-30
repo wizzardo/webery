@@ -307,6 +307,13 @@ public class WebApplication extends HttpServer<HttpConnection> {
     }
 
     @Override
+    protected void handle(HttpConnection connection) throws Exception {
+        RequestContext context = (RequestContext) Thread.currentThread();
+        context.setRequestHolder(new RequestHolder(connection.getRequest(), connection.getResponse()));
+        super.handle(connection);
+    }
+
+    @Override
     protected Worker<HttpConnection> createWorker(BlockingQueue<HttpConnection> queue, String name) {
         return new WebWorker<>(this, queue, name);
     }

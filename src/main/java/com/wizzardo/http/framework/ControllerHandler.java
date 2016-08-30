@@ -53,7 +53,6 @@ public class ControllerHandler<T extends Controller> implements Handler {
 //        request.action(actionName);
 
         RequestContext context = (RequestContext) Thread.currentThread();
-        context.setRequestHolder(new RequestHolder(request, response));
         context.setController(controllerName);
         context.setAction(actionName);
 
