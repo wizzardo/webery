@@ -331,10 +331,11 @@ public class WebApplication extends HttpServer<HttpConnection> {
     }
 
     public WebApplication loadConfig(String path) {
-        resourcesTools.getResourceFile(path, file -> {
-            System.out.println("load config from: " + file.getAbsolutePath());
-            EvalTools.prepare(FileTools.text(file)).get(config);
-        });
+        String text = resourcesTools.getResourceAsString(path);
+        if (text != null) {
+            System.out.println("load config from: " + path);
+            EvalTools.prepare(text).get(config);
+        }
         return this;
     }
 
