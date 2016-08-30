@@ -35,14 +35,13 @@ public class WebApplication extends HttpServer<HttpConnection> {
     protected ResourceTools resourcesTools;
     protected Consumer<WebApplication> onSetup;
     protected Consumer<WebApplication> onLoadConfiguration;
-    protected Map<String, String> args;
     protected Set<String> profiles = new LinkedHashSet<>();
 
     public WebApplication() {
     }
 
     public WebApplication(String[] args) {
-        this.args = parseCliArgs(args);
+        processCliArgs(parseCliArgs(args));
     }
 
     public WebApplication setEnvironment(Environment environment) {
@@ -231,10 +230,9 @@ public class WebApplication extends HttpServer<HttpConnection> {
         loadDefaultConfiguration(config);
         loadEnvironmentVariables(config);
         loadSystemProperties(config);
-        processCliArgs();
     }
 
-    protected void processCliArgs() {
+    protected void processCliArgs(Map<String, String> args) {
         if (args == null || args.isEmpty())
             return;
 
