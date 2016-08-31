@@ -28,6 +28,7 @@ public class RangeResponseHelper {
     protected static final long DEFAULT_CACHE_MAX_FILE_SIZE = 5 * 1024 * 1024;
     protected static final long DEFAULT_CACHE_TTL = 5 * 60;
     protected static final boolean DEFAULT_CACHE_GZIP = true;
+    protected static final String MAX_AGE_1_YEAR = "max-age=31556926";
 
     protected MemoryLimitedCache<String, FileHolder> filesCache;
     protected final long maxCachedFileSize;
@@ -126,6 +127,7 @@ public class RangeResponseHelper {
 
                 response.appendHeader(Header.KEY_ETAG, fileHolder.md5);
                 response.appendHeader(Header.KEY_LAST_MODIFIED, fileHolder.lastModified);
+                response.appendHeader(Header.KEY_CACHE_CONTROL, MAX_AGE_1_YEAR);
                 response.appendHeader(Header.KEY_CONTENT_LENGTH, String.valueOf(fileHolder.buffer.length()));
                 range = new Range(0, fileHolder.buffer.length() - 1, fileHolder.buffer.length());
             } else {
