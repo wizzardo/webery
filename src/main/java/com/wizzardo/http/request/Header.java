@@ -28,6 +28,7 @@ public enum Header {
     KEY_ORIGIN("Origin"),
     KEY_PRAGMA("Pragma"),
     KEY_RANGE("Range"),
+    KEY_REFERER("Referer"),
     KEY_SEC_WEBSOCKET_KEY("Sec-WebSocket-Key"),
     KEY_SEC_WEBSOCKET_PROTOCOL("Sec-WebSocket-Protocol"),
     KEY_SEC_WEBSOCKET_ACCEPT("Sec-WebSocket-Accept"),
