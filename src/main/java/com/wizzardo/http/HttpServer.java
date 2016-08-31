@@ -120,6 +120,14 @@ public class HttpServer<T extends HttpConnection> extends AbstractHttpServer<T> 
         return this;
     }
 
+    public Handler notFoundHandler() {
+        return notFoundHandler;
+    }
+
+    public ErrorHandler errorHandler() {
+        return errorHandler;
+    }
+
     public HttpServer<T> errorHandler(ErrorHandler errorHandler) {
         this.errorHandler = errorHandler;
         return this;
