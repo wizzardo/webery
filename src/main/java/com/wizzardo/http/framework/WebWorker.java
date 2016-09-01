@@ -13,6 +13,7 @@ public class WebWorker<T extends HttpConnection> extends HttpWorker<T> implement
     protected RequestHolder requestHolder;
     protected String controller;
     protected String action;
+    protected String handler;
 
     public WebWorker(AbstractHttpServer<T> server, BlockingQueue<T> queue, String name) {
         super(server, queue, name);
@@ -46,5 +47,22 @@ public class WebWorker<T extends HttpConnection> extends HttpWorker<T> implement
     @Override
     public void setAction(String action) {
         this.action = action;
+    }
+
+    @Override
+    public void reset() {
+        action = null;
+        controller = null;
+        requestHolder = null;
+    }
+
+    @Override
+    public void handler(String name) {
+        this.handler = name;
+    }
+
+    @Override
+    public String handler() {
+        return handler;
     }
 }

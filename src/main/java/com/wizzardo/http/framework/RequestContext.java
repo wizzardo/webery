@@ -19,4 +19,10 @@ public interface RequestContext {
     static RequestContext get() {
         return (RequestContext) Thread.currentThread();
     }
+
+    void reset();
+
+    void handler(String name);
+
+    String handler();
 }

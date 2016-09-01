@@ -315,6 +315,13 @@ public class WebApplication extends HttpServer<HttpConnection> {
         RequestContext context = (RequestContext) Thread.currentThread();
         context.setRequestHolder(new RequestHolder(connection.getRequest(), connection.getResponse()));
         super.handle(connection);
+        context.reset();
+    }
+
+    @Override
+    protected Response handle(Request request, Response response, Handler handler) throws IOException {
+        ((RequestContext) Thread.currentThread()).handler(handler.name());
+        return super.handle(request, response, handler);
     }
 
     @Override

@@ -169,9 +169,12 @@ public class HttpServer<T extends HttpConnection> extends AbstractHttpServer<T> 
     protected Response handle(Request request, Response response) throws IOException {
         Handler handler = urlMapping.get(request);
         if (handler != null)
-            response = handler.handle(request, response);
+            return handle(request, response, handler);
         else
-            response = notFoundHandler.handle(request, response);
-        return response;
+            return notFoundHandler.handle(request, response);
+    }
+
+    protected Response handle(Request request, Response response, Handler handler) throws IOException {
+        return handler.handle(request, response);
     }
 }
