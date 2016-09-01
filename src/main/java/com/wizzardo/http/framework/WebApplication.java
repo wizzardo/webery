@@ -5,7 +5,10 @@ import com.wizzardo.epoll.SslConfig;
 import com.wizzardo.http.filter.AuthFilter;
 import com.wizzardo.http.filter.BasicAuthFilter;
 import com.wizzardo.http.filter.TokenFilter;
+import com.wizzardo.http.request.Request;
 import com.wizzardo.http.response.RangeResponseHelper;
+import com.wizzardo.http.response.Response;
+import com.wizzardo.tools.collections.CollectionTools;
 import com.wizzardo.tools.collections.flow.Flow;
 import com.wizzardo.tools.evaluation.Config;
 import com.wizzardo.http.*;
@@ -16,12 +19,12 @@ import com.wizzardo.http.framework.message.MessageSource;
 import com.wizzardo.http.framework.template.*;
 import com.wizzardo.http.mapping.UrlMapping;
 import com.wizzardo.tools.evaluation.EvalTools;
-import com.wizzardo.tools.io.FileTools;
 import com.wizzardo.tools.misc.Consumer;
 import com.wizzardo.tools.misc.TextTools;
 import com.wizzardo.tools.misc.Unchecked;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.BlockingQueue;
 
@@ -30,18 +33,19 @@ import java.util.concurrent.BlockingQueue;
  */
 public class WebApplication extends HttpServer<HttpConnection> {
 
-    protected Environment environment = Environment.DEVELOPMENT;
+    protected Environment environment;
     protected Config config;
     protected ResourceTools resourcesTools;
     protected Consumer<WebApplication> onSetup;
     protected Consumer<WebApplication> onLoadConfiguration;
-    protected Set<String> profiles = new LinkedHashSet<>();
+    protected Set<String> profiles;
 
     public WebApplication() {
     }
 
     public WebApplication(String[] args) {
-        processCliArgs(parseCliArgs(args));
+        Map<String, String> map = parseCliArgs(args);
+        processArgs(map::get);
     }
 
     public WebApplication setEnvironment(Environment environment) {
@@ -225,25 +229,25 @@ public class WebApplication extends HttpServer<HttpConnection> {
 
     protected void init() {
         super.init();
+        profiles = new LinkedHashSet<>();
+        environment = Environment.DEVELOPMENT;
         Holders.setApplication(this);
         config = new Config();
         loadDefaultConfiguration(config);
         loadEnvironmentVariables(config);
         loadSystemProperties(config);
+        processArgs(System::getProperty);
     }
 
-    protected void processCliArgs(Map<String, String> args) {
-        if (args == null || args.isEmpty())
-            return;
-
+    protected void processArgs(CollectionTools.Closure<String, String> args) {
         String value;
-        if ((value = args.get("env")) != null)
+        if ((value = args.execute("env")) != null)
             environment = Environment.parse(value);
 
-        if ((value = args.get("environment")) != null)
+        if ((value = args.execute("environment")) != null)
             environment = Environment.parse(value);
 
-        if ((value = args.get("profiles")) != null)
+        if ((value = args.execute("profiles.active")) != null)
             Flow.of(value.split(",")).each(this::addProfile).execute();
     }
 
