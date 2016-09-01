@@ -13,11 +13,13 @@ import java.util.concurrent.ConcurrentHashMap;
 public class RequestHolder {
     public final Request request;
     public final Response response;
+    public final long startTime;
     private volatile Map<Object, Object> requestScope;
 
     public RequestHolder(Request request, Response response) {
         this.request = request;
         this.response = response;
+        startTime = System.currentTimeMillis();
     }
 
     public <T> T get(Object key) {
