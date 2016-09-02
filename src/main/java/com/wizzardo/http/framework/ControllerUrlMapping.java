@@ -2,6 +2,7 @@ package com.wizzardo.http.framework;
 
 import com.wizzardo.epoll.readable.ReadableData;
 import com.wizzardo.http.Handler;
+import com.wizzardo.http.framework.di.DependencyFactory;
 import com.wizzardo.http.mapping.UrlMapping;
 import com.wizzardo.http.mapping.UrlTemplate;
 import com.wizzardo.tools.collections.CollectionTools.Closure;
@@ -29,6 +30,10 @@ public class ControllerUrlMapping extends UrlMapping<Handler> {
     public ControllerUrlMapping append(String url, String name, Handler handler) {
         super.append(url, name, handler);
         return this;
+    }
+
+    public ControllerUrlMapping append(String url, Class<? extends Handler> handlerClass) {
+        return append(url, DependencyFactory.get(handlerClass));
     }
 
     public UrlTemplate getUrlTemplate(Class<? extends Controller> controllerClass, String action) {
