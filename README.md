@@ -108,7 +108,7 @@ public class MyWebApp {
 
 ```bash
 ./gradlew fatJar
-java -jar build/libs/MyWebApp-all.jar env=prod profiles=profile_A,profile_B
+java -jar build/libs/MyWebApp-all.jar env=prod profiles.active=profile_A,profile_B
 ```
 
 ---
