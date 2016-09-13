@@ -38,6 +38,6 @@ public class ReadableByteArrayPool {
     }
 
     public static PooledReadableByteArray get() {
-        return pool.get();
+        return pool.holder().get();
     }
 }
