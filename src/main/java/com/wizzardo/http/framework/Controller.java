@@ -70,6 +70,11 @@ public abstract class Controller {
         return new ReadableDataRenderer(JsonResponseHelper.renderJson(o));
     }
 
+    public Renderer renderJson(String s) {
+        response.appendHeader(Header.KV_CONTENT_TYPE_APPLICATION_JSON);
+        return renderString(s);
+    }
+
     public Renderer redirect(String url) {
         return redirect(url, Status._302);
     }
