@@ -31,6 +31,8 @@ public class FallbackServerSocket<T extends HttpConnection> extends EpollServer<
         setHostname(host);
     }
 
+    protected void initEpoll(int maxEvents) {
+    }
 
     @Override
     public void setIoThreadsCount(int ioThreadsCount) {
@@ -77,26 +79,26 @@ public class FallbackServerSocket<T extends HttpConnection> extends EpollServer<
         }
 
         @Override
-        public void write(String s, ByteBufferProvider bufferProvider) {
+        public boolean write(String s, ByteBufferProvider bufferProvider) {
             try {
-                write(s.getBytes("utf-8"), bufferProvider);
+                return write(s.getBytes("utf-8"), bufferProvider);
             } catch (UnsupportedEncodingException e) {
                 throw new RuntimeException(e);
             }
         }
 
         @Override
-        public void write(byte[] bytes, ByteBufferProvider bufferProvider) {
-            write(bytes, 0, bytes.length, bufferProvider);
+        public boolean write(byte[] bytes, ByteBufferProvider bufferProvider) {
+            return write(bytes, 0, bytes.length, bufferProvider);
         }
 
         @Override
-        public void write(byte[] bytes, int offset, int length, ByteBufferProvider bufferProvider) {
-            write(new ReadableByteArray(bytes, offset, length), bufferProvider);
+        public boolean write(byte[] bytes, int offset, int length, ByteBufferProvider bufferProvider) {
+            return write(new ReadableByteArray(bytes, offset, length), bufferProvider);
         }
 
         @Override
-        public void write(ReadableData readable, ByteBufferProvider bufferProvider) {
+        public boolean write(ReadableData readable, ByteBufferProvider bufferProvider) {
             if (sending.isEmpty())
                 try {
                     channel.register(selector, SelectionKey.OP_READ | SelectionKey.OP_WRITE, this);
@@ -104,10 +106,11 @@ public class FallbackServerSocket<T extends HttpConnection> extends EpollServer<
                     e.printStackTrace();
                 }
             sending.add(readable);
+            return true;
         }
 
         @Override
-        public void write(ByteBufferProvider bufferProvider) {
+        public boolean write(ByteBufferProvider bufferProvider) {
             Queue<ReadableData> queue = this.sending;
             ReadableData readable;
             try {
@@ -115,7 +118,7 @@ public class FallbackServerSocket<T extends HttpConnection> extends EpollServer<
                     while (!readable.isComplete() && actualWrite(readable, bufferProvider)) {
                     }
                     if (!readable.isComplete())
-                        return;
+                        return false;
 
                     queue.poll();
                     readable.close();
@@ -128,6 +131,7 @@ public class FallbackServerSocket<T extends HttpConnection> extends EpollServer<
                 e.printStackTrace();
                 IOTools.close(this);
             }
+            return true;
         }
 
         protected boolean actualWrite(ReadableData readable, ByteBufferProvider bufferProvider) throws IOException {
@@ -252,6 +256,11 @@ public class FallbackServerSocket<T extends HttpConnection> extends EpollServer<
                         wrapper.write(this);
                     }
                 }
+
+                try {
+                    Thread.sleep(10);
+                } catch (InterruptedException ignored) {
+                }
             }
         } catch (IOException e) {
             throw Unchecked.rethrow(e);
@@ -274,12 +283,13 @@ public class FallbackServerSocket<T extends HttpConnection> extends EpollServer<
 
     @Override
     public void setTTL(long milliseconds) {
-        throw new IllegalStateException("Not supported yet");
+        System.out.println("setTTL .Not supported yet");
     }
 
     @Override
     public long getTTL() {
-        throw new IllegalStateException("Not supported yet");
+        System.out.println("getTTL .Not supported yet");
+        return -1L;
     }
 
     @Override
