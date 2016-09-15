@@ -27,6 +27,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.BlockingQueue;
+import java.util.jar.Manifest;
 
 /**
  * Created by wizzardo on 28.04.15.
@@ -234,6 +235,7 @@ public class WebApplication extends HttpServer<HttpConnection> {
         Holders.setApplication(this);
         config = new Config();
         loadDefaultConfiguration(config);
+        loadManifest(config);
         loadEnvironmentVariables(config);
         loadSystemProperties(config);
         processArgs(System::getProperty);
@@ -287,6 +289,14 @@ public class WebApplication extends HttpServer<HttpConnection> {
             }
             subConfig.put(keys[last], value);
         }));
+    }
+
+    protected void loadManifest(Config config) {
+        Unchecked.ignore(() -> {
+            Manifest manifest = new Manifest(WebApplication.class.getResourceAsStream("/META-INF/MANIFEST.MF"));
+            Config subconfig = config.config("manifest");
+            manifest.getMainAttributes().forEach((k, v) -> subconfig.put(String.valueOf(k), String.valueOf(v)));
+        });
     }
 
     protected Map<String, String> parseCliArgs(String[] args) {
