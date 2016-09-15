@@ -17,7 +17,7 @@ public class EpollOutputStream extends OutputStream {
 
     public EpollOutputStream(HttpConnection connection) {
         this.connection = connection;
-        buffer = new byte[1024];
+        buffer = new byte[16 * 1024];
         offset = 0;
     }
 
