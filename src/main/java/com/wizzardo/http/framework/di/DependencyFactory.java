@@ -29,31 +29,29 @@ public class DependencyFactory {
             if (injectable != null)
                 return injectable.scope().createDependency(clazz);
 
-            if (Modifier.isAbstract(clazz.getModifiers()) || Modifier.isInterface(clazz.getModifiers())) {
-                Class implementation = mappingByClass.get(clazz);
-                if (implementation == null) {
-                    for (Class cl : classes) {
-                        if (clazz.isAssignableFrom(cl)
-                                && !Modifier.isInterface(cl.getModifiers())
-                                && !Modifier.isAbstract(cl.getModifiers())
-                                && (injectable = getAnnotation(cl, Injectable.class)) != null
-                                ) {
-                            if (implementation != null) {
-                                throw new IllegalStateException("can't resolve dependency '" + clazz + "'. Found more than one implementation: " + implementation + " and " + cl);
-                            }
-                            implementation = cl;
+            Class implementation = mappingByClass.get(clazz);
+            if (implementation == null) {
+                for (Class cl : classes) {
+                    if (clazz.isAssignableFrom(cl)
+                            && !Modifier.isInterface(cl.getModifiers())
+                            && !Modifier.isAbstract(cl.getModifiers())
+                            && (injectable = getAnnotation(cl, Injectable.class)) != null
+                            ) {
+                        if (implementation != null) {
+                            throw new IllegalStateException("can't resolve dependency '" + clazz + "'. Found more than one implementation: " + implementation + " and " + cl);
                         }
+                        implementation = cl;
                     }
                 }
-                if (implementation != null) {
-                    if (injectable == null)
-                        injectable = getAnnotation(implementation, Injectable.class);
+            }
+            if (implementation != null) {
+                if (injectable == null)
+                    injectable = getAnnotation(implementation, Injectable.class);
 
-                    if (injectable != null)
-                        return injectable.scope().createDependency(implementation);
-                    else
-                        return new PrototypeDependency(implementation);
-                }
+                if (injectable != null)
+                    return injectable.scope().createDependency(implementation);
+                else
+                    return new PrototypeDependency(implementation);
             }
 
             if (Service.class.isAssignableFrom(clazz)) {
