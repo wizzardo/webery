@@ -176,6 +176,8 @@ public abstract class AbstractHttpServer<T extends HttpConnection> {
     protected boolean processConnection(T connection) {
         try {
             handle(connection);
+            if (handleAsync(connection))
+                return false;
         } catch (Exception t) {
             try {
                 onError(connection, t);
@@ -197,14 +199,17 @@ public abstract class AbstractHttpServer<T extends HttpConnection> {
         e.printStackTrace();
     }
 
-    protected boolean finishHandling(T connection) throws IOException {
+    protected boolean handleAsync(T connection) throws IOException {
         if (connection.getResponse().isAsync()) {
             if (connection.getInputListener() != null)
                 connection.getInputListener().onReady(connection);
 
-            return false;
+            return true;
         }
+        return false;
+    }
 
+    protected boolean finishHandling(T connection) throws IOException {
         connection.getResponse().commit(connection, getBufferProvider());
         connection.flushOutputStream();
         if (!connection.onFinishingHandling())
