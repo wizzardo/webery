@@ -4,6 +4,7 @@ package com.wizzardo.http.framework.template;
 import com.wizzardo.http.framework.Environment;
 import com.wizzardo.http.framework.Holders;
 import com.wizzardo.http.framework.di.Injectable;
+import com.wizzardo.tools.collections.flow.Filter;
 import com.wizzardo.tools.io.FileTools;
 import com.wizzardo.tools.io.IOTools;
 import com.wizzardo.tools.io.ZipTools;
@@ -27,6 +28,7 @@ public class LocalResourcesTools implements ResourceTools {
 
     private List<String> classpath = new ArrayList<>();
     private List<File> resourcesDirs = new ArrayList<>();
+    protected List<Filter<String>> classpathFilters = new ArrayList<>();
 
     {
         ClassLoader cl = ClassLoader.getSystemClassLoader();
@@ -126,6 +128,17 @@ public class LocalResourcesTools implements ResourceTools {
         return l;
     }
 
+    @Override
+    public ResourceTools addClasspathFilter(Filter<String> filter) {
+        classpathFilters.add(filter);
+        return this;
+    }
+
+    @Override
+    public List<Filter<String>> getClasspathFilters() {
+        return classpathFilters;
+    }
+
     protected boolean filterClasspath(File file) {
         String abs = file.getAbsolutePath();
         if (abs.endsWith("/jre/lib/charsets.jar"))
@@ -191,7 +204,7 @@ public class LocalResourcesTools implements ResourceTools {
     }
 
 
-    private void getClasses(File homeDir, File f, List<Class> l) {
+    protected void getClasses(File homeDir, File f, List<Class> l) {
         if (f.isDirectory()) {
             for (File file : f.listFiles(f1 -> f1.isDirectory() || (f1.getName().endsWith(".class")))) {
                 getClasses(homeDir, file, l);
@@ -204,7 +217,7 @@ public class LocalResourcesTools implements ResourceTools {
         }
     }
 
-    private void getClasses(File archive, List<Class> l) {
+    protected void getClasses(File archive, List<Class> l) {
         try {
             ZipInputStream zip = new ZipInputStream(new FileInputStream(archive));
             ZipEntry entry;
@@ -221,14 +234,24 @@ public class LocalResourcesTools implements ResourceTools {
         }
     }
 
-    private Class getClass(String name) {
+    protected Class getClass(String name) {
         if (name.length() < 7 || !name.endsWith(".class"))
             return null;
         try {
             name = name.substring(0, name.length() - 6).replace('/', '.');
+            if (!filterClass(name))
+                return null;
             return ClassLoader.getSystemClassLoader().loadClass(name);
         } catch (ClassNotFoundException | NoClassDefFoundError ignored) {
         }
         return null;
+    }
+
+    protected boolean filterClass(String className) {
+        for (Filter<String> filter : classpathFilters) {
+            if (filter.allow(className))
+                return true;
+        }
+        return false;
     }
 }

@@ -1,5 +1,6 @@
 package com.wizzardo.http.framework.template;
 
+import com.wizzardo.tools.collections.flow.Filter;
 import com.wizzardo.tools.misc.Consumer;
 
 import java.io.File;
@@ -21,6 +22,10 @@ public interface ResourceTools {
     String getResourceAsString(String path);
 
     List<Class> getClasses();
+
+    ResourceTools addClasspathFilter(Filter<String> filter);
+
+    List<Filter<String>> getClasspathFilters();
 
     void addPathToClasses(String path);
 

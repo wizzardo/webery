@@ -221,11 +221,16 @@ public class WebApplication extends HttpServer<HttpConnection> {
     }
 
     protected ResourceTools createResourceTools() {
-        if (environment == Environment.TEST)
-            return new TestResourcesTools();
+        ResourceTools resourceTools;
+        if (environment == Environment.TEST) {
+            resourceTools = new TestResourcesTools();
+        } else {
+            File src = new File("src");
+            resourceTools = src.exists() && src.isDirectory() ? new DevResourcesTools() : new LocalResourcesTools();
+        }
 
-        File src = new File("src");
-        return src.exists() && src.isDirectory() ? new DevResourcesTools() : new LocalResourcesTools();
+        return resourceTools
+                .addClasspathFilter(name -> name.startsWith("com.wizzardo"));
     }
 
     protected void init() {
