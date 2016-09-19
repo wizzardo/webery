@@ -53,8 +53,6 @@ public abstract class AbstractHttpServer<T extends HttpConnection> {
             server = new FallbackServerSocket<T>(host, port) {
                 @Override
                 public void onRead(T connection, ByteBufferProvider bufferProvider) {
-                    if (connection.processInputListener())
-                        return;
                     process(connection, bufferProvider);
                 }
 
@@ -135,6 +133,9 @@ public abstract class AbstractHttpServer<T extends HttpConnection> {
     }
 
     protected boolean checkData(T connection, ByteBufferProvider bufferProvider) {
+        if (connection.processInputListener())
+            return false;
+
         ByteBuffer b;
         try {
             while ((b = connection.read(connection.getBufferSize(), bufferProvider)).limit() > 0) {

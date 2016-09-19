@@ -16,9 +16,6 @@ public class HttpIOThread<T extends HttpConnection> extends IOThread<T> {
 
     @Override
     public void onRead(T connection) {
-        if (connection.processInputListener())
-            return;
-
         server.process(connection, this);
     }
 
