@@ -209,4 +209,37 @@ public class MultipartHandlerTest extends ServerTest {
 
         Assert.assertEquals(4, counter.get());
     }
+
+    @Test
+    public void test_multipart_1() throws IOException {
+        handler = new MultipartHandler((request, response) -> {
+            String foo = request.entry("foo").asString();
+            String bar = request.entry("bar").asString();
+            String fileMD5 = MD5.create().update(request.entry("file").asBytes()).asString();
+            return response.setBody(foo + "-" + bar + "-" + fileMD5);
+        });
+
+        byte[] data = new byte[2 * 1024 * 1024];
+        new Random().nextBytes(data);
+
+        for (int i = 0; i < 10; i++) {
+            com.wizzardo.tools.http.Response response = makeRequest("/")
+                    .param("foo", "foo")
+                    .param("bar", "bar")
+                    .addByteArray("file", data, "file")
+                    .execute();
+
+            Assert.assertEquals(200, response.getResponseCode());
+            Assert.assertEquals("foo-bar-" + MD5.create().update(data).asString(), response.asString());
+        }
+    }
+
+    @Test
+    public void test_multipart_2() throws IOException, InterruptedException, NoSuchMethodException, NoSuchFieldException, ClassNotFoundException {
+        tearDown();
+        workers = 4;
+        super.setUp();
+
+        test_multipart_1();
+    }
 }
