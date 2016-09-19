@@ -125,6 +125,14 @@ public class DependencyFactory {
         mappingByName.put(name, dependency);
     }
 
+    public <T> void register(Class<T> clazz, T dependency) {
+        dependencies.put(clazz, new SingletonDependency<>(dependency));
+    }
+
+    public <T> void register(String name, T dependency) {
+        mappingByName.put(name, new SingletonDependency<>(dependency));
+    }
+
     public boolean contains(Class clazz) {
         return dependencies.contains(clazz);
     }
