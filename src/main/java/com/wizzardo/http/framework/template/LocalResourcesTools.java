@@ -181,6 +181,8 @@ public class LocalResourcesTools implements ResourceTools {
             return false;
         if (abs.endsWith("/jre/lib/ext/sunpkcs11.jar"))
             return false;
+        if (abs.endsWith("/jre/lib/ext/jaccess.jar"))
+            return false;
         if (abs.endsWith("/lib/idea_rt.jar"))
             return false;
         if (abs.endsWith("/plugins/Groovy/lib/agent/gragent.jar"))
