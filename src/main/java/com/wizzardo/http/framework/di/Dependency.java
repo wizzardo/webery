@@ -24,7 +24,7 @@ public abstract class Dependency<T> {
     }
 
     protected static Cache<Class, List<FieldReflection>> dependencies = new Cache<>(0, clazz -> {
-        List<FieldReflection> l = new ArrayList<>();
+        ArrayList<FieldReflection> l = new ArrayList<>();
         FieldReflectionFactory reflectionFactory = new FieldReflectionFactory();
         while (clazz != null) {
             for (Field f : clazz.getDeclaredFields()) {
@@ -52,6 +52,7 @@ public abstract class Dependency<T> {
             }
             clazz = clazz.getSuperclass();
         }
+        l.trimToSize();
         return l;
     });
 
@@ -75,28 +76,44 @@ public abstract class Dependency<T> {
         }
     }
 
+    public static class InjectionFailedException extends RuntimeException {
+        public InjectionFailedException(Throwable cause) {
+            super(cause);
+        }
+    }
+
     protected void injectDependencies(Object ob) {
-        try {
-            for (FieldReflection f : dependencies.get(ob.getClass())) {
+        boolean ok = true;
+        Iterator<FieldReflection> i = dependencies.get(ob.getClass()).iterator();
+        while (ok && i.hasNext()) {
+            FieldReflection f = i.next();
+            try {
                 f.setObject(ob, DependencyFactory.get(f.getField()));
-            }
-        } catch (Exception e) {
-            synchronized (ob.getClass()) {
-                List<FieldReflection> list = new ArrayList<>(dependencies.get(ob.getClass()));
-                Iterator<FieldReflection> iterator = list.iterator();
+            } catch (InjectionFailedException e) {
+                throw Unchecked.rethrow(e);
+            } catch (Exception e) {
+                if (hasAnnotation(f.getField().getType(), Injectable.class))
+                    throw new InjectionFailedException(e);
 
-                while (iterator.hasNext()) {
-                    FieldReflection f = iterator.next();
-                    try {
-                        f.setObject(ob, DependencyFactory.get(f.getField()));
-                    } catch (Exception ex) {
-                        if (hasAnnotation(f.getField().getType(), Injectable.class))
-                            throw Unchecked.rethrow(ex);
+                ok = false;
+                synchronized (ob.getClass()) {
+                    ArrayList<FieldReflection> list = new ArrayList<>(dependencies.get(ob.getClass()));
+                    Iterator<FieldReflection> iterator = list.iterator();
 
-                        iterator.remove();
+                    while (iterator.hasNext()) {
+                        f = iterator.next();
+                        try {
+                            f.setObject(ob, DependencyFactory.get(f.getField()));
+                        } catch (Exception ex) {
+                            if (hasAnnotation(f.getField().getType(), Injectable.class))
+                                throw new InjectionFailedException(ex);
+
+                            iterator.remove();
+                        }
                     }
+                    list.trimToSize();
+                    dependencies.put(ob.getClass(), list);
                 }
-                dependencies.put(ob.getClass(), list);
             }
         }
     }
