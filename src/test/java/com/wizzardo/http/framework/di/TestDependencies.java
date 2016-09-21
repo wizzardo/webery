@@ -11,6 +11,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import java.io.IOException;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * @author: moxa
@@ -231,5 +232,71 @@ public class TestDependencies extends WebApplicationTest {
         IntHolder holder = DependencyFactory.get(IntHolder.class);
         Assert.assertEquals(1, holder.value);
         Assert.assertNotSame(holder, DependencyFactory.get(IntHolder.class));
+    }
+
+
+    interface TestInterface extends Service {
+    }
+
+    public static class TestInterfaceImpl implements TestInterface {
+    }
+
+    public static class TestInterfaceHolder implements Service {
+        TestInterface testInterface;
+    }
+
+    @Test
+    public void test_inject_interface_implementation() {
+        TestInterfaceHolder holder = DependencyFactory.get(TestInterfaceHolder.class);
+        Assert.assertTrue(holder.testInterface != null);
+    }
+
+
+    interface TestInterface2 extends Service, PostConstruct {
+    }
+
+    public static class TestInterfaceImpl2 implements TestInterface2 {
+        static AtomicInteger counter = new AtomicInteger();
+
+        @Override
+        public void init() {
+            counter.incrementAndGet();
+            throw new IllegalStateException("init failed");
+        }
+    }
+
+    public static class TestInterfaceHolder2 implements Service {
+        TestInterface2 testInterface;
+    }
+
+    public static class TestInterfaceHolderHolder2 implements Service {
+        TestInterfaceHolder2 testInterfaceHolder2;
+    }
+
+    @Test
+    public void test_try_to_init_only_once() throws IOException {
+        try {
+            TestInterfaceHolderHolder2 holder = DependencyFactory.get(TestInterfaceHolderHolder2.class);
+            Assert.assertTrue(false);
+        } catch (Exception ignored) {
+        }
+        Assert.assertEquals(1, TestInterfaceImpl2.counter.get());
+    }
+
+
+    interface JustInterface {
+    }
+
+    static public class JustInterfaceImpl implements JustInterface {
+    }
+
+    static class JustInterfaceHolder implements Service {
+        JustInterface justInterface;
+    }
+
+    @Test
+    public void test_do_not_inject_everything() throws IOException {
+        JustInterfaceHolder holder = DependencyFactory.get(JustInterfaceHolder.class);
+        Assert.assertNull(holder.justInterface);
     }
 }
