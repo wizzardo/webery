@@ -28,11 +28,12 @@ public class SingletonDependency<T> extends Dependency<T> {
             synchronized (this) {
                 if (!init) {
                     if (!injecting) {
-                        injecting = true;
                         if (instance == null)
                             instance = newInstance(false);
 
+                        injecting = true;
                         injectDependencies(instance);
+                        injecting = false;
                         if (instance instanceof PostConstruct)
                             ((PostConstruct) instance).init();
                     }
