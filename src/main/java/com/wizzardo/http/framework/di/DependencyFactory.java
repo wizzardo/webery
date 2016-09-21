@@ -1,7 +1,6 @@
 package com.wizzardo.http.framework.di;
 
 import com.wizzardo.tools.cache.Cache;
-import com.wizzardo.tools.cache.Computable;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
@@ -20,48 +19,40 @@ public class DependencyFactory {
     private Map<Class, Class> mappingByClass = new HashMap<>();
     private Map<String, Dependency> mappingByName = new HashMap<>();
 
-    @SuppressWarnings("unchecked")
-    private Cache<Class, Dependency> dependencies = new Cache<>(0, new Computable<Class, Dependency>() {
-        @Override
-        public Dependency compute(Class clazz) {
+    private Cache<Class<?>, Dependency> dependencies = new Cache<>(0, clazz -> {
+        Injectable injectable = getAnnotation(clazz, Injectable.class);
+        if (injectable != null && !isAbstract(clazz))
+            return injectable.scope().createDependency(clazz);
 
-            Injectable injectable = getAnnotation(clazz, Injectable.class);
+        Class<?> implementation = findImplementation(clazz);
+        if (implementation != null) {
+            if (injectable == null)
+                injectable = getAnnotation(implementation, Injectable.class);
+
             if (injectable != null)
-                return injectable.scope().createDependency(clazz);
-
-            Class implementation = mappingByClass.get(clazz);
-            if (implementation == null) {
-                for (Class cl : classes) {
-                    if (clazz.isAssignableFrom(cl)
-                            && !Modifier.isInterface(cl.getModifiers())
-                            && !Modifier.isAbstract(cl.getModifiers())
-                            && (injectable = getAnnotation(cl, Injectable.class)) != null
-                            ) {
-                        if (implementation != null) {
-                            throw new IllegalStateException("can't resolve dependency '" + clazz + "'. Found more than one implementation: " + implementation + " and " + cl);
-                        }
-                        implementation = cl;
-                    }
-                }
-            }
-            if (implementation != null) {
-                if (injectable == null)
-                    injectable = getAnnotation(implementation, Injectable.class);
-
-                if (injectable != null)
-                    return injectable.scope().createDependency(implementation);
-                else
-                    return new PrototypeDependency(implementation);
-            }
-
-            if (Service.class.isAssignableFrom(clazz)) {
-                return new SingletonDependency(clazz);
-            }
-
-            throw new IllegalStateException("can't create dependency-holder for class: " + clazz);
+                return injectable.scope().createDependency(implementation);
         }
+
+        throw new IllegalStateException("can't create dependency-holder for class: " + clazz);
     });
 
+    protected Class findImplementation(Class<?> interfase) {
+        Class implementation = mappingByClass.get(interfase);
+        for (Class<?> cl : classes) {
+            if (interfase.isAssignableFrom(cl) && !isAbstract(cl)) {
+                if (implementation != null) {
+                    throw new IllegalStateException("can't resolve dependency '" + interfase + "'. Found more than one implementation: " + implementation + " and " + cl);
+                }
+                implementation = cl;
+            }
+        }
+        return implementation;
+    }
+
+    protected boolean isAbstract(Class clazz) {
+        int modifiers = clazz.getModifiers();
+        return Modifier.isInterface(modifiers) && Modifier.isAbstract(modifiers);
+    }
 
     static <A extends Annotation> boolean hasAnnotation(Class clazz, Class<A> annotation) {
         return getAnnotation(clazz, annotation) != null;
