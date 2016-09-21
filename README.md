@@ -152,8 +152,6 @@ static class AppController extends Controller {
     }
 }
 ```
-Framework will also try to find and inject implementation of interfaces and abstract classes.
-
 
 ##### Raw usage of DI
 ```java
