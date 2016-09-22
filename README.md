@@ -153,6 +153,14 @@ static class AppController extends Controller {
 }
 ```
 
+To make dependency injection work with implicit dependencies, you need to specify package for scan:
+```java
+    application.onSetup(app -> {
+        DependencyFactory.get(ResourceTools.class)
+                .addClasspathFilter(className -> className.startsWith("com.example"));
+    });
+```
+
 ##### Raw usage of DI
 ```java
 DependencyFactory.get().register(CustomBean.class, new SingletonDependency<>(CustomBean.class));
