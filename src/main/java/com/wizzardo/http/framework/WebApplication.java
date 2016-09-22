@@ -93,6 +93,8 @@ public class WebApplication extends HttpServer<HttpConnection> {
         processListener(onLoadConfiguration);
 
         readProfiles(config);
+        setupApplication();
+        processListener(onSetup);
 
         List<Class> classes = resourcesTools.getClasses();
         DependencyFactory.get().setClasses(classes);
@@ -100,12 +102,10 @@ public class WebApplication extends HttpServer<HttpConnection> {
         TagLib.findTags(classes);
         DependencyFactory.get().register(DecoratorLib.class, new SingletonDependency<>(new DecoratorLib(classes)));
 
-        setupApplication();
-        processListener(onSetup);
-
         super.onStart();
         System.out.println("application has started");
         System.out.println("environment: " + environment);
+        System.out.println("profiles: " + profiles);
     }
 
     protected void readProfiles(Config config) {
