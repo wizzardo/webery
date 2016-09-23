@@ -4,6 +4,7 @@ import com.wizzardo.epoll.readable.ReadableByteArray;
 import com.wizzardo.tools.misc.pool.*;
 
 import java.io.IOException;
+import java.lang.ref.SoftReference;
 
 /**
  * Created by wizzardo on 26/05/16.
@@ -15,6 +16,32 @@ public class ReadableByteArrayPool {
             .holder((pool, value) -> value.holder = new SoftHolder<>(pool, value))
             .resetter(it -> it.unread((int) it.complete()))
             .build();
+
+    private static class SoftHolder<T> implements Holder<T> {
+        final Pool<T> pool;
+        volatile SoftReference<T> ref;
+
+        private SoftHolder(Pool<T> pool, T value) {
+            this.pool = pool;
+            ref = new SoftReference<>(value);
+        }
+
+        @Override
+        public T get() {
+            T value = ref.get();
+            if (value == null) {
+                return pool.holder().get();
+            } else {
+                pool.reset(value);
+            }
+            return value;
+        }
+
+        @Override
+        public void close() {
+            pool.release(this);
+        }
+    }
 
     public static class PooledReadableByteArray extends ReadableByteArray {
         private volatile Holder<PooledReadableByteArray> holder;
