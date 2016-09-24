@@ -143,7 +143,7 @@ public class WebApplication extends HttpServer<HttpConnection> {
         super.setHostname(server.hostname);
         super.setPort(server.port);
         super.setDebugOutput(server.debugOutput);
-        super.setSessionTimeout(server.session.ttlSeconds);
+        super.setSessionTimeout(server.session.ttl);
         setContext(server.context);
 
         int workers = server.ioWorkersCount;
@@ -173,12 +173,12 @@ public class WebApplication extends HttpServer<HttpConnection> {
         String resourcesPath = resources.path;
         File staticResources = resourcesTools.getResourceFile(resourcesPath);
         if (staticResources != null && staticResources.exists()) {
-            FileTreeHandler<FileTreeHandler.HandlerContext> handler = new FileTreeHandler<>(staticResources, "/" + resources.mapping, "resources")
+            FileTreeHandler<FileTreeHandler.HandlerContext> handler = new FileTreeHandler<>(staticResources, resources.mapping, "resources")
                     .setShowFolder(false)
                     .setRangeResponseHelper(new RangeResponseHelper(resources.cache));
 
             DependencyFactory.get().register(FileTreeHandler.class, new SingletonDependency<>(handler));
-            urlMapping.append("/" + resources.mapping + "/*", handler);
+            urlMapping.append(resources.mapping + "/*", handler);
         }
     }
 
@@ -266,11 +266,11 @@ public class WebApplication extends HttpServer<HttpConnection> {
         server.put("debugOutput", false);
 
         Config session = server.config("session");
-        session.put("ttlSeconds", 30 * 60);
+        session.put("ttl", 30 * 60);
 
         Config resources = server.config("resources");
         resources.put("path", "public");
-        resources.put("mapping", "static");
+        resources.put("mapping", "/static");
 
         Config resourcesCache = resources.config("cache");
         resourcesCache.put("ttl", -1L);
@@ -396,7 +396,7 @@ public class WebApplication extends HttpServer<HttpConnection> {
     @Override
     public void setSessionTimeout(int sec) {
         super.setSessionTimeout(sec);
-        config.config("server").config("session").put("ttlSeconds", sec);
+        config.config("server").config("session").put("ttl", sec);
     }
 
     @Override

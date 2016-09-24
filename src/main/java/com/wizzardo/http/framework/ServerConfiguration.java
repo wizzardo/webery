@@ -19,7 +19,7 @@ public class ServerConfiguration implements Configuration {
     public Resources resources;
 
     public static class Session {
-        public int ttlSeconds;
+        public int ttl;
     }
 
     public static class SslConfig {
