@@ -187,12 +187,32 @@ server {
         password = 'pass'
         token = true
         tokenTTL = 7 * 24 * 60 * 60 * 1000l
+        tokenized { // creates mapping with path '/resourceName/*' and respective name for static resources available by token
+            resourceName = 'path/to/resource'
+        }
     }
 
     ssl {
         cert = '/etc/ssl/certs/hostname.crt'
         key = '/etc/ssl/private/hostname.key'
     }
+    
+    session {
+        ttl = 30 * 60
+    }
+    
+    resources {
+        path = 'public' // load static files from resource folder 'public'
+        mapping = '/static'
+        cache = {
+            enabled = true
+            gzip = true
+            ttl = -1L
+            memoryLimit = 32 * 1024 * 1024L
+            maxFileSize = 5 * 1024 * 1024L
+        }
+    }
+    debugOutput = false // dump of all requests and responses to System.out
 }
 //this configuration will be only applied for certain environment
 environments {
