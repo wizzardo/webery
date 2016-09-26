@@ -36,6 +36,7 @@ public class WebApplication extends HttpServer<HttpConnection> {
 
     protected Environment environment;
     protected Config config;
+    protected Map<String, String> cliArgs;
     protected ResourceTools resourcesTools;
     protected Consumer<WebApplication> onSetup;
     protected Consumer<WebApplication> onLoadConfiguration;
@@ -47,6 +48,7 @@ public class WebApplication extends HttpServer<HttpConnection> {
     public WebApplication(String[] args) {
         Map<String, String> map = parseCliArgs(args);
         processArgs(map::get);
+        cliArgs = map;
     }
 
     public WebApplication setEnvironment(Environment environment) {
@@ -91,6 +93,10 @@ public class WebApplication extends HttpServer<HttpConnection> {
 
         loadConfig("Config.groovy");
         processListener(onLoadConfiguration);
+
+        loadEnvironmentVariables(config);
+        loadSystemProperties(config);
+        cliArgs.forEach((key, value) -> putInto(config, key, value));
 
         readProfiles(config);
         setupApplication();
@@ -241,8 +247,6 @@ public class WebApplication extends HttpServer<HttpConnection> {
         config = new Config();
         loadDefaultConfiguration(config);
         loadManifest(config);
-        loadEnvironmentVariables(config);
-        loadSystemProperties(config);
         processArgs(System::getProperty);
     }
 
@@ -281,26 +285,28 @@ public class WebApplication extends HttpServer<HttpConnection> {
     }
 
     protected void loadEnvironmentVariables(Config config) {
-        Unchecked.ignore(() -> System.getenv().forEach(config::put));
+        System.getenv().forEach(config::put);
     }
 
     protected void loadSystemProperties(Config config) {
-        Unchecked.ignore(() -> System.getProperties().forEach((key, value) -> {
-            String[] keys = String.valueOf(key).split("\\.");
-            Config subConfig = config;
-            int last = keys.length - 1;
-            for (int i = 0; i < last; i++) {
-                subConfig = subConfig.config(keys[i]);
-            }
-            subConfig.put(keys[last], value);
-        }));
+        System.getProperties().forEach((key, value) -> putInto(config, String.valueOf(key), value));
+    }
+
+    protected void putInto(Config config, String key, Object value) {
+        String[] keys = key.split("\\.");
+        Config subConfig = config;
+        int last = keys.length - 1;
+        for (int i = 0; i < last; i++) {
+            subConfig = subConfig.config(keys[i]);
+        }
+        subConfig.put(keys[last], value);
     }
 
     protected void loadManifest(Config config) {
         Unchecked.ignore(() -> {
             Manifest manifest = new Manifest(WebApplication.class.getResourceAsStream("/META-INF/MANIFEST.MF"));
             Config subconfig = config.config("manifest");
-            manifest.getMainAttributes().forEach((k, v) -> subconfig.put(String.valueOf(k), String.valueOf(v)));
+            manifest.getMainAttributes().forEach((k, v) -> putInto(subconfig, String.valueOf(k), String.valueOf(v)));
         });
     }
 
