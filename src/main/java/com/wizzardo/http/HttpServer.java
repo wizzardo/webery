@@ -171,7 +171,11 @@ public class HttpServer<T extends HttpConnection> extends AbstractHttpServer<T> 
         if (handler != null)
             return handle(request, response, handler);
         else
-            return notFoundHandler.handle(request, response);
+            return handleNotFound(request, response);
+    }
+
+    protected Response handleNotFound(Request request, Response response) throws IOException {
+        return notFoundHandler.handle(request, response);
     }
 
     protected Response handle(Request request, Response response, Handler handler) throws IOException {
