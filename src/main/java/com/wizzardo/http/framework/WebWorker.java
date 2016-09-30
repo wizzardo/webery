@@ -15,8 +15,8 @@ public class WebWorker<T extends HttpConnection> extends HttpWorker<T> implement
     protected String action;
     protected String handler;
 
-    public WebWorker(AbstractHttpServer<T> server, BlockingQueue<T> queue, String name) {
-        super(server, queue, name);
+    public WebWorker(AbstractHttpServer<T> server, ThreadGroup group, BlockingQueue<T> queue, String name) {
+        super(server, group, queue, name);
     }
 
     @Override

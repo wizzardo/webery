@@ -359,8 +359,8 @@ public class WebApplication extends HttpServer<HttpConnection> {
     }
 
     @Override
-    protected Worker<HttpConnection> createWorker(BlockingQueue<HttpConnection> queue, String name) {
-        return new WebWorker<>(this, queue, name);
+    protected Worker<HttpConnection> createWorker(ThreadGroup group, BlockingQueue<HttpConnection> queue, String name) {
+        return new WebWorker<>(this, group, queue, name);
     }
 
     @Override

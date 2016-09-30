@@ -9,8 +9,8 @@ public class HttpWorker<T extends HttpConnection> extends Worker<T> {
 
     protected AbstractHttpServer<T> server;
 
-    public HttpWorker(AbstractHttpServer<T> server, BlockingQueue<T> queue, String name) {
-        super(queue, name);
+    public HttpWorker(AbstractHttpServer<T> server, ThreadGroup group, BlockingQueue<T> queue, String name) {
+        super(group, queue, name);
         this.server = server;
     }
 

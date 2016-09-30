@@ -67,8 +67,8 @@ public abstract class AbstractHttpServer<T extends HttpConnection> {
         this.workersCount = workersCount;
     }
 
-    protected Worker<T> createWorker(BlockingQueue<T> queue, String name) {
-        return new HttpWorker<>(this, queue, name);
+    protected Worker<T> createWorker(ThreadGroup group, BlockingQueue<T> queue, String name) {
+        return new HttpWorker<>(this, group, queue, name);
     }
 
     public synchronized void start() {
@@ -78,8 +78,9 @@ public abstract class AbstractHttpServer<T extends HttpConnection> {
     public void run() {
         Session.createSessionsHolder(sessionTimeoutSec);
         System.out.println("worker count: " + workersCount);
+        ThreadGroup group = new ThreadGroup("http-workers");
         for (int i = 0; i < workersCount; i++) {
-            createWorker(queue, "worker_" + i).start();
+            createWorker(group, queue, "worker_" + i).start();
         }
         server.start();
     }

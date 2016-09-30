@@ -14,14 +14,14 @@ public abstract class Worker<T> extends Thread implements ByteBufferProvider {
     protected BlockingQueue<T> queue;
     protected ByteBufferWrapper byteBufferWrapper = new ByteBufferWrapper(1024 * 50);
 
-    public Worker(BlockingQueue<T> queue) {
-        this(queue, "Worker");
+    public Worker(ThreadGroup group, BlockingQueue<T> queue) {
+        this(group, queue, "Worker");
     }
 
-    public Worker(BlockingQueue<T> queue, String name) {
+    public Worker(ThreadGroup group, BlockingQueue<T> queue, String name) {
+        super(group, name);
         this.queue = queue;
         setDaemon(true);
-        setName(name);
     }
 
 
