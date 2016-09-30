@@ -296,10 +296,20 @@ public class WebApplication extends HttpServer<HttpConnection> {
         String[] keys = key.split("\\.");
         Config subConfig = config;
         int last = keys.length - 1;
-        for (int i = 0; i < last; i++) {
-            subConfig = subConfig.config(keys[i]);
+        int i = 0;
+        try {
+            for (; i < last; i++) {
+                subConfig = subConfig.config(keys[i]);
+            }
+            subConfig.put(keys[last], value);
+        } catch (ClassCastException e) {
+            String k = "";
+            for (int j = 0; j < i; j++) {
+                k += keys[j] + ".";
+            }
+            k += keys[i];
+            System.out.println("WARNING! cannot overwrite config value " + k + "=" + subConfig.get(keys[i]) + " with new config " + key + "=" + value);
         }
-        subConfig.put(keys[last], value);
     }
 
     protected void loadManifest(Config config) {
