@@ -36,7 +36,7 @@ public class WebApplication extends HttpServer<HttpConnection> {
 
     protected Environment environment;
     protected Config config;
-    protected Map<String, String> cliArgs;
+    protected Map<String, String> cliArgs = Collections.emptyMap();
     protected ResourceTools resourcesTools;
     protected Consumer<WebApplication> onSetup;
     protected Consumer<WebApplication> onLoadConfiguration;
@@ -342,11 +342,11 @@ public class WebApplication extends HttpServer<HttpConnection> {
     }
 
     @Override
-    protected void handle(HttpConnection connection) throws Exception {
+    protected boolean processConnection(HttpConnection connection) {
         RequestContext context = (RequestContext) Thread.currentThread();
         context.setRequestHolder(new RequestHolder(connection.getRequest(), connection.getResponse()));
         try {
-            super.handle(connection);
+            return super.processConnection(connection);
         } finally {
             context.reset();
         }
