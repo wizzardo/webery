@@ -15,7 +15,8 @@ public class AsyncTest extends ServerTest {
     @Test
     public void test_1() throws IOException {
         BlockingQueue<Runnable> queue = new LinkedBlockingQueue<>();
-        new Worker<Runnable>(queue) {
+        ThreadGroup group = new ThreadGroup("async_test_group");
+        new Worker<Runnable>(group, queue) {
             @Override
             protected void process(Runnable runnable) {
                 runnable.run();
