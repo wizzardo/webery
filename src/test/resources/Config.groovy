@@ -32,3 +32,14 @@ environments {
 item {
     key = 'value'
 }
+
+
+foo.v = 'bar'
+environments {
+    dev {
+        foo.v = 'foobar'
+        bar {
+            v = "${foo.v}"
+        }
+    }
+}

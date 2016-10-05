@@ -3,6 +3,7 @@ package com.wizzardo.http.framework;
 import com.wizzardo.http.framework.di.DependencyFactory;
 import com.wizzardo.http.framework.template.ResourceTools;
 import com.wizzardo.http.framework.template.TestResourcesTools;
+import com.wizzardo.tools.evaluation.Config;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -191,5 +192,22 @@ public class ConfigTest extends WebApplicationTest {
         server.addProfile("profile_B");
         server.start();
         Assert.assertEquals("dev_B", server.getConfig().get("key"));
+    }
+
+    @Test
+    public void test_profiles_5() throws IOException, NoSuchMethodException, NoSuchFieldException, ClassNotFoundException, InterruptedException {
+        server.setEnvironment(Environment.TEST);
+        server.start();
+        Assert.assertEquals("bar", server.getConfig().config("foo").get("v"));
+        Assert.assertTrue(server.getConfig().get("bar") instanceof Config);
+        Assert.assertTrue(((Config) server.getConfig().get("bar")).isEmpty());
+    }
+
+    @Test
+    public void test_profiles_6() throws IOException, NoSuchMethodException, NoSuchFieldException, ClassNotFoundException, InterruptedException {
+        server.setEnvironment(Environment.DEVELOPMENT);
+        server.start();
+        Assert.assertEquals("foobar", server.getConfig().config("foo").get("v"));
+        Assert.assertEquals("foobar", server.getConfig().config("bar").get("v").toString());
     }
 }
