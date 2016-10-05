@@ -244,7 +244,7 @@ public class WebApplication extends HttpServer<HttpConnection> {
         profiles = new LinkedHashSet<>();
         environment = Environment.DEVELOPMENT;
         Holders.setApplication(this);
-        config = new Config();
+        config = new ProfilesConfig();
         loadDefaultConfiguration(config);
         loadManifest(config);
         processArgs(System::getProperty);
