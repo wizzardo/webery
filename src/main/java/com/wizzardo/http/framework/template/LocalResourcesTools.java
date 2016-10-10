@@ -9,6 +9,7 @@ import com.wizzardo.tools.io.FileTools;
 import com.wizzardo.tools.io.IOTools;
 import com.wizzardo.tools.io.ZipTools;
 import com.wizzardo.tools.misc.Consumer;
+import com.wizzardo.tools.misc.Unchecked;
 
 import java.io.*;
 import java.net.URL;
@@ -45,7 +46,8 @@ public class LocalResourcesTools implements ResourceTools {
 
         File jarFile = new File(LocalResourcesTools.class.getProtectionDomain().getCodeSource().getLocation().getPath());
         if (jarFile.isFile()) {
-            File outDir = new File("/tmp/" + jarFile.getName() + "_unzipped");
+
+            File outDir = new File(Unchecked.call(() -> File.createTempFile("", "")).getParentFile(), jarFile.getName() + "_unzipped");
             if (outDir.exists())
                 FileTools.deleteRecursive(outDir);
 
@@ -240,7 +242,7 @@ public class LocalResourcesTools implements ResourceTools {
         if (name.length() < 7 || !name.endsWith(".class"))
             return null;
         try {
-            name = name.substring(0, name.length() - 6).replace('/', '.');
+            name = name.substring(0, name.length() - 6).replace(File.separatorChar, '.');
             if (!filterClass(name))
                 return null;
             return ClassLoader.getSystemClassLoader().loadClass(name);
