@@ -86,7 +86,8 @@ public class TokenFilter implements AuthFilter {
     public String generateToken(Request request) {
         String auth = request.header(Header.KEY_AUTHORIZATION);
         if (auth == null)
-            return "";
+            return request.paramWithDefault("token", "");
+
         byte[] token = new byte[40]; // 16+16+8
         MD5.create().update(getUser(request)).asBytes(token, 0); // key
         BytesHolder secret = hashes.get(new BytesHolder(token, 0, 16));
