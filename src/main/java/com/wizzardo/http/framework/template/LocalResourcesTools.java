@@ -47,7 +47,7 @@ public class LocalResourcesTools implements ResourceTools {
         File jarFile = new File(LocalResourcesTools.class.getProtectionDomain().getCodeSource().getLocation().getPath());
         if (jarFile.isFile()) {
 
-            File outDir = new File(Unchecked.call(() -> File.createTempFile("", "")).getParentFile(), jarFile.getName() + "_unzipped");
+            File outDir = new File(Unchecked.call(() -> File.createTempFile("---", null)).getParentFile(), jarFile.getName() + "_unzipped");
             if (outDir.exists())
                 FileTools.deleteRecursive(outDir);
 
