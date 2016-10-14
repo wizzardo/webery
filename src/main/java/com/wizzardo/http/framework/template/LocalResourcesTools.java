@@ -242,7 +242,11 @@ public class LocalResourcesTools implements ResourceTools {
         if (name.length() < 7 || !name.endsWith(".class"))
             return null;
         try {
-            name = name.substring(0, name.length() - 6).replace(File.separatorChar, '.');
+            name = name
+                    .substring(0, name.length() - 6)
+                    .replace(File.separatorChar, '.')
+                    .replace('/', '.')
+            ;
             if (!filterClass(name))
                 return null;
             return ClassLoader.getSystemClassLoader().loadClass(name);
