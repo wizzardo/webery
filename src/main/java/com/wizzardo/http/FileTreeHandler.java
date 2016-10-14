@@ -38,7 +38,7 @@ public class FileTreeHandler<T extends FileTreeHandler.HandlerContext> implement
     private File workDir;
     protected boolean showFolder = true;
     protected final String name;
-    protected RangeResponseHelper rangeResponseHelper;
+    protected RangeResponseHelper rangeResponseHelper = new RangeResponseHelper();
 
     public FileTreeHandler(File workDir, String prefix) {
         this(workDir, prefix, null);
