@@ -43,3 +43,12 @@ environments {
         }
     }
 }
+
+profiles {
+    a {
+        sub {
+            key = 'a'
+        }
+        profiles.b.sub.key='b'
+    }
+}

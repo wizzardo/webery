@@ -210,4 +210,20 @@ public class ConfigTest extends WebApplicationTest {
         Assert.assertEquals("foobar", server.getConfig().config("foo").get("v"));
         Assert.assertEquals("foobar", server.getConfig().config("bar").get("v").toString());
     }
+
+    @Test
+    public void test_profiles_7() throws IOException, NoSuchMethodException, NoSuchFieldException, ClassNotFoundException, InterruptedException {
+        server.setEnvironment(Environment.DEVELOPMENT);
+        server.addProfile("a");
+        server.addProfile("b");
+        server.start();
+        Assert.assertEquals("b", server.getConfig().config("sub").get("key"));
+        tearDown();
+
+        setUp();
+        server.addProfile("b");
+        server.addProfile("a");
+        server.start();
+        Assert.assertEquals("b", server.getConfig().config("sub").get("key"));
+    }
 }
