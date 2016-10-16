@@ -136,7 +136,7 @@ public class WebApplication extends HttpServer<HttpConnection> {
         for (String profile : this.profiles) {
             Config subConfig = profiles.config(profile);
             readProfiles(subConfig);
-            this.config.merge(subConfig);
+            config.merge(subConfig);
         }
 
         if (this.config != config)
