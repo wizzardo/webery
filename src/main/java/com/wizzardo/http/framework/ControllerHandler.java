@@ -8,7 +8,9 @@ import com.wizzardo.http.framework.template.Renderer;
 import com.wizzardo.http.request.Parameters;
 import com.wizzardo.http.request.Request;
 import com.wizzardo.http.response.Response;
+import com.wizzardo.http.response.Status;
 import com.wizzardo.tools.collections.CollectionTools;
+import com.wizzardo.tools.json.JsonTools;
 import com.wizzardo.tools.misc.Mapper;
 import com.wizzardo.tools.misc.Unchecked;
 
@@ -112,13 +114,40 @@ public class ControllerHandler<T extends Controller> implements Handler {
                 Mapper<Parameters, Object>[] mappers = argsMappers;
                 Object[] args = new Object[mappers.length];
                 Parameters params = it.getParams();
+                Exceptions exceptions = null;
                 for (int i = 0; i < mappers.length; i++) {
-                    args[i] = mappers[i].map(params);
+                    try {
+                        args[i] = mappers[i].map(params);
+                    } catch (Exception e) {
+                        if (exceptions == null)
+                            exceptions = new Exceptions(mappers.length);
+
+                        e.printStackTrace();
+                        exceptions.add(e.getClass().getCanonicalName() + ": " + e.getMessage());
+                    }
                 }
+
+                if (exceptions != null) {
+                    it.response.setBody(JsonTools.serialize(exceptions)).status(Status._400);
+                    return null;
+                }
+
 
                 Renderer renderer = Unchecked.call(() -> (Renderer) method.invoke(it, args));
                 return renderer != null ? renderer.renderReadableData() : null;
             };
+        }
+    }
+
+    static class Exceptions {
+        List<String> messages;
+
+        Exceptions(int initSize) {
+            messages = new ArrayList<>(initSize);
+        }
+
+        public void add(String message) {
+            messages.add(message);
         }
     }
 
@@ -166,12 +195,11 @@ public class ControllerHandler<T extends Controller> implements Handler {
             if (type == byte.class)
                 return failIfEmpty.map(Byte::parseByte);
             if (type == char.class)
-                return params -> {
-                    String value = params.get(name).getValue();
+                return failIfEmpty.map(value -> {
                     if (value.length() > 1)
                         throw new IllegalArgumentException("Can't assign to char String with more then 1 character");
                     return value.charAt(0);
-                };
+                });
         }
 
         Mapper<Mapper<String, Object>, Mapper<Parameters, Object>> parseNonNull = mapper -> {
