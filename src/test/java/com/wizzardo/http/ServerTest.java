@@ -6,6 +6,7 @@ import com.wizzardo.http.response.Response;
 import com.wizzardo.tools.http.HttpClient;
 import com.wizzardo.tools.http.HttpSession;
 import com.wizzardo.tools.io.IOTools;
+import com.wizzardo.tools.misc.Unchecked;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -162,5 +163,12 @@ public class ServerTest<S extends HttpServer> {
             Assert.assertEquals(message, e.getMessage());
         }
         Assert.assertFalse(b);
+    }
+
+    protected void checkResponse(int status, String message, com.wizzardo.tools.http.Response response) {
+        Unchecked.run(() -> {
+            Assert.assertEquals(status, response.getResponseCode());
+            Assert.assertEquals(message, response.asString());
+        });
     }
 }
