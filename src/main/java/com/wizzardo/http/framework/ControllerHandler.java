@@ -122,7 +122,7 @@ public class ControllerHandler<T extends Controller> implements Handler {
                         if (exceptions == null)
                             exceptions = new Exceptions(mappers.length);
 
-                        e.printStackTrace();
+//                        e.printStackTrace();
                         exceptions.add(e.getClass().getCanonicalName() + ": " + e.getMessage());
                     }
                 }
@@ -164,14 +164,18 @@ public class ControllerHandler<T extends Controller> implements Handler {
 
     protected Mapper<Parameters, Object> createParametersMapper(Parameter parameter, Class type) {
         String name = getParameterName(parameter);
+        com.wizzardo.http.framework.Parameter annotation = parameter.getAnnotation(com.wizzardo.http.framework.Parameter.class);
+        String def = annotation != null ? annotation.def() : null;
 
         Mapper<Mapper<String, Object>, Mapper<Parameters, Object>> failIfEmpty = mapper -> {
             return params -> {
                 MultiValue multiValue = params.get(name);
-                if (multiValue == null)
-                    throw new NullPointerException("parameter '" + name + "' it not present");
+                String value;
+                if (multiValue != null)
+                    value = multiValue.getValue();
+                else
+                    value = def;
 
-                String value = multiValue.getValue();
                 if (value == null || value.isEmpty())
                     throw new NullPointerException("parameter '" + name + "' it not present");
 
