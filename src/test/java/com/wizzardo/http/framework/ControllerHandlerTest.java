@@ -91,15 +91,16 @@ public class ControllerHandlerTest extends WebApplicationTest {
 
     @Test
     public void test_paramteres_primitives() throws IOException {
+        Class<? extends Controller> controller = TestParametersPrimitivesController.class;
         server.getUrlMapping()
-                .append("/int", TestParametersPrimitivesController.class, "test_int")
-                .append("/long", TestParametersPrimitivesController.class, "test_long")
-                .append("/short", TestParametersPrimitivesController.class, "test_short")
-                .append("/byte", TestParametersPrimitivesController.class, "test_byte")
-                .append("/boolean", TestParametersPrimitivesController.class, "test_boolean")
-                .append("/float", TestParametersPrimitivesController.class, "test_float")
-                .append("/double", TestParametersPrimitivesController.class, "test_double")
-                .append("/char", TestParametersPrimitivesController.class, "test_char")
+                .append("/int", controller, "test_int")
+                .append("/long", controller, "test_long")
+                .append("/short", controller, "test_short")
+                .append("/byte", controller, "test_byte")
+                .append("/boolean", controller, "test_boolean")
+                .append("/float", controller, "test_float")
+                .append("/double", controller, "test_double")
+                .append("/char", controller, "test_char")
         ;
 
         Assert.assertEquals("1", makeRequest("/int").param("v", 1).get().asString());
@@ -127,4 +128,63 @@ public class ControllerHandlerTest extends WebApplicationTest {
         checkResponse(400, "{\"messages\":[\"java.lang.NullPointerException: parameter 'v' it not present\"]}", makeRequest("/char").get());
         checkResponse(400, "{\"messages\":[\"java.lang.IllegalArgumentException: Can't assign to char String with more then 1 character\"]}", makeRequest("/char").param("v", "abc").get());
     }
+
+    public static class TestParametersPrimitivesWithDefaultsController extends Controller {
+        public Renderer test_int(@Parameter(name = "v", def = "1") int v) {
+            return renderString(String.valueOf(v));
+        }
+
+        public Renderer test_long(@Parameter(name = "v", def = "1") long v) {
+            return renderString(String.valueOf(v));
+        }
+
+        public Renderer test_short(@Parameter(name = "v", def = "1") short v) {
+            return renderString(String.valueOf(v));
+        }
+
+        public Renderer test_byte(@Parameter(name = "v", def = "1") byte v) {
+            return renderString(String.valueOf(v));
+        }
+
+        public Renderer test_boolean(@Parameter(name = "v", def = "true") boolean v) {
+            return renderString(String.valueOf(v));
+        }
+
+        public Renderer test_float(@Parameter(name = "v", def = "1") float v) {
+            return renderString(String.valueOf(v));
+        }
+
+        public Renderer test_double(@Parameter(name = "v", def = "1") double v) {
+            return renderString(String.valueOf(v));
+        }
+
+        public Renderer test_char(@Parameter(name = "v", def = "a") char v) {
+            return renderString(String.valueOf(v));
+        }
+    }
+
+    @Test
+    public void test_paramteres_primitives_with_defaults() throws IOException {
+        Class<? extends Controller> controller = TestParametersPrimitivesWithDefaultsController.class;
+        server.getUrlMapping()
+                .append("/int", controller, "test_int")
+                .append("/long", controller, "test_long")
+                .append("/short", controller, "test_short")
+                .append("/byte", controller, "test_byte")
+                .append("/boolean", controller, "test_boolean")
+                .append("/float", controller, "test_float")
+                .append("/double", controller, "test_double")
+                .append("/char", controller, "test_char")
+        ;
+
+        Assert.assertEquals("1", makeRequest("/int").get().asString());
+        Assert.assertEquals("1", makeRequest("/long").get().asString());
+        Assert.assertEquals("1", makeRequest("/short").get().asString());
+        Assert.assertEquals("1", makeRequest("/byte").get().asString());
+        Assert.assertEquals("1.0", makeRequest("/float").get().asString());
+        Assert.assertEquals("1.0", makeRequest("/double").get().asString());
+        Assert.assertEquals("true", makeRequest("/boolean").get().asString());
+        Assert.assertEquals("a", makeRequest("/char").get().asString());
+    }
+
 }
