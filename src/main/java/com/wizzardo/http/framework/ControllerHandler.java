@@ -228,19 +228,19 @@ public class ControllerHandler<T extends Controller> implements Handler {
 
         if (type == Integer.class)
             return parseNonNull.map(Integer::valueOf);
-        if (type == long.class)
+        if (type == Long.class)
             return parseNonNull.map(Long::valueOf);
-        if (type == float.class)
+        if (type == Float.class)
             return parseNonNull.map(Float::valueOf);
-        if (type == double.class)
+        if (type == Double.class)
             return parseNonNull.map(Double::valueOf);
-        if (type == boolean.class)
+        if (type == Boolean.class)
             return parseNonNull.map(Boolean::valueOf);
-        if (type == short.class)
+        if (type == Short.class)
             return parseNonNull.map(Short::valueOf);
-        if (type == byte.class)
+        if (type == Byte.class)
             return parseNonNull.map(Byte::valueOf);
-        if (type == char.class)
+        if (type == Character.class)
             return parseNonNull.map(value -> {
                 if (value.length() > 1)
                     throw new IllegalArgumentException("Can't assign to char String with more then 1 character");
