@@ -12,6 +12,4 @@ public @interface Parameter {
     String name();
 
     String def() default "";
-
-    boolean required() default true;
 }
