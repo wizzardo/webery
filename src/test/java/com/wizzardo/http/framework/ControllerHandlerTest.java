@@ -261,4 +261,63 @@ public class ControllerHandlerTest extends WebApplicationTest {
         checkResponse(200, "null", makeRequest("/char").get());
         checkResponse(400, "{\"messages\":[\"java.lang.IllegalArgumentException: Can't assign to char String with more then 1 character\"]}", makeRequest("/char").param("v", "abc").get());
     }
+
+
+    public static class TestParametersBoxedWithDefaultsController extends Controller {
+        public Renderer test_int(@Parameter(name = "v", def = "1") Integer v) {
+            return renderString(String.valueOf(v));
+        }
+
+        public Renderer test_long(@Parameter(name = "v", def = "1") Long v) {
+            return renderString(String.valueOf(v));
+        }
+
+        public Renderer test_short(@Parameter(name = "v", def = "1") Short v) {
+            return renderString(String.valueOf(v));
+        }
+
+        public Renderer test_byte(@Parameter(name = "v", def = "1") Byte v) {
+            return renderString(String.valueOf(v));
+        }
+
+        public Renderer test_boolean(@Parameter(name = "v", def = "true") Boolean v) {
+            return renderString(String.valueOf(v));
+        }
+
+        public Renderer test_float(@Parameter(name = "v", def = "1") Float v) {
+            return renderString(String.valueOf(v));
+        }
+
+        public Renderer test_double(@Parameter(name = "v", def = "1") Double v) {
+            return renderString(String.valueOf(v));
+        }
+
+        public Renderer test_char(@Parameter(name = "v", def = "a") Character v) {
+            return renderString(String.valueOf(v));
+        }
+    }
+
+    @Test
+    public void test_paramteres_boxed_with_defaults() throws IOException {
+        Class<? extends Controller> controller = TestParametersBoxedWithDefaultsController.class;
+        server.getUrlMapping()
+                .append("/int", controller, "test_int")
+                .append("/long", controller, "test_long")
+                .append("/short", controller, "test_short")
+                .append("/byte", controller, "test_byte")
+                .append("/boolean", controller, "test_boolean")
+                .append("/float", controller, "test_float")
+                .append("/double", controller, "test_double")
+                .append("/char", controller, "test_char")
+        ;
+
+        Assert.assertEquals("1", makeRequest("/int").get().asString());
+        Assert.assertEquals("1", makeRequest("/long").get().asString());
+        Assert.assertEquals("1", makeRequest("/short").get().asString());
+        Assert.assertEquals("1", makeRequest("/byte").get().asString());
+        Assert.assertEquals("1.0", makeRequest("/float").get().asString());
+        Assert.assertEquals("1.0", makeRequest("/double").get().asString());
+        Assert.assertEquals("true", makeRequest("/boolean").get().asString());
+        Assert.assertEquals("a", makeRequest("/char").get().asString());
+    }
 }
