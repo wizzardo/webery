@@ -187,4 +187,78 @@ public class ControllerHandlerTest extends WebApplicationTest {
         Assert.assertEquals("a", makeRequest("/char").get().asString());
     }
 
+
+    public static class TestParametersBoxedController extends Controller {
+        public Renderer test_int(@Parameter(name = "v") Integer v) {
+            return renderString(String.valueOf(v));
+        }
+
+        public Renderer test_long(@Parameter(name = "v") Long v) {
+            return renderString(String.valueOf(v));
+        }
+
+        public Renderer test_short(@Parameter(name = "v") Short v) {
+            return renderString(String.valueOf(v));
+        }
+
+        public Renderer test_byte(@Parameter(name = "v") Byte v) {
+            return renderString(String.valueOf(v));
+        }
+
+        public Renderer test_boolean(@Parameter(name = "v") Boolean v) {
+            return renderString(String.valueOf(v));
+        }
+
+        public Renderer test_float(@Parameter(name = "v") Float v) {
+            return renderString(String.valueOf(v));
+        }
+
+        public Renderer test_double(@Parameter(name = "v") Double v) {
+            return renderString(String.valueOf(v));
+        }
+
+        public Renderer test_char(@Parameter(name = "v") Character v) {
+            return renderString(String.valueOf(v));
+        }
+    }
+
+    @Test
+    public void test_paramteres_boxed() throws IOException {
+        Class<? extends Controller> controller = TestParametersBoxedController.class;
+        server.getUrlMapping()
+                .append("/int", controller, "test_int")
+                .append("/long", controller, "test_long")
+                .append("/short", controller, "test_short")
+                .append("/byte", controller, "test_byte")
+                .append("/boolean", controller, "test_boolean")
+                .append("/float", controller, "test_float")
+                .append("/double", controller, "test_double")
+                .append("/char", controller, "test_char")
+        ;
+
+        Assert.assertEquals("1", makeRequest("/int").param("v", 1).get().asString());
+        Assert.assertEquals("1", makeRequest("/long").param("v", 1).get().asString());
+        Assert.assertEquals("1", makeRequest("/short").param("v", 1).get().asString());
+        Assert.assertEquals("1", makeRequest("/byte").param("v", 1).get().asString());
+        Assert.assertEquals("1.0", makeRequest("/float").param("v", 1).get().asString());
+        Assert.assertEquals("1.0", makeRequest("/double").param("v", 1).get().asString());
+        Assert.assertEquals("true", makeRequest("/boolean").param("v", true).get().asString());
+        Assert.assertEquals("a", makeRequest("/char").param("v", 'a').get().asString());
+
+        checkResponse(200, "null", makeRequest("/int").get());
+        checkResponse(400, "{\"messages\":[\"java.lang.NumberFormatException: For input string: \\\"a\\\"\"]}", makeRequest("/int").param("v", "a").get());
+        checkResponse(200, "null", makeRequest("/long").get());
+        checkResponse(400, "{\"messages\":[\"java.lang.NumberFormatException: For input string: \\\"a\\\"\"]}", makeRequest("/long").param("v", "a").get());
+        checkResponse(200, "null", makeRequest("/short").get());
+        checkResponse(400, "{\"messages\":[\"java.lang.NumberFormatException: For input string: \\\"a\\\"\"]}", makeRequest("/short").param("v", "a").get());
+        checkResponse(200, "null", makeRequest("/byte").get());
+        checkResponse(400, "{\"messages\":[\"java.lang.NumberFormatException: For input string: \\\"a\\\"\"]}", makeRequest("/byte").param("v", "a").get());
+        checkResponse(200, "null", makeRequest("/float").get());
+        checkResponse(400, "{\"messages\":[\"java.lang.NumberFormatException: For input string: \\\"a\\\"\"]}", makeRequest("/float").param("v", "a").get());
+        checkResponse(200, "null", makeRequest("/double").get());
+        checkResponse(400, "{\"messages\":[\"java.lang.NumberFormatException: For input string: \\\"a\\\"\"]}", makeRequest("/double").param("v", "a").get());
+        checkResponse(200, "null", makeRequest("/boolean").get());
+        checkResponse(200, "null", makeRequest("/char").get());
+        checkResponse(400, "{\"messages\":[\"java.lang.IllegalArgumentException: Can't assign to char String with more then 1 character\"]}", makeRequest("/char").param("v", "abc").get());
+    }
 }
