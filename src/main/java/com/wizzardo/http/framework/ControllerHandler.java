@@ -209,10 +209,12 @@ public class ControllerHandler<T extends Controller> implements Handler {
         Mapper<Mapper<String, Object>, Mapper<Parameters, Object>> parseNonNull = mapper -> {
             return params -> {
                 MultiValue multiValue = params.get(name);
-                if (multiValue == null)
-                    return null;
+                String value;
+                if (multiValue != null)
+                    value = multiValue.getValue();
+                else
+                    value = def;
 
-                String value = multiValue.getValue();
                 if (value == null || value.isEmpty())
                     return null;
 
