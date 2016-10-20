@@ -5,6 +5,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Optional;
 
 /**
@@ -38,7 +39,7 @@ public class ControllerHandlerTest extends WebApplicationTest {
     }
 
     @Test
-    public void test_paramteres_1() throws IOException {
+    public void test_parameters_1() throws IOException {
         server.getUrlMapping()
                 .append("/test_1", TestParametersController.class, "test_1");
 
@@ -90,7 +91,7 @@ public class ControllerHandlerTest extends WebApplicationTest {
     }
 
     @Test
-    public void test_paramteres_primitives() throws IOException {
+    public void test_parameters_primitives() throws IOException {
         Class<? extends Controller> controller = TestParametersPrimitivesController.class;
         server.getUrlMapping()
                 .append("/int", controller, "test_int")
@@ -164,7 +165,7 @@ public class ControllerHandlerTest extends WebApplicationTest {
     }
 
     @Test
-    public void test_paramteres_primitives_with_defaults() throws IOException {
+    public void test_parameters_primitives_with_defaults() throws IOException {
         Class<? extends Controller> controller = TestParametersPrimitivesWithDefaultsController.class;
         server.getUrlMapping()
                 .append("/int", controller, "test_int")
@@ -232,7 +233,7 @@ public class ControllerHandlerTest extends WebApplicationTest {
     }
 
     @Test
-    public void test_paramteres_boxed() throws IOException {
+    public void test_parameters_boxed() throws IOException {
         Class<? extends Controller> controller = TestParametersBoxedController.class;
         server.getUrlMapping()
                 .append("/int", controller, "test_int")
@@ -307,7 +308,7 @@ public class ControllerHandlerTest extends WebApplicationTest {
     }
 
     @Test
-    public void test_paramteres_boxed_with_defaults() throws IOException {
+    public void test_parameters_boxed_with_defaults() throws IOException {
         Class<? extends Controller> controller = TestParametersBoxedWithDefaultsController.class;
         server.getUrlMapping()
                 .append("/int", controller, "test_int")
@@ -339,6 +340,7 @@ public class ControllerHandlerTest extends WebApplicationTest {
         Assert.assertEquals("b", makeRequest("/char").param("v", 'b').get().asString());
     }
 
+
     public enum TestParameterEnum {
         ONE, TWO, THREE;
     }
@@ -362,7 +364,7 @@ public class ControllerHandlerTest extends WebApplicationTest {
     }
 
     @Test
-    public void test_paramteres_other() throws IOException {
+    public void test_parameters_other() throws IOException {
         Class<? extends Controller> controller = TestParametersOtherController.class;
         server.getUrlMapping()
                 .append("/string", controller, "test_string")
@@ -371,14 +373,73 @@ public class ControllerHandlerTest extends WebApplicationTest {
                 .append("/enum_def", controller, "test_enum_def")
         ;
 
-        Assert.assertEquals("string", makeRequest("/string").param("v","string").get().asString());
+        Assert.assertEquals("string", makeRequest("/string").param("v", "string").get().asString());
         Assert.assertEquals("null", makeRequest("/string").get().asString());
-        Assert.assertEquals("string", makeRequest("/string_def").param("v","string").get().asString());
+        Assert.assertEquals("string", makeRequest("/string_def").param("v", "string").get().asString());
         Assert.assertEquals("default", makeRequest("/string_def").get().asString());
 
-        Assert.assertEquals("TWO", makeRequest("/enum").param("v","TWO").get().asString());
+        Assert.assertEquals("TWO", makeRequest("/enum").param("v", "TWO").get().asString());
         Assert.assertEquals("null", makeRequest("/enum").get().asString());
-        Assert.assertEquals("TWO", makeRequest("/enum_def").param("v","TWO").get().asString());
+        Assert.assertEquals("TWO", makeRequest("/enum_def").param("v", "TWO").get().asString());
         Assert.assertEquals("ONE", makeRequest("/enum_def").get().asString());
+    }
+
+
+    public static class TestParametersArrayPrimitivesController extends Controller {
+        public Renderer test_int(@Parameter(name = "v") int[] v) {
+            return renderString(Arrays.toString(v));
+        }
+
+        public Renderer test_long(@Parameter(name = "v") long[] v) {
+            return renderString(Arrays.toString(v));
+        }
+
+        public Renderer test_short(@Parameter(name = "v") short[] v) {
+            return renderString(Arrays.toString(v));
+        }
+
+        public Renderer test_byte(@Parameter(name = "v") byte[] v) {
+            return renderString(Arrays.toString(v));
+        }
+
+        public Renderer test_boolean(@Parameter(name = "v") boolean[] v) {
+            return renderString(Arrays.toString(v));
+        }
+
+        public Renderer test_float(@Parameter(name = "v") float[] v) {
+            return renderString(Arrays.toString(v));
+        }
+
+        public Renderer test_double(@Parameter(name = "v") double[] v) {
+            return renderString(Arrays.toString(v));
+        }
+
+        public Renderer test_char(@Parameter(name = "v") char[] v) {
+            return renderString(Arrays.toString(v));
+        }
+    }
+
+    @Test
+    public void test_parameters_array_primitives() throws IOException {
+        Class<? extends Controller> controller = TestParametersArrayPrimitivesController.class;
+        server.getUrlMapping()
+                .append("/int", controller, "test_int")
+                .append("/long", controller, "test_long")
+                .append("/short", controller, "test_short")
+                .append("/byte", controller, "test_byte")
+                .append("/boolean", controller, "test_boolean")
+                .append("/float", controller, "test_float")
+                .append("/double", controller, "test_double")
+                .append("/char", controller, "test_char")
+        ;
+
+        Assert.assertEquals("[1, 2, 3]", makeRequest("/int").param("v", 1).param("v", 2).param("v", 3).get().asString());
+        Assert.assertEquals("[1, 2, 3]", makeRequest("/long").param("v", 1).param("v", 2).param("v", 3).get().asString());
+        Assert.assertEquals("[1, 2, 3]", makeRequest("/short").param("v", 1).param("v", 2).param("v", 3).get().asString());
+        Assert.assertEquals("[1, 2, 3]", makeRequest("/byte").param("v", 1).param("v", 2).param("v", 3).get().asString());
+        Assert.assertEquals("[1.0, 2.0, 3.0]", makeRequest("/float").param("v", 1).param("v", 2).param("v", 3).get().asString());
+        Assert.assertEquals("[1.0, 2.0, 3.0]", makeRequest("/double").param("v", 1).param("v", 2).param("v", 3).get().asString());
+        Assert.assertEquals("[true, false, true]", makeRequest("/boolean").param("v", true).param("v", false).param("v", true).get().asString());
+        Assert.assertEquals("[a, b, c]", makeRequest("/char").param("v", 'a').param("v", 'b').param("v", 'c').get().asString());
     }
 }
