@@ -199,11 +199,7 @@ public class ControllerHandler<T extends Controller> implements Handler {
             if (type == byte.class)
                 return failIfEmpty.map(Byte::parseByte);
             if (type == char.class)
-                return failIfEmpty.map(value -> {
-                    if (value.length() > 1)
-                        throw new IllegalArgumentException("Can't assign to char String with more then 1 character");
-                    return value.charAt(0);
-                });
+                return failIfEmpty.map(ControllerHandler::parseChar);
         }
 
         Mapper<Mapper<String, Object>, Mapper<Parameters, Object>> parseNonNull = mapper -> {
@@ -243,13 +239,99 @@ public class ControllerHandler<T extends Controller> implements Handler {
         if (type == Byte.class)
             return parseNonNull.map(Byte::valueOf);
         if (type == Character.class)
-            return parseNonNull.map(value -> {
-                if (value.length() > 1)
-                    throw new IllegalArgumentException("Can't assign to char String with more then 1 character");
-                return value.charAt(0);
-            });
+            return parseNonNull.map(ControllerHandler::parseChar);
+
+        if (type.isArray()) {
+            Class subtype = type.getComponentType();
+            if (subtype.isPrimitive()) {
+                if (subtype == int.class)
+                    return new ArrayConstructor<>(name, int[]::new, (arr, values) -> {
+                        for (int i = 0; i < values.size(); i++) {
+                            arr[i] = Integer.parseInt(values.get(i));
+                        }
+                        return arr;
+                    });
+                if (subtype == long.class)
+                    return new ArrayConstructor<>(name, long[]::new, (arr, values) -> {
+                        for (int i = 0; i < values.size(); i++) {
+                            arr[i] = Long.parseLong(values.get(i));
+                        }
+                        return arr;
+                    });
+                if (subtype == float.class)
+                    return new ArrayConstructor<>(name, float[]::new, (arr, values) -> {
+                        for (int i = 0; i < values.size(); i++) {
+                            arr[i] = Float.parseFloat(values.get(i));
+                        }
+                        return arr;
+                    });
+                if (subtype == double.class)
+                    return new ArrayConstructor<>(name, double[]::new, (arr, values) -> {
+                        for (int i = 0; i < values.size(); i++) {
+                            arr[i] = Double.parseDouble(values.get(i));
+                        }
+                        return arr;
+                    });
+                if (subtype == boolean.class)
+                    return new ArrayConstructor<>(name, boolean[]::new, (arr, values) -> {
+                        for (int i = 0; i < values.size(); i++) {
+                            arr[i] = Boolean.parseBoolean(values.get(i));
+                        }
+                        return arr;
+                    });
+                if (subtype == short.class)
+                    return new ArrayConstructor<>(name, short[]::new, (arr, values) -> {
+                        for (int i = 0; i < values.size(); i++) {
+                            arr[i] = Short.parseShort(values.get(i));
+                        }
+                        return arr;
+                    });
+                if (subtype == byte.class)
+                    return new ArrayConstructor<>(name, byte[]::new, (arr, values) -> {
+                        for (int i = 0; i < values.size(); i++) {
+                            arr[i] = Byte.parseByte(values.get(i));
+                        }
+                        return arr;
+                    });
+                if (subtype == char.class)
+                    return new ArrayConstructor<>(name, char[]::new, (arr, values) -> {
+                        for (int i = 0; i < values.size(); i++) {
+                            arr[i] = parseChar(values.get(i));
+                        }
+                        return arr;
+                    });
+            }
+        }
 
         throw new IllegalArgumentException("Can't create mapper for parameter '" + name + "' of type '" + type + "' in '" + controllerName + "." + actionName + "'");
+    }
+
+    static char parseChar(String value) {
+        if (value.length() > 1)
+            throw new IllegalArgumentException("Can't assign to char String with more then 1 character");
+        return value.charAt(0);
+    }
+
+    static class ArrayConstructor<T> implements Mapper<Parameters, Object> {
+        final String name;
+        final Mapper<Integer, T> creator;
+        final CollectionTools.Closure2<T, T, List<String>> populator;
+
+        ArrayConstructor(String name, Mapper<Integer, T> creator, CollectionTools.Closure2<T, T, List<String>> populator) {
+            this.name = name;
+            this.creator = creator;
+            this.populator = populator;
+        }
+
+        @Override
+        public T map(Parameters parameters) {
+            MultiValue multiValue = parameters.get(name);
+            if (multiValue != null) {
+                T t = creator.map(multiValue.size());
+                return populator.execute(t, multiValue.getValues());
+            }
+            return null;
+        }
     }
 
     protected Mapper<Parameters, Object> createParametersMapper(Parameter parameter, Type genericType) {
