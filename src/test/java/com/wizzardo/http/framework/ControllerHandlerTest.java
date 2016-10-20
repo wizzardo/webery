@@ -185,6 +185,15 @@ public class ControllerHandlerTest extends WebApplicationTest {
         Assert.assertEquals("1.0", makeRequest("/double").get().asString());
         Assert.assertEquals("true", makeRequest("/boolean").get().asString());
         Assert.assertEquals("a", makeRequest("/char").get().asString());
+
+        Assert.assertEquals("2", makeRequest("/int").param("v", 2).get().asString());
+        Assert.assertEquals("2", makeRequest("/long").param("v", 2).get().asString());
+        Assert.assertEquals("2", makeRequest("/short").param("v", 2).get().asString());
+        Assert.assertEquals("2", makeRequest("/byte").param("v", 2).get().asString());
+        Assert.assertEquals("2.0", makeRequest("/float").param("v", 2).get().asString());
+        Assert.assertEquals("2.0", makeRequest("/double").param("v", 2).get().asString());
+        Assert.assertEquals("false", makeRequest("/boolean").param("v", false).get().asString());
+        Assert.assertEquals("b", makeRequest("/char").param("v", 'b').get().asString());
     }
 
 
@@ -319,6 +328,15 @@ public class ControllerHandlerTest extends WebApplicationTest {
         Assert.assertEquals("1.0", makeRequest("/double").get().asString());
         Assert.assertEquals("true", makeRequest("/boolean").get().asString());
         Assert.assertEquals("a", makeRequest("/char").get().asString());
+
+        Assert.assertEquals("2", makeRequest("/int").param("v", 2).get().asString());
+        Assert.assertEquals("2", makeRequest("/long").param("v", 2).get().asString());
+        Assert.assertEquals("2", makeRequest("/short").param("v", 2).get().asString());
+        Assert.assertEquals("2", makeRequest("/byte").param("v", 2).get().asString());
+        Assert.assertEquals("2.0", makeRequest("/float").param("v", 2).get().asString());
+        Assert.assertEquals("2.0", makeRequest("/double").param("v", 2).get().asString());
+        Assert.assertEquals("false", makeRequest("/boolean").param("v", false).get().asString());
+        Assert.assertEquals("b", makeRequest("/char").param("v", 'b').get().asString());
     }
 
     public enum TestParameterEnum {
