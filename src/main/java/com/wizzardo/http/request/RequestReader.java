@@ -140,9 +140,12 @@ public class RequestReader extends HttpHeadersReader {
     }
 
     protected void putParameter(String key, String value) {
-        MultiValue multiValue = params.putIfAbsent(key, new MultiValue(value));
-        if (multiValue != null)
-            multiValue.append(value);
+        MultiValue mv = new MultiValue();
+        MultiValue old = params.putIfAbsent(key, mv);
+        if (old != null)
+            old.append(value);
+        else
+            mv.append(value);
     }
 
     protected String decodeParameter(String s) {
