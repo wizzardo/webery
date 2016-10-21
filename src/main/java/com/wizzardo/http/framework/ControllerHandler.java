@@ -245,61 +245,78 @@ public class ControllerHandler<T extends Controller> implements Handler {
             Class subtype = type.getComponentType();
             if (subtype.isPrimitive()) {
                 if (subtype == int.class)
-                    return new ArrayConstructor<>(name, int[]::new, (arr, values) -> {
+                    return new PrimitiveArrayConstructor<>(name, int[]::new, (arr, values) -> {
                         for (int i = 0; i < values.size(); i++) {
                             arr[i] = Integer.parseInt(values.get(i));
                         }
                         return arr;
                     });
                 if (subtype == long.class)
-                    return new ArrayConstructor<>(name, long[]::new, (arr, values) -> {
+                    return new PrimitiveArrayConstructor<>(name, long[]::new, (arr, values) -> {
                         for (int i = 0; i < values.size(); i++) {
                             arr[i] = Long.parseLong(values.get(i));
                         }
                         return arr;
                     });
                 if (subtype == float.class)
-                    return new ArrayConstructor<>(name, float[]::new, (arr, values) -> {
+                    return new PrimitiveArrayConstructor<>(name, float[]::new, (arr, values) -> {
                         for (int i = 0; i < values.size(); i++) {
                             arr[i] = Float.parseFloat(values.get(i));
                         }
                         return arr;
                     });
                 if (subtype == double.class)
-                    return new ArrayConstructor<>(name, double[]::new, (arr, values) -> {
+                    return new PrimitiveArrayConstructor<>(name, double[]::new, (arr, values) -> {
                         for (int i = 0; i < values.size(); i++) {
                             arr[i] = Double.parseDouble(values.get(i));
                         }
                         return arr;
                     });
                 if (subtype == boolean.class)
-                    return new ArrayConstructor<>(name, boolean[]::new, (arr, values) -> {
+                    return new PrimitiveArrayConstructor<>(name, boolean[]::new, (arr, values) -> {
                         for (int i = 0; i < values.size(); i++) {
                             arr[i] = Boolean.parseBoolean(values.get(i));
                         }
                         return arr;
                     });
                 if (subtype == short.class)
-                    return new ArrayConstructor<>(name, short[]::new, (arr, values) -> {
+                    return new PrimitiveArrayConstructor<>(name, short[]::new, (arr, values) -> {
                         for (int i = 0; i < values.size(); i++) {
                             arr[i] = Short.parseShort(values.get(i));
                         }
                         return arr;
                     });
                 if (subtype == byte.class)
-                    return new ArrayConstructor<>(name, byte[]::new, (arr, values) -> {
+                    return new PrimitiveArrayConstructor<>(name, byte[]::new, (arr, values) -> {
                         for (int i = 0; i < values.size(); i++) {
                             arr[i] = Byte.parseByte(values.get(i));
                         }
                         return arr;
                     });
                 if (subtype == char.class)
-                    return new ArrayConstructor<>(name, char[]::new, (arr, values) -> {
+                    return new PrimitiveArrayConstructor<>(name, char[]::new, (arr, values) -> {
                         for (int i = 0; i < values.size(); i++) {
                             arr[i] = parseChar(values.get(i));
                         }
                         return arr;
                     });
+            } else {
+                if (subtype == Integer.class)
+                    return new ArrayConstructor<>(name, Integer[]::new, Integer::valueOf);
+                if (subtype == Long.class)
+                    return new ArrayConstructor<>(name, Long[]::new, Long::valueOf);
+                if (subtype == Float.class)
+                    return new ArrayConstructor<>(name, Float[]::new, Float::valueOf);
+                if (subtype == Double.class)
+                    return new ArrayConstructor<>(name, Double[]::new, Double::valueOf);
+                if (subtype == Boolean.class)
+                    return new ArrayConstructor<>(name, Boolean[]::new, Boolean::valueOf);
+                if (subtype == Short.class)
+                    return new ArrayConstructor<>(name, Short[]::new, Short::valueOf);
+                if (subtype == Byte.class)
+                    return new ArrayConstructor<>(name, Byte[]::new, Byte::valueOf);
+                if (subtype == Character.class)
+                    return new ArrayConstructor<>(name, Character[]::new, ControllerHandler::parseChar);
             }
         }
 
@@ -312,12 +329,12 @@ public class ControllerHandler<T extends Controller> implements Handler {
         return value.charAt(0);
     }
 
-    static class ArrayConstructor<T> implements Mapper<Parameters, Object> {
+    static class PrimitiveArrayConstructor<T> implements Mapper<Parameters, Object> {
         final String name;
         final Mapper<Integer, T> creator;
         final CollectionTools.Closure2<T, T, List<String>> populator;
 
-        ArrayConstructor(String name, Mapper<Integer, T> creator, CollectionTools.Closure2<T, T, List<String>> populator) {
+        PrimitiveArrayConstructor(String name, Mapper<Integer, T> creator, CollectionTools.Closure2<T, T, List<String>> populator) {
             this.name = name;
             this.creator = creator;
             this.populator = populator;
@@ -331,6 +348,32 @@ public class ControllerHandler<T extends Controller> implements Handler {
                 return populator.execute(t, multiValue.getValues());
             }
             return null;
+        }
+    }
+
+    static class ArrayConstructor<T> implements Mapper<Parameters, Object> {
+        final String name;
+        final Mapper<Integer, T[]> creator;
+        final Mapper<String, T> converter;
+
+        ArrayConstructor(String name, Mapper<Integer, T[]> creator, Mapper<String, T> converter) {
+            this.name = name;
+            this.creator = creator;
+            this.converter = converter;
+        }
+
+        @Override
+        public T[] map(Parameters parameters) {
+            MultiValue multiValue = parameters.get(name);
+            if (multiValue == null)
+                return null;
+
+            T[] arr = creator.map(multiValue.size());
+            List<String> values = multiValue.getValues();
+            for (int i = 0; i < values.size(); i++) {
+                arr[i] = converter.map(values.get(i));
+            }
+            return arr;
         }
     }
 
