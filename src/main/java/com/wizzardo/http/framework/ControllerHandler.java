@@ -302,21 +302,21 @@ public class ControllerHandler<T extends Controller> implements Handler {
                     }, arr -> Arrays.copyOf(arr, arr.length));
             } else {
                 if (subtype == Integer.class)
-                    return new ArrayConstructor<>(name, Integer[]::new, Integer::valueOf);
+                    return new ArrayConstructor<>(name, def, Integer[]::new, Integer::valueOf);
                 if (subtype == Long.class)
-                    return new ArrayConstructor<>(name, Long[]::new, Long::valueOf);
+                    return new ArrayConstructor<>(name, def, Long[]::new, Long::valueOf);
                 if (subtype == Float.class)
-                    return new ArrayConstructor<>(name, Float[]::new, Float::valueOf);
+                    return new ArrayConstructor<>(name, def, Float[]::new, Float::valueOf);
                 if (subtype == Double.class)
-                    return new ArrayConstructor<>(name, Double[]::new, Double::valueOf);
+                    return new ArrayConstructor<>(name, def, Double[]::new, Double::valueOf);
                 if (subtype == Boolean.class)
-                    return new ArrayConstructor<>(name, Boolean[]::new, Boolean::valueOf);
+                    return new ArrayConstructor<>(name, def, Boolean[]::new, Boolean::valueOf);
                 if (subtype == Short.class)
-                    return new ArrayConstructor<>(name, Short[]::new, Short::valueOf);
+                    return new ArrayConstructor<>(name, def, Short[]::new, Short::valueOf);
                 if (subtype == Byte.class)
-                    return new ArrayConstructor<>(name, Byte[]::new, Byte::valueOf);
+                    return new ArrayConstructor<>(name, def, Byte[]::new, Byte::valueOf);
                 if (subtype == Character.class)
-                    return new ArrayConstructor<>(name, Character[]::new, ControllerHandler::parseChar);
+                    return new ArrayConstructor<>(name, def, Character[]::new, ControllerHandler::parseChar);
             }
         }
 
@@ -368,25 +368,40 @@ public class ControllerHandler<T extends Controller> implements Handler {
         final String name;
         final Mapper<Integer, T[]> creator;
         final Mapper<String, T> converter;
+        final T[] def;
 
-        ArrayConstructor(String name, Mapper<Integer, T[]> creator, Mapper<String, T> converter) {
+        ArrayConstructor(String name, String def, Mapper<Integer, T[]> creator, Mapper<String, T> converter) {
             this.name = name;
             this.creator = creator;
             this.converter = converter;
+            if (def != null && !def.isEmpty()) {
+                List<String> strings = Arrays.asList(def.split(","));
+                this.def = creator.map(strings.size());
+                populate(this.def, strings, converter);
+            } else {
+                this.def = null;
+            }
         }
 
         @Override
         public T[] map(Parameters parameters) {
             MultiValue multiValue = parameters.get(name);
-            if (multiValue == null)
+            if (multiValue != null) {
+                T[] arr = creator.map(multiValue.size());
+                populate(arr, multiValue.getValues(), converter);
+                return arr;
+            }
+
+            if (def == null)
                 return null;
 
-            T[] arr = creator.map(multiValue.size());
-            List<String> values = multiValue.getValues();
+            return Arrays.copyOf(def, def.length);
+        }
+
+        protected void populate(T[] arr, List<String> values, Mapper<String, T> converter) {
             for (int i = 0; i < values.size(); i++) {
                 arr[i] = converter.map(values.get(i));
             }
-            return arr;
         }
     }
 
