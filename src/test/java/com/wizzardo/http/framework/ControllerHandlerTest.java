@@ -500,6 +500,15 @@ public class ControllerHandlerTest extends WebApplicationTest {
         Assert.assertEquals("[1.0, 2.0, 3.0]", makeRequest("/double").get().asString());
         Assert.assertEquals("[true, false, true]", makeRequest("/boolean").get().asString());
         Assert.assertEquals("[a, b, c]", makeRequest("/char").get().asString());
+
+        Assert.assertEquals("[4, 5, 6]", makeRequest("/int").param("v", 4).param("v", 5).param("v", 6).get().asString());
+        Assert.assertEquals("[4, 5, 6]", makeRequest("/long").param("v", 4).param("v", 5).param("v", 6).get().asString());
+        Assert.assertEquals("[4, 5, 6]", makeRequest("/short").param("v", 4).param("v", 5).param("v", 6).get().asString());
+        Assert.assertEquals("[4, 5, 6]", makeRequest("/byte").param("v", 4).param("v", 5).param("v", 6).get().asString());
+        Assert.assertEquals("[4.0, 5.0, 6.0]", makeRequest("/float").param("v", 4).param("v", 5).param("v", 6).get().asString());
+        Assert.assertEquals("[4.0, 5.0, 6.0]", makeRequest("/double").param("v", 4).param("v", 5).param("v", 6).get().asString());
+        Assert.assertEquals("[false, true, false]", makeRequest("/boolean").param("v", false).param("v", true).param("v", false).get().asString());
+        Assert.assertEquals("[d, e, f]", makeRequest("/char").param("v", 'd').param("v", 'e').param("v", 'f').get().asString());
     }
 
 
@@ -618,5 +627,14 @@ public class ControllerHandlerTest extends WebApplicationTest {
         Assert.assertEquals("[1.0, 2.0, 3.0]", makeRequest("/double").get().asString());
         Assert.assertEquals("[true, false, true]", makeRequest("/boolean").get().asString());
         Assert.assertEquals("[a, b, c]", makeRequest("/char").get().asString());
+
+        Assert.assertEquals("[4, 5, 6]", makeRequest("/int").param("v", 4).param("v", 5).param("v", 6).get().asString());
+        Assert.assertEquals("[4, 5, 6]", makeRequest("/long").param("v", 4).param("v", 5).param("v", 6).get().asString());
+        Assert.assertEquals("[4, 5, 6]", makeRequest("/short").param("v", 4).param("v", 5).param("v", 6).get().asString());
+        Assert.assertEquals("[4, 5, 6]", makeRequest("/byte").param("v", 4).param("v", 5).param("v", 6).get().asString());
+        Assert.assertEquals("[4.0, 5.0, 6.0]", makeRequest("/float").param("v", 4).param("v", 5).param("v", 6).get().asString());
+        Assert.assertEquals("[4.0, 5.0, 6.0]", makeRequest("/double").param("v", 4).param("v", 5).param("v", 6).get().asString());
+        Assert.assertEquals("[false, true, false]", makeRequest("/boolean").param("v", false).param("v", true).param("v", false).get().asString());
+        Assert.assertEquals("[d, e, f]", makeRequest("/char").param("v", 'd').param("v", 'e').param("v", 'f').get().asString());
     }
 }
