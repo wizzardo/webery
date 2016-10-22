@@ -245,61 +245,61 @@ public class ControllerHandler<T extends Controller> implements Handler {
             Class subtype = type.getComponentType();
             if (subtype.isPrimitive()) {
                 if (subtype == int.class)
-                    return new PrimitiveArrayConstructor<>(name, int[]::new, (arr, values) -> {
+                    return new PrimitiveArrayConstructor<>(name, def, int[]::new, (arr, values) -> {
                         for (int i = 0; i < values.size(); i++) {
                             arr[i] = Integer.parseInt(values.get(i));
                         }
                         return arr;
-                    });
+                    }, arr -> Arrays.copyOf(arr, arr.length));
                 if (subtype == long.class)
-                    return new PrimitiveArrayConstructor<>(name, long[]::new, (arr, values) -> {
+                    return new PrimitiveArrayConstructor<>(name, def, long[]::new, (arr, values) -> {
                         for (int i = 0; i < values.size(); i++) {
                             arr[i] = Long.parseLong(values.get(i));
                         }
                         return arr;
-                    });
+                    }, arr -> Arrays.copyOf(arr, arr.length));
                 if (subtype == float.class)
-                    return new PrimitiveArrayConstructor<>(name, float[]::new, (arr, values) -> {
+                    return new PrimitiveArrayConstructor<>(name, def, float[]::new, (arr, values) -> {
                         for (int i = 0; i < values.size(); i++) {
                             arr[i] = Float.parseFloat(values.get(i));
                         }
                         return arr;
-                    });
+                    }, arr -> Arrays.copyOf(arr, arr.length));
                 if (subtype == double.class)
-                    return new PrimitiveArrayConstructor<>(name, double[]::new, (arr, values) -> {
+                    return new PrimitiveArrayConstructor<>(name, def, double[]::new, (arr, values) -> {
                         for (int i = 0; i < values.size(); i++) {
                             arr[i] = Double.parseDouble(values.get(i));
                         }
                         return arr;
-                    });
+                    }, arr -> Arrays.copyOf(arr, arr.length));
                 if (subtype == boolean.class)
-                    return new PrimitiveArrayConstructor<>(name, boolean[]::new, (arr, values) -> {
+                    return new PrimitiveArrayConstructor<>(name, def, boolean[]::new, (arr, values) -> {
                         for (int i = 0; i < values.size(); i++) {
                             arr[i] = Boolean.parseBoolean(values.get(i));
                         }
                         return arr;
-                    });
+                    }, arr -> Arrays.copyOf(arr, arr.length));
                 if (subtype == short.class)
-                    return new PrimitiveArrayConstructor<>(name, short[]::new, (arr, values) -> {
+                    return new PrimitiveArrayConstructor<>(name, def, short[]::new, (arr, values) -> {
                         for (int i = 0; i < values.size(); i++) {
                             arr[i] = Short.parseShort(values.get(i));
                         }
                         return arr;
-                    });
+                    }, arr -> Arrays.copyOf(arr, arr.length));
                 if (subtype == byte.class)
-                    return new PrimitiveArrayConstructor<>(name, byte[]::new, (arr, values) -> {
+                    return new PrimitiveArrayConstructor<>(name, def, byte[]::new, (arr, values) -> {
                         for (int i = 0; i < values.size(); i++) {
                             arr[i] = Byte.parseByte(values.get(i));
                         }
                         return arr;
-                    });
+                    }, arr -> Arrays.copyOf(arr, arr.length));
                 if (subtype == char.class)
-                    return new PrimitiveArrayConstructor<>(name, char[]::new, (arr, values) -> {
+                    return new PrimitiveArrayConstructor<>(name, def, char[]::new, (arr, values) -> {
                         for (int i = 0; i < values.size(); i++) {
                             arr[i] = parseChar(values.get(i));
                         }
                         return arr;
-                    });
+                    }, arr -> Arrays.copyOf(arr, arr.length));
             } else {
                 if (subtype == Integer.class)
                     return new ArrayConstructor<>(name, Integer[]::new, Integer::valueOf);
@@ -332,12 +332,21 @@ public class ControllerHandler<T extends Controller> implements Handler {
     static class PrimitiveArrayConstructor<T> implements Mapper<Parameters, Object> {
         final String name;
         final Mapper<Integer, T> creator;
+        final Mapper<T, T> cloner;
         final CollectionTools.Closure2<T, T, List<String>> populator;
+        final T def;
 
-        PrimitiveArrayConstructor(String name, Mapper<Integer, T> creator, CollectionTools.Closure2<T, T, List<String>> populator) {
+        PrimitiveArrayConstructor(String name, String def, Mapper<Integer, T> creator, CollectionTools.Closure2<T, T, List<String>> populator, Mapper<T, T> cloner) {
             this.name = name;
             this.creator = creator;
             this.populator = populator;
+            this.cloner = cloner;
+            if (def != null && !def.isEmpty()) {
+                List<String> strings = Arrays.asList(def.split(","));
+                this.def = populator.execute(creator.map(strings.size()), strings);
+            } else {
+                this.def = null;
+            }
         }
 
         @Override
@@ -347,7 +356,11 @@ public class ControllerHandler<T extends Controller> implements Handler {
                 T t = creator.map(multiValue.size());
                 return populator.execute(t, multiValue.getValues());
             }
-            return null;
+
+            if (def == null)
+                return null;
+
+            return cloner.map(def);
         }
     }
 
