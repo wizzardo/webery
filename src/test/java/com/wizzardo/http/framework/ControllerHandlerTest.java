@@ -444,6 +444,65 @@ public class ControllerHandlerTest extends WebApplicationTest {
     }
 
 
+    public static class TestParametersArrayPrimitivesWithDefaultsController extends Controller {
+        public Renderer test_int(@Parameter(name = "v", def = "1,2,3") int[] v) {
+            return renderString(Arrays.toString(v));
+        }
+
+        public Renderer test_long(@Parameter(name = "v", def = "1,2,3") long[] v) {
+            return renderString(Arrays.toString(v));
+        }
+
+        public Renderer test_short(@Parameter(name = "v", def = "1,2,3") short[] v) {
+            return renderString(Arrays.toString(v));
+        }
+
+        public Renderer test_byte(@Parameter(name = "v", def = "1,2,3") byte[] v) {
+            return renderString(Arrays.toString(v));
+        }
+
+        public Renderer test_boolean(@Parameter(name = "v", def = "true,false,true") boolean[] v) {
+            return renderString(Arrays.toString(v));
+        }
+
+        public Renderer test_float(@Parameter(name = "v", def = "1,2,3") float[] v) {
+            return renderString(Arrays.toString(v));
+        }
+
+        public Renderer test_double(@Parameter(name = "v", def = "1,2,3") double[] v) {
+            return renderString(Arrays.toString(v));
+        }
+
+        public Renderer test_char(@Parameter(name = "v", def = "a,b,c") char[] v) {
+            return renderString(Arrays.toString(v));
+        }
+    }
+
+    @Test
+    public void test_parameters_array_primitives_with_defaults() throws IOException {
+        Class<? extends Controller> controller = TestParametersArrayPrimitivesWithDefaultsController.class;
+        server.getUrlMapping()
+                .append("/int", controller, "test_int")
+                .append("/long", controller, "test_long")
+                .append("/short", controller, "test_short")
+                .append("/byte", controller, "test_byte")
+                .append("/boolean", controller, "test_boolean")
+                .append("/float", controller, "test_float")
+                .append("/double", controller, "test_double")
+                .append("/char", controller, "test_char")
+        ;
+
+        Assert.assertEquals("[1, 2, 3]", makeRequest("/int").get().asString());
+        Assert.assertEquals("[1, 2, 3]", makeRequest("/long").get().asString());
+        Assert.assertEquals("[1, 2, 3]", makeRequest("/short").get().asString());
+        Assert.assertEquals("[1, 2, 3]", makeRequest("/byte").get().asString());
+        Assert.assertEquals("[1.0, 2.0, 3.0]", makeRequest("/float").get().asString());
+        Assert.assertEquals("[1.0, 2.0, 3.0]", makeRequest("/double").get().asString());
+        Assert.assertEquals("[true, false, true]", makeRequest("/boolean").get().asString());
+        Assert.assertEquals("[a, b, c]", makeRequest("/char").get().asString());
+    }
+
+
     public static class TestParametersArrayBoxedController extends Controller {
         public Renderer test_int(@Parameter(name = "v") Integer[] v) {
             return renderString(Arrays.toString(v));
