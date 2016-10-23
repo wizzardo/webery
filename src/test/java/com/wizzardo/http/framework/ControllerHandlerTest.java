@@ -805,4 +805,44 @@ public class ControllerHandlerTest extends WebApplicationTest {
         Assert.assertEquals("[false, true, false]", makeRequest("/boolean").param("v", false).param("v", true).param("v", false).get().asString());
         Assert.assertEquals("[d, e, f]", makeRequest("/char").param("v", 'd').param("v", 'e').param("v", 'f').get().asString());
     }
+
+
+    public static class TestParametersCollectionOtherController extends Controller {
+        public Renderer test_string(@Parameter(name = "v") List<String> v) {
+            return renderString(String.valueOf(v));
+        }
+
+        public Renderer test_string_def(@Parameter(name = "v", def = "a,b,c") List<String> v) {
+            return renderString(String.valueOf(v));
+        }
+
+        public Renderer test_enum(@Parameter(name = "v") List<TestParameterEnum> v) {
+            return renderString(String.valueOf(v));
+        }
+
+        public Renderer test_enum_def(@Parameter(name = "v", def = "ONE,TWO") List<TestParameterEnum> v) {
+            return renderString(String.valueOf(v));
+        }
+    }
+
+    @Test
+    public void test_parameters_collection_other() throws IOException {
+        Class<? extends Controller> controller = TestParametersCollectionOtherController.class;
+        server.getUrlMapping()
+                .append("/string", controller, "test_string")
+                .append("/string_def", controller, "test_string_def")
+                .append("/enum", controller, "test_enum")
+                .append("/enum_def", controller, "test_enum_def")
+        ;
+
+        Assert.assertEquals("[a, b, c]", makeRequest("/string").param("v", "a").param("v", "b").param("v", "c").get().asString());
+        Assert.assertEquals("null", makeRequest("/string").get().asString());
+        Assert.assertEquals("[d, e, f]", makeRequest("/string_def").param("v", "d").param("v", "e").param("v", "f").get().asString());
+        Assert.assertEquals("[a, b, c]", makeRequest("/string_def").get().asString());
+
+        Assert.assertEquals("[ONE, TWO, THREE]", makeRequest("/enum").param("v", "ONE").param("v", "TWO").param("v", "THREE").get().asString());
+        Assert.assertEquals("null", makeRequest("/enum").get().asString());
+        Assert.assertEquals("[ONE, TWO, THREE]", makeRequest("/enum_def").param("v", "ONE").param("v", "TWO").param("v", "THREE").get().asString());
+        Assert.assertEquals("[ONE, TWO]", makeRequest("/enum_def").get().asString());
+    }
 }
