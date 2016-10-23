@@ -12,6 +12,7 @@ import com.wizzardo.http.response.Status;
 import com.wizzardo.tools.collections.CollectionTools;
 import com.wizzardo.tools.json.JsonTools;
 import com.wizzardo.tools.misc.Mapper;
+import com.wizzardo.tools.misc.Supplier;
 import com.wizzardo.tools.misc.Unchecked;
 
 import java.io.IOException;
@@ -411,6 +412,47 @@ public class ControllerHandler<T extends Controller> implements Handler {
         }
     }
 
+    static class CollectionConstructor<C extends Collection<T>, T> implements Mapper<Parameters, Object> {
+        final String name;
+        final Supplier<C> supplier;
+        final Mapper<String, T> converter;
+        final List<T> def;
+
+        CollectionConstructor(String name, String def, Supplier<C> supplier, Mapper<String, T> converter) {
+            this.name = name;
+            this.supplier = supplier;
+            this.converter = converter;
+            if (def != null && !def.isEmpty()) {
+                populate(this.def = new ArrayList<>(), Arrays.asList(def.split(",")), converter);
+            } else {
+                this.def = null;
+            }
+        }
+
+        @Override
+        public C map(Parameters parameters) {
+            MultiValue multiValue = parameters.get(name);
+            if (multiValue != null) {
+                C arr = supplier.supply();
+                populate(arr, multiValue.getValues(), converter);
+                return arr;
+            }
+
+            if (def == null)
+                return null;
+
+            C c = supplier.supply();
+            c.addAll(def);
+            return c;
+        }
+
+        protected void populate(Collection<T> c, List<String> values, Mapper<String, T> converter) {
+            for (String value : values) {
+                c.add(converter.map(value));
+            }
+        }
+    }
+
     protected Mapper<Parameters, Object> createParametersMapper(Parameter parameter, Type genericType) {
         if (genericType instanceof Class)
             return createParametersMapper(parameter, ((Class) genericType));
@@ -421,9 +463,64 @@ public class ControllerHandler<T extends Controller> implements Handler {
                 Mapper<Parameters, Object> mapper = createParametersMapper(parameter, type.getActualTypeArguments()[0]);
                 return parameters -> Optional.ofNullable(mapper.map(parameters));
             }
+            if (Collection.class.isAssignableFrom((Class<?>) type.getRawType())) {
+                Class subtype = (Class) type.getActualTypeArguments()[0];
+                return createParametersMapper(parameter, createCollection((Class<? extends Collection>) type.getRawType()), subtype);
+            }
         }
 
         throw new IllegalArgumentException("Can't create mapper for parameter '" + parameter.getName() + "' of type '" + genericType + "' in '" + controllerName + "." + actionName + "'");
+    }
+
+    protected <C extends Collection> Mapper<Parameters, Object> createParametersMapper(Parameter parameter, Supplier<C> collectionSupplier, Class subtype) {
+        String name = getParameterName(parameter);
+        com.wizzardo.http.framework.Parameter annotation = parameter.getAnnotation(com.wizzardo.http.framework.Parameter.class);
+        String def = annotation != null ? annotation.def() : null;
+
+        if (subtype == Integer.class)
+            return new CollectionConstructor<>(name, def, (Supplier<Collection<Integer>>) collectionSupplier, Integer::valueOf);
+        if (subtype == Long.class)
+            return new CollectionConstructor<>(name, def, (Supplier<Collection<Long>>) collectionSupplier, Long::valueOf);
+        if (subtype == Float.class)
+            return new CollectionConstructor<>(name, def, (Supplier<Collection<Float>>) collectionSupplier, Float::valueOf);
+        if (subtype == Double.class)
+            return new CollectionConstructor<>(name, def, (Supplier<Collection<Double>>) collectionSupplier, Double::valueOf);
+        if (subtype == Boolean.class)
+            return new CollectionConstructor<>(name, def, (Supplier<Collection<Boolean>>) collectionSupplier, Boolean::valueOf);
+        if (subtype == Short.class)
+            return new CollectionConstructor<>(name, def, (Supplier<Collection<Short>>) collectionSupplier, Short::valueOf);
+        if (subtype == Byte.class)
+            return new CollectionConstructor<>(name, def, (Supplier<Collection<Byte>>) collectionSupplier, Byte::valueOf);
+        if (subtype == Character.class)
+            return new CollectionConstructor<>(name, def, (Supplier<Collection<Character>>) collectionSupplier, ControllerHandler::parseChar);
+
+        if (subtype == String.class)
+            return new CollectionConstructor<>(name, def, (Supplier<Collection<String>>) collectionSupplier, s -> s);
+
+        if (subtype.isEnum())
+            return new CollectionConstructor<>(name, def, collectionSupplier, s -> (Object) Enum.valueOf((Class<? extends Enum>) subtype, s));
+
+
+        throw new IllegalArgumentException("Can't create collection mapper for parameter '" + parameter.getName() + "' with subtype '" + subtype + "' in '" + controllerName + "." + actionName + "'");
+    }
+
+    protected <C extends Collection> Supplier<C> createCollection(Class<C> clazz) {
+        int modifiers = clazz.getModifiers();
+        if (Modifier.isInterface(modifiers) || Modifier.isAbstract(modifiers)) {
+            if (List.class.isAssignableFrom(clazz))
+                return () -> (C) new ArrayList();
+
+            if (Set.class.isAssignableFrom(clazz))
+                return () -> (C) new HashSet();
+        }
+
+        return () -> {
+            try {
+                return clazz.newInstance();
+            } catch (InstantiationException | IllegalAccessException e) {
+                throw new IllegalStateException("Cannot create instance of class '" + clazz.getCanonicalName() + "'");
+            }
+        };
     }
 
     protected Method findAction(Class clazz, String action) {
