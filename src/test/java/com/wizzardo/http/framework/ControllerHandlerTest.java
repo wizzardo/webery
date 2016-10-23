@@ -6,6 +6,7 @@ import org.junit.Test;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -676,5 +677,64 @@ public class ControllerHandlerTest extends WebApplicationTest {
         Assert.assertEquals("null", makeRequest("/enum").get().asString());
         Assert.assertEquals("[ONE, TWO, THREE]", makeRequest("/enum_def").param("v", "ONE").param("v", "TWO").param("v", "THREE").get().asString());
         Assert.assertEquals("[ONE, TWO]", makeRequest("/enum_def").get().asString());
+    }
+
+
+    public static class TestParametersCollectionBoxedController extends Controller {
+        public Renderer test_int(@Parameter(name = "v") List<Integer> v) {
+            return renderString(String.valueOf(v));
+        }
+
+        public Renderer test_long(@Parameter(name = "v") List<Long> v) {
+            return renderString(String.valueOf(v));
+        }
+
+        public Renderer test_short(@Parameter(name = "v") List<Short> v) {
+            return renderString(String.valueOf(v));
+        }
+
+        public Renderer test_byte(@Parameter(name = "v") List<Byte> v) {
+            return renderString(String.valueOf(v));
+        }
+
+        public Renderer test_boolean(@Parameter(name = "v") List<Boolean> v) {
+            return renderString(String.valueOf(v));
+        }
+
+        public Renderer test_float(@Parameter(name = "v") List<Float> v) {
+            return renderString(String.valueOf(v));
+        }
+
+        public Renderer test_double(@Parameter(name = "v") List<Double> v) {
+            return renderString(String.valueOf(v));
+        }
+
+        public Renderer test_char(@Parameter(name = "v") List<Character> v) {
+            return renderString(String.valueOf(v));
+        }
+    }
+
+    @Test
+    public void test_parameters_collection() throws IOException {
+        Class<? extends Controller> controller = TestParametersCollectionBoxedController.class;
+        server.getUrlMapping()
+                .append("/int", controller, "test_int")
+                .append("/long", controller, "test_long")
+                .append("/short", controller, "test_short")
+                .append("/byte", controller, "test_byte")
+                .append("/boolean", controller, "test_boolean")
+                .append("/float", controller, "test_float")
+                .append("/double", controller, "test_double")
+                .append("/char", controller, "test_char")
+        ;
+
+        Assert.assertEquals("[1, 2, 3]", makeRequest("/int").param("v", 1).param("v", 2).param("v", 3).get().asString());
+        Assert.assertEquals("[1, 2, 3]", makeRequest("/long").param("v", 1).param("v", 2).param("v", 3).get().asString());
+        Assert.assertEquals("[1, 2, 3]", makeRequest("/short").param("v", 1).param("v", 2).param("v", 3).get().asString());
+        Assert.assertEquals("[1, 2, 3]", makeRequest("/byte").param("v", 1).param("v", 2).param("v", 3).get().asString());
+        Assert.assertEquals("[1.0, 2.0, 3.0]", makeRequest("/float").param("v", 1).param("v", 2).param("v", 3).get().asString());
+        Assert.assertEquals("[1.0, 2.0, 3.0]", makeRequest("/double").param("v", 1).param("v", 2).param("v", 3).get().asString());
+        Assert.assertEquals("[true, false, true]", makeRequest("/boolean").param("v", true).param("v", false).param("v", true).get().asString());
+        Assert.assertEquals("[a, b, c]", makeRequest("/char").param("v", 'a').param("v", 'b').param("v", 'c').get().asString());
     }
 }
