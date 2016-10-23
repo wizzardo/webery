@@ -317,6 +317,12 @@ public class ControllerHandler<T extends Controller> implements Handler {
                     return new ArrayConstructor<>(name, def, Byte[]::new, Byte::valueOf);
                 if (subtype == Character.class)
                     return new ArrayConstructor<>(name, def, Character[]::new, ControllerHandler::parseChar);
+
+                if (subtype == String.class)
+                    return new ArrayConstructor<>(name, def, String[]::new, s -> s);
+
+                if (subtype.isEnum())
+                    return new ArrayConstructor<>(name, def, size -> (Enum[]) Array.newInstance(subtype, size), s -> Enum.valueOf((Class<? extends Enum>) subtype, s));
             }
         }
 
