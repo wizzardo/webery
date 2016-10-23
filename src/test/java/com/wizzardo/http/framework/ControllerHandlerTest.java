@@ -737,4 +737,72 @@ public class ControllerHandlerTest extends WebApplicationTest {
         Assert.assertEquals("[true, false, true]", makeRequest("/boolean").param("v", true).param("v", false).param("v", true).get().asString());
         Assert.assertEquals("[a, b, c]", makeRequest("/char").param("v", 'a').param("v", 'b').param("v", 'c').get().asString());
     }
+
+
+    public static class TestParametersCollectionBoxedWithDefaultsController extends Controller {
+        public Renderer test_int(@Parameter(name = "v", def = "1,2,3") List<Integer> v) {
+            return renderString(String.valueOf(v));
+        }
+
+        public Renderer test_long(@Parameter(name = "v", def = "1,2,3") List<Long> v) {
+            return renderString(String.valueOf(v));
+        }
+
+        public Renderer test_short(@Parameter(name = "v", def = "1,2,3") List<Short> v) {
+            return renderString(String.valueOf(v));
+        }
+
+        public Renderer test_byte(@Parameter(name = "v", def = "1,2,3") List<Byte> v) {
+            return renderString(String.valueOf(v));
+        }
+
+        public Renderer test_boolean(@Parameter(name = "v", def = "true,false,true") List<Boolean> v) {
+            return renderString(String.valueOf(v));
+        }
+
+        public Renderer test_float(@Parameter(name = "v", def = "1,2,3") List<Float> v) {
+            return renderString(String.valueOf(v));
+        }
+
+        public Renderer test_double(@Parameter(name = "v", def = "1,2,3") List<Double> v) {
+            return renderString(String.valueOf(v));
+        }
+
+        public Renderer test_char(@Parameter(name = "v", def = "a,b,c") List<Character> v) {
+            return renderString(String.valueOf(v));
+        }
+    }
+
+    @Test
+    public void test_parameters_collection_boxed_with_defaults() throws IOException {
+        Class<? extends Controller> controller = TestParametersCollectionBoxedWithDefaultsController.class;
+        server.getUrlMapping()
+                .append("/int", controller, "test_int")
+                .append("/long", controller, "test_long")
+                .append("/short", controller, "test_short")
+                .append("/byte", controller, "test_byte")
+                .append("/boolean", controller, "test_boolean")
+                .append("/float", controller, "test_float")
+                .append("/double", controller, "test_double")
+                .append("/char", controller, "test_char")
+        ;
+
+        Assert.assertEquals("[1, 2, 3]", makeRequest("/int").get().asString());
+        Assert.assertEquals("[1, 2, 3]", makeRequest("/long").get().asString());
+        Assert.assertEquals("[1, 2, 3]", makeRequest("/short").get().asString());
+        Assert.assertEquals("[1, 2, 3]", makeRequest("/byte").get().asString());
+        Assert.assertEquals("[1.0, 2.0, 3.0]", makeRequest("/float").get().asString());
+        Assert.assertEquals("[1.0, 2.0, 3.0]", makeRequest("/double").get().asString());
+        Assert.assertEquals("[true, false, true]", makeRequest("/boolean").get().asString());
+        Assert.assertEquals("[a, b, c]", makeRequest("/char").get().asString());
+
+        Assert.assertEquals("[4, 5, 6]", makeRequest("/int").param("v", 4).param("v", 5).param("v", 6).get().asString());
+        Assert.assertEquals("[4, 5, 6]", makeRequest("/long").param("v", 4).param("v", 5).param("v", 6).get().asString());
+        Assert.assertEquals("[4, 5, 6]", makeRequest("/short").param("v", 4).param("v", 5).param("v", 6).get().asString());
+        Assert.assertEquals("[4, 5, 6]", makeRequest("/byte").param("v", 4).param("v", 5).param("v", 6).get().asString());
+        Assert.assertEquals("[4.0, 5.0, 6.0]", makeRequest("/float").param("v", 4).param("v", 5).param("v", 6).get().asString());
+        Assert.assertEquals("[4.0, 5.0, 6.0]", makeRequest("/double").param("v", 4).param("v", 5).param("v", 6).get().asString());
+        Assert.assertEquals("[false, true, false]", makeRequest("/boolean").param("v", false).param("v", true).param("v", false).get().asString());
+        Assert.assertEquals("[d, e, f]", makeRequest("/char").param("v", 'd').param("v", 'e').param("v", 'f').get().asString());
+    }
 }
