@@ -5,9 +5,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 /**
  * Created by wizzardo on 02.05.15.
@@ -844,5 +842,75 @@ public class ControllerHandlerTest extends WebApplicationTest {
         Assert.assertEquals("null", makeRequest("/enum").get().asString());
         Assert.assertEquals("[ONE, TWO, THREE]", makeRequest("/enum_def").param("v", "ONE").param("v", "TWO").param("v", "THREE").get().asString());
         Assert.assertEquals("[ONE, TWO]", makeRequest("/enum_def").get().asString());
+    }
+
+
+    public static class TestParametersDifferentCollectionsController extends Controller {
+        public Renderer test_list(@Parameter(name = "v") List<Integer> v) {
+            return renderString((v == null ? null : v.getClass().getSimpleName()) + ": " + String.valueOf(v));
+        }
+
+        public Renderer test_list_def(@Parameter(name = "v", def = "4,5,6") List<Integer> v) {
+            return renderString(v.getClass().getSimpleName() + ": " + String.valueOf(v));
+        }
+
+        public Renderer test_set(@Parameter(name = "v") Set<Integer> v) {
+            return renderString((v == null ? null : v.getClass().getSimpleName()) + ": " + String.valueOf(v));
+        }
+
+        public Renderer test_set_def(@Parameter(name = "v", def = "4,5,6") Set<Integer> v) {
+            return renderString(v.getClass().getSimpleName() + ": " + String.valueOf(v));
+        }
+
+        public Renderer test_ll(@Parameter(name = "v") LinkedList<Integer> v) {
+            return renderString((v == null ? null : v.getClass().getSimpleName()) + ": " + String.valueOf(v));
+        }
+
+        public Renderer test_ll_def(@Parameter(name = "v", def = "4,5,6") LinkedList<Integer> v) {
+            return renderString(v.getClass().getSimpleName() + ": " + String.valueOf(v));
+        }
+
+        public Renderer test_ts(@Parameter(name = "v") TreeSet<Integer> v) {
+            return renderString((v == null ? null : v.getClass().getSimpleName()) + ": " + String.valueOf(v));
+        }
+
+        public Renderer test_ts_def(@Parameter(name = "v", def = "4,5,6") TreeSet<Integer> v) {
+            return renderString(v.getClass().getSimpleName() + ": " + String.valueOf(v));
+        }
+    }
+
+    @Test
+    public void test_parameters_different_collections() throws IOException {
+        Class<? extends Controller> controller = TestParametersDifferentCollectionsController.class;
+        server.getUrlMapping()
+                .append("/list", controller, "test_list")
+                .append("/list_def", controller, "test_list_def")
+                .append("/set", controller, "test_set")
+                .append("/set_def", controller, "test_set_def")
+                .append("/ll", controller, "test_ll")
+                .append("/ll_def", controller, "test_ll_def")
+                .append("/ts", controller, "test_ts")
+                .append("/ts_def", controller, "test_ts_def")
+        ;
+
+        Assert.assertEquals("null: null", makeRequest("/list").get().asString());
+        Assert.assertEquals("ArrayList: [1, 2, 3]", makeRequest("/list").param("v", 1).param("v", 2).param("v", 3).get().asString());
+        Assert.assertEquals("ArrayList: [1, 2, 3]", makeRequest("/list_def").param("v", 1).param("v", 2).param("v", 3).get().asString());
+        Assert.assertEquals("ArrayList: [4, 5, 6]", makeRequest("/list_def").get().asString());
+
+        Assert.assertEquals("null: null", makeRequest("/set").get().asString());
+        Assert.assertEquals("HashSet: [1, 2, 3]", makeRequest("/set").param("v", 1).param("v", 2).param("v", 3).get().asString());
+        Assert.assertEquals("HashSet: [1, 2, 3]", makeRequest("/set_def").param("v", 1).param("v", 2).param("v", 3).get().asString());
+        Assert.assertEquals("HashSet: [4, 5, 6]", makeRequest("/set_def").get().asString());
+
+        Assert.assertEquals("null: null", makeRequest("/ll").get().asString());
+        Assert.assertEquals("LinkedList: [1, 2, 3]", makeRequest("/ll").param("v", 1).param("v", 2).param("v", 3).get().asString());
+        Assert.assertEquals("LinkedList: [1, 2, 3]", makeRequest("/ll_def").param("v", 1).param("v", 2).param("v", 3).get().asString());
+        Assert.assertEquals("LinkedList: [4, 5, 6]", makeRequest("/ll_def").get().asString());
+
+        Assert.assertEquals("null: null", makeRequest("/ts").get().asString());
+        Assert.assertEquals("TreeSet: [1, 2, 3]", makeRequest("/ts").param("v", 1).param("v", 2).param("v", 3).get().asString());
+        Assert.assertEquals("TreeSet: [1, 2, 3]", makeRequest("/ts_def").param("v", 1).param("v", 2).param("v", 3).get().asString());
+        Assert.assertEquals("TreeSet: [4, 5, 6]", makeRequest("/ts_def").get().asString());
     }
 }
