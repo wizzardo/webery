@@ -877,6 +877,14 @@ public class ControllerHandlerTest extends WebApplicationTest {
         public Renderer test_ts_def(@Parameter(name = "v", def = "4,5,6") TreeSet<Integer> v) {
             return renderString(v.getClass().getSimpleName() + ": " + String.valueOf(v));
         }
+
+        public Renderer test_i(@Parameter(name = "v") Iterable<Integer> v) {
+            return renderString((v == null ? null : v.getClass().getSimpleName()) + ": " + String.valueOf(v));
+        }
+
+        public Renderer test_i_def(@Parameter(name = "v", def = "4,5,6") Iterable<Integer> v) {
+            return renderString(v.getClass().getSimpleName() + ": " + String.valueOf(v));
+        }
     }
 
     @Test
@@ -891,6 +899,8 @@ public class ControllerHandlerTest extends WebApplicationTest {
                 .append("/ll_def", controller, "test_ll_def")
                 .append("/ts", controller, "test_ts")
                 .append("/ts_def", controller, "test_ts_def")
+                .append("/i", controller, "test_i")
+                .append("/i_def", controller, "test_i_def")
         ;
 
         Assert.assertEquals("null: null", makeRequest("/list").get().asString());
@@ -912,5 +922,10 @@ public class ControllerHandlerTest extends WebApplicationTest {
         Assert.assertEquals("TreeSet: [1, 2, 3]", makeRequest("/ts").param("v", 1).param("v", 2).param("v", 3).get().asString());
         Assert.assertEquals("TreeSet: [1, 2, 3]", makeRequest("/ts_def").param("v", 1).param("v", 2).param("v", 3).get().asString());
         Assert.assertEquals("TreeSet: [4, 5, 6]", makeRequest("/ts_def").get().asString());
+
+        Assert.assertEquals("null: null", makeRequest("/i").get().asString());
+        Assert.assertEquals("ArrayList: [1, 2, 3]", makeRequest("/i").param("v", 1).param("v", 2).param("v", 3).get().asString());
+        Assert.assertEquals("ArrayList: [1, 2, 3]", makeRequest("/i_def").param("v", 1).param("v", 2).param("v", 3).get().asString());
+        Assert.assertEquals("ArrayList: [4, 5, 6]", makeRequest("/i_def").get().asString());
     }
 }
