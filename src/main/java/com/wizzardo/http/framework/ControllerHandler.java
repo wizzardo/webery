@@ -463,9 +463,9 @@ public class ControllerHandler<T extends Controller> implements Handler {
                 Mapper<Parameters, Object> mapper = createParametersMapper(parameter, type.getActualTypeArguments()[0]);
                 return parameters -> Optional.ofNullable(mapper.map(parameters));
             }
-            if (Collection.class.isAssignableFrom((Class<?>) type.getRawType())) {
+            if (Iterable.class.isAssignableFrom((Class<?>) type.getRawType())) {
                 Class subtype = (Class) type.getActualTypeArguments()[0];
-                return createParametersMapper(parameter, createCollection((Class<? extends Collection>) type.getRawType()), subtype);
+                return createParametersMapper(parameter, createCollection((Class<? extends Iterable>) type.getRawType()), subtype);
             }
         }
 
@@ -504,7 +504,7 @@ public class ControllerHandler<T extends Controller> implements Handler {
         throw new IllegalArgumentException("Can't create collection mapper for parameter '" + parameter.getName() + "' with subtype '" + subtype + "' in '" + controllerName + "." + actionName + "'");
     }
 
-    protected <C extends Collection> Supplier<C> createCollection(Class<C> clazz) {
+    protected <C extends Collection> Supplier<C> createCollection(Class clazz) {
         int modifiers = clazz.getModifiers();
         if (Modifier.isInterface(modifiers) || Modifier.isAbstract(modifiers)) {
             if (List.class.isAssignableFrom(clazz))
@@ -512,11 +512,15 @@ public class ControllerHandler<T extends Controller> implements Handler {
 
             if (Set.class.isAssignableFrom(clazz))
                 return () -> (C) new HashSet();
+
+            if (Iterable.class.isAssignableFrom(clazz))
+                return () -> (C) new ArrayList();
+
         }
 
         return () -> {
             try {
-                return clazz.newInstance();
+                return (C) clazz.newInstance();
             } catch (InstantiationException | IllegalAccessException e) {
                 throw new IllegalStateException("Cannot create instance of class '" + clazz.getCanonicalName() + "'");
             }
