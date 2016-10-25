@@ -104,7 +104,7 @@ public class ControllerHandler<T extends Controller> implements Handler {
                     throw new IllegalStateException("Can't parse parameters for '" + controllerName + "." + actionName + "', parameters names are not present. Please run javac with '-parameters' or add an annotation Parameter");
             }
 
-            Mapper<Parameters, Object>[] argsMappers = new Mapper[parameters.length];
+            Mapper<Request, Object>[] argsMappers = new Mapper[parameters.length];
             Type[] types = method.getGenericParameterTypes();
             for (int i = 0; i < parameters.length; i++) {
                 try {
@@ -115,13 +115,13 @@ public class ControllerHandler<T extends Controller> implements Handler {
             }
 
             return it -> {
-                Mapper<Parameters, Object>[] mappers = argsMappers;
+                Mapper<Request, Object>[] mappers = argsMappers;
                 Object[] args = new Object[mappers.length];
-                Parameters params = it.getParams();
+                Request request = it.request;
                 Exceptions exceptions = null;
                 for (int i = 0; i < mappers.length; i++) {
                     try {
-                        args[i] = mappers[i].map(params);
+                        args[i] = mappers[i].map(request);
                     } catch (Exception e) {
                         if (exceptions == null)
                             exceptions = new Exceptions(mappers.length);

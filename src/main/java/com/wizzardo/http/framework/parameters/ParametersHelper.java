@@ -1,7 +1,7 @@
 package com.wizzardo.http.framework.parameters;
 
 import com.wizzardo.http.MultiValue;
-import com.wizzardo.http.request.Parameters;
+import com.wizzardo.http.request.Request;
 import com.wizzardo.tools.misc.Mapper;
 import com.wizzardo.tools.misc.Supplier;
 
@@ -57,14 +57,14 @@ public class ParametersHelper {
         };
     }
 
-    public static Mapper<Parameters, Object> createParametersMapper(java.lang.reflect.Parameter parameter, Type genericType) {
+    public static Mapper<Request, Object> createParametersMapper(java.lang.reflect.Parameter parameter, Type genericType) {
         if (genericType instanceof Class)
             return createParametersMapper(parameter, ((Class) genericType));
 
         if (genericType instanceof ParameterizedType) {
             ParameterizedType type = (ParameterizedType) genericType;
             if (type.getRawType().equals(Optional.class)) {
-                Mapper<Parameters, Object> mapper = createParametersMapper(parameter, type.getActualTypeArguments()[0]);
+                Mapper<Request, Object> mapper = createParametersMapper(parameter, type.getActualTypeArguments()[0]);
                 return parameters -> Optional.ofNullable(mapper.map(parameters));
             }
             if (Iterable.class.isAssignableFrom((Class<?>) type.getRawType())) {
@@ -76,7 +76,7 @@ public class ParametersHelper {
         throw new IllegalArgumentException("Can't create mapper for parameter '" + parameter.getName() + "' of type '" + genericType + "'");
     }
 
-    public static <C extends Collection> Mapper<Parameters, Object> createParametersMapper(java.lang.reflect.Parameter parameter, Supplier<C> collectionSupplier, Class subtype) {
+    public static <C extends Collection> Mapper<Request, Object> createParametersMapper(java.lang.reflect.Parameter parameter, Supplier<C> collectionSupplier, Class subtype) {
         String name = getParameterName(parameter);
         Parameter annotation = parameter.getAnnotation(Parameter.class);
         String def = annotation != null ? annotation.def() : null;
@@ -108,14 +108,14 @@ public class ParametersHelper {
         throw new IllegalArgumentException("Can't create collection mapper for parameter '" + parameter.getName() + "' with subtype '" + subtype + "'");
     }
 
-    public static Mapper<Parameters, Object> createParametersMapper(java.lang.reflect.Parameter parameter, Class type) {
+    public static Mapper<Request, Object> createParametersMapper(java.lang.reflect.Parameter parameter, Class type) {
         String name = getParameterName(parameter);
         Parameter annotation = parameter.getAnnotation(Parameter.class);
         String def = annotation != null ? annotation.def() : null;
 
-        Mapper<Mapper<String, Object>, Mapper<Parameters, Object>> failIfEmpty = mapper -> {
-            return params -> {
-                MultiValue multiValue = params.get(name);
+        Mapper<Mapper<String, Object>, Mapper<Request, Object>> failIfEmpty = mapper -> {
+            return request -> {
+                MultiValue multiValue = request.params().get(name);
                 String value;
                 if (multiValue != null)
                     value = multiValue.getValue();
@@ -148,9 +148,9 @@ public class ParametersHelper {
                 return failIfEmpty.map(ParametersHelper::parseChar);
         }
 
-        Mapper<Mapper<String, Object>, Mapper<Parameters, Object>> parseNonNull = mapper -> {
-            return params -> {
-                MultiValue multiValue = params.get(name);
+        Mapper<Mapper<String, Object>, Mapper<Request, Object>> parseNonNull = mapper -> {
+            return request -> {
+                MultiValue multiValue = request.params().get(name);
                 String value;
                 if (multiValue != null)
                     value = multiValue.getValue();

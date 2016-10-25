@@ -2,6 +2,7 @@ package com.wizzardo.http.framework.parameters;
 
 import com.wizzardo.http.MultiValue;
 import com.wizzardo.http.request.Parameters;
+import com.wizzardo.http.request.Request;
 import com.wizzardo.tools.misc.Mapper;
 
 import java.util.Arrays;
@@ -10,7 +11,7 @@ import java.util.List;
 /**
  * Created by wizzardo on 25/10/16.
  */
-public class ArrayConstructor<T> implements Mapper<Parameters, Object> {
+public class ArrayConstructor<T> implements Mapper<Request, Object> {
     final String name;
     final Mapper<Integer, T[]> creator;
     final Mapper<String, T> converter;
@@ -30,8 +31,8 @@ public class ArrayConstructor<T> implements Mapper<Parameters, Object> {
     }
 
     @Override
-    public T[] map(Parameters parameters) {
-        MultiValue multiValue = parameters.get(name);
+    public T[] map(Request request) {
+        MultiValue multiValue = request.params().get(name);
         if (multiValue != null) {
             T[] arr = creator.map(multiValue.size());
             populate(arr, multiValue.getValues(), converter);

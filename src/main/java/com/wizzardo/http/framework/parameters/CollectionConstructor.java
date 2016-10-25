@@ -2,6 +2,7 @@ package com.wizzardo.http.framework.parameters;
 
 import com.wizzardo.http.MultiValue;
 import com.wizzardo.http.request.Parameters;
+import com.wizzardo.http.request.Request;
 import com.wizzardo.tools.misc.Mapper;
 import com.wizzardo.tools.misc.Supplier;
 
@@ -13,7 +14,7 @@ import java.util.List;
 /**
  * Created by wizzardo on 25/10/16.
  */
-public class CollectionConstructor<C extends Collection<T>, T> implements Mapper<Parameters, Object> {
+public class CollectionConstructor<C extends Collection<T>, T> implements Mapper<Request, Object> {
     final String name;
     final Supplier<C> supplier;
     final Mapper<String, T> converter;
@@ -31,8 +32,8 @@ public class CollectionConstructor<C extends Collection<T>, T> implements Mapper
     }
 
     @Override
-    public C map(Parameters parameters) {
-        MultiValue multiValue = parameters.get(name);
+    public C map(Request request) {
+        MultiValue multiValue = request.params().get(name);
         if (multiValue != null) {
             C arr = supplier.supply();
             populate(arr, multiValue.getValues(), converter);
