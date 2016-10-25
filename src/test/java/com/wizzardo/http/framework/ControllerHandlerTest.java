@@ -1,5 +1,6 @@
 package com.wizzardo.http.framework;
 
+import com.wizzardo.http.framework.parameters.Parameter;
 import com.wizzardo.http.framework.template.Renderer;
 import org.junit.Assert;
 import org.junit.Test;

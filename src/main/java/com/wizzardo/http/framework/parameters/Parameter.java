@@ -1,4 +1,4 @@
-package com.wizzardo.http.framework;
+package com.wizzardo.http.framework.parameters;
 
 import java.lang.annotation.*;
 
