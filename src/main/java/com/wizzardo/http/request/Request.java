@@ -40,7 +40,7 @@ public class Request<C extends HttpConnection> {
     protected boolean multiPartDataPrepared = false;
     protected String sessionId;
 
-    SimpleRequestBody body;
+    protected SimpleRequestBody body;
 
     public static enum Method {
         GET, PUT, POST, DELETE, HEAD, TRACE, OPTIONS, CONNECT, PATCH
