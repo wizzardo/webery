@@ -31,6 +31,8 @@ public class ProxyHandler implements Handler {
             .resetter(sb -> sb.setLength(0))
             .build();
 
+    protected static final MultiValue EMPTY_VALUE = new MultiValue();
+
     protected Queue<ProxyConnection> connections = new LinkedBlockingQueue<>();
     protected EpollCore<ProxyConnection> epoll = new EpollCore<ProxyConnection>() {
         @Override
@@ -75,6 +77,8 @@ public class ProxyHandler implements Handler {
         volatile boolean recursive = false;
         volatile long limit;
         volatile boolean continueWrite = false;
+        volatile boolean chunked = false;
+        volatile boolean lastChunk = false;
 
         public ProxyConnection(int fd, int ip, int port) {
             super(fd, ip, port);
@@ -124,24 +128,51 @@ public class ProxyHandler implements Handler {
                             srcResponse.setStatus(Status.valueOf(Integer.parseInt(responseReader.getStatus())));
 
                         srcResponse.commit(srcRequest.connection(), byteBufferProvider);
-                        if (length == null) {
+                        chunked = Header.VALUE_CHUNKED.value.equalsIgnoreCase(responseReader.getHeaders().getOrDefault(Header.KEY_TRANSFER_ENCODING.value, EMPTY_VALUE).getValue());
+                        if (length == null && !chunked) {
                             processingBy.set(null);
                             end();
                             return;
+                        } else {
+                            if (!chunked)
+                                limit = Long.valueOf(length.getValue());
+                            else
+                                limit = readChunkLength(buffer, offset, r);
                         }
-                        limit = Long.valueOf(length.getValue());
                     }
 
-                    limit -= r - offset;
-                    if (limit == 0)
-                        proxyWrite(new CustomReadableByteArray(buffer, offset, r - offset), byteBufferProvider);
-                    else
-                        proxyWrite(new CustomReadableByteArray(Arrays.copyOfRange(buffer, offset, r)), byteBufferProvider);
+                    int l = r - offset;
+                    if (l <= limit) {
+                        limit -= l;
+                        if (limit == 0 && (!chunked || lastChunk))
+                            proxyWrite(new CustomReadableByteArray(buffer, offset, r - offset), byteBufferProvider);
+                        else
+                            proxyWrite(new CustomReadableByteArray(Arrays.copyOfRange(buffer, offset, r)), byteBufferProvider);
+                    } else {
+                        int o = offset;
 
+                        while (l > 0) {
+                            if (limit == 0) {
+                                limit = readChunkLength(buffer, o, r);
+                            }
+
+                            if (o + limit > r) {
+                                proxyWrite(new CustomReadableByteArray(Arrays.copyOfRange(buffer, o, r)), byteBufferProvider);
+                                limit -= r - o;
+                                l -= r - o;
+                                o += r - o;
+                            } else {
+                                proxyWrite(new CustomReadableByteArray(Arrays.copyOfRange(buffer, o, (int) (o + limit))), byteBufferProvider);
+                                l -= limit;
+                                o += limit;
+                                limit = 0;
+                            }
+                        }
+                    }
 
 //                System.out.println("response: " + new String(buffer, offset, r - offset));
 //                System.out.println("need to read: " + limit + "; r:" + r + " ,offset:" + offset);
-                    if (limit == 0) {
+                    if (limit == 0 && (!chunked || lastChunk)) {
                         processingBy.set(null);
                         end();
                         return;
@@ -163,6 +194,25 @@ public class ProxyHandler implements Handler {
             }
 //            System.out.println("wait "+srcRequest.connection().hasDataToWrite());
             processingBy.set(null);
+        }
+
+        protected long readChunkLength(byte[] bytes, int offset, int end) {
+            long l = 0;
+            int i = offset;
+            int limit = Math.min(bytes.length, end);
+            while (i < limit) {
+                byte b = bytes[i++];
+                if (b >= '0' && b <= '9') {
+                    l = l * 16 + (b - '0');
+                } else if (b >= 'A' && b <= 'F') {
+                    l = l * 16 + (b - 'A' + 10);
+                } else
+                    break;
+            }
+
+            l += 4 + (i - offset - 1);
+            lastChunk = l == 5;
+            return l;
         }
 
         protected void proxyWrite(CustomReadableByteArray readable, ByteBufferProvider bufferProvider) {
