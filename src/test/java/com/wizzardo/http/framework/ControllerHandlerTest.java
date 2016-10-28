@@ -113,6 +113,24 @@ public class ControllerHandlerTest extends WebApplicationTest {
         Assert.assertEquals("true", makeRequest("/boolean").param("v", true).get().asString());
         Assert.assertEquals("a", makeRequest("/char").param("v", 'a').get().asString());
 
+        Assert.assertEquals("1", makeRequest("/int").param("v", 1).post().asString());
+        Assert.assertEquals("1", makeRequest("/long").param("v", 1).post().asString());
+        Assert.assertEquals("1", makeRequest("/short").param("v", 1).post().asString());
+        Assert.assertEquals("1", makeRequest("/byte").param("v", 1).post().asString());
+        Assert.assertEquals("1.0", makeRequest("/float").param("v", 1).post().asString());
+        Assert.assertEquals("1.0", makeRequest("/double").param("v", 1).post().asString());
+        Assert.assertEquals("true", makeRequest("/boolean").param("v", true).post().asString());
+        Assert.assertEquals("a", makeRequest("/char").param("v", 'a').post().asString());
+
+        Assert.assertEquals("1", makeRequest("/int").param("v", 1).addByteArray("data", new byte[0], "data").post().asString());
+        Assert.assertEquals("1", makeRequest("/long").param("v", 1).addByteArray("data", new byte[0], "data").post().asString());
+        Assert.assertEquals("1", makeRequest("/short").param("v", 1).addByteArray("data", new byte[0], "data").post().asString());
+        Assert.assertEquals("1", makeRequest("/byte").param("v", 1).addByteArray("data", new byte[0], "data").post().asString());
+        Assert.assertEquals("1.0", makeRequest("/float").param("v", 1).addByteArray("data", new byte[0], "data").post().asString());
+        Assert.assertEquals("1.0", makeRequest("/double").param("v", 1).addByteArray("data", new byte[0], "data").post().asString());
+        Assert.assertEquals("true", makeRequest("/boolean").param("v", true).addByteArray("data", new byte[0], "data").post().asString());
+        Assert.assertEquals("a", makeRequest("/char").param("v", 'a').addByteArray("data", new byte[0], "data").post().asString());
+
         checkResponse(400, "{\"messages\":[\"java.lang.NullPointerException: parameter 'v' it not present\"]}", makeRequest("/int").get());
         checkResponse(400, "{\"messages\":[\"java.lang.NumberFormatException: For input string: \\\"a\\\"\"]}", makeRequest("/int").param("v", "a").get());
         checkResponse(400, "{\"messages\":[\"java.lang.NullPointerException: parameter 'v' it not present\"]}", makeRequest("/long").get());
@@ -129,6 +147,7 @@ public class ControllerHandlerTest extends WebApplicationTest {
         checkResponse(400, "{\"messages\":[\"java.lang.NullPointerException: parameter 'v' it not present\"]}", makeRequest("/char").get());
         checkResponse(400, "{\"messages\":[\"java.lang.IllegalArgumentException: Can't assign to char String with more then 1 character\"]}", makeRequest("/char").param("v", "abc").get());
     }
+
 
     public static class TestParametersPrimitivesWithDefaultsController extends Controller {
         public Renderer test_int(@Parameter(name = "v", def = "1") int v) {
