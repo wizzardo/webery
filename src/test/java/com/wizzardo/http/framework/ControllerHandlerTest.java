@@ -2,9 +2,11 @@ package com.wizzardo.http.framework;
 
 import com.wizzardo.http.framework.parameters.Parameter;
 import com.wizzardo.http.framework.template.Renderer;
+import com.wizzardo.tools.io.FileTools;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
@@ -380,6 +382,14 @@ public class ControllerHandlerTest extends WebApplicationTest {
         public Renderer test_enum_def(@Parameter(name = "v", def = "ONE") TestParameterEnum v) {
             return renderString(String.valueOf(v));
         }
+
+        public Renderer test_bytes(@Parameter(name = "v") byte[] v) {
+            return renderString(Arrays.toString(v));
+        }
+
+        public Renderer test_file(@Parameter(name = "v") File v) {
+            return renderString(FileTools.text(v));
+        }
     }
 
     @Test
@@ -390,6 +400,8 @@ public class ControllerHandlerTest extends WebApplicationTest {
                 .append("/string_def", controller, "test_string_def")
                 .append("/enum", controller, "test_enum")
                 .append("/enum_def", controller, "test_enum_def")
+                .append("/bytes", controller, "test_bytes")
+                .append("/file", controller, "test_file")
         ;
 
         Assert.assertEquals("string", makeRequest("/string").param("v", "string").get().asString());
@@ -401,6 +413,9 @@ public class ControllerHandlerTest extends WebApplicationTest {
         Assert.assertEquals("null", makeRequest("/enum").get().asString());
         Assert.assertEquals("TWO", makeRequest("/enum_def").param("v", "TWO").get().asString());
         Assert.assertEquals("ONE", makeRequest("/enum_def").get().asString());
+
+        Assert.assertEquals("[1, 2, 3]", makeRequest("/bytes").addByteArray("v", new byte[]{1, 2, 3}, "v").post().asString());
+        Assert.assertEquals("[1, 2, 3]", makeRequest("/file").addByteArray("v", "[1, 2, 3]".getBytes(), "v").post().asString());
     }
 
 
