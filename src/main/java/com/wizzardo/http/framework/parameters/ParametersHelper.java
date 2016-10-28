@@ -114,21 +114,14 @@ public class ParametersHelper {
         Parameter annotation = parameter.getAnnotation(Parameter.class);
         String def = annotation != null ? annotation.def() : null;
 
-        Mapper<MultiPartEntry, String> asString = MultiPartEntry::asString;
-
         Mapper<Mapper<String, Object>, Mapper<Request, Object>> failIfEmpty = mapper -> {
             return request -> {
-                String value = null;
-                if (request.isMultipart()) {
-                    value = (String) request.entry(name, asString);
-                }
-                if(value == null) {
-                    MultiValue multiValue = request.params().get(name);
-                    if (multiValue != null)
-                        value = multiValue.getValue();
-                    else
-                        value = def;
-                }
+                MultiValue multiValue = request.params().get(name);
+                String value;
+                if (multiValue != null)
+                    value = multiValue.getValue();
+                else
+                    value = def;
 
                 if (value == null || value.isEmpty())
                     throw new NullPointerException("parameter '" + name + "' it not present");
