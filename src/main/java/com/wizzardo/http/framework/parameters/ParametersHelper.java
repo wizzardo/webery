@@ -2,10 +2,12 @@ package com.wizzardo.http.framework.parameters;
 
 import com.wizzardo.http.MultiValue;
 import com.wizzardo.http.request.MultiPartEntry;
+import com.wizzardo.http.request.MultiPartFileEntry;
 import com.wizzardo.http.request.Request;
 import com.wizzardo.tools.misc.Mapper;
 import com.wizzardo.tools.misc.Supplier;
 
+import java.io.File;
 import java.lang.reflect.Array;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.ParameterizedType;
@@ -171,6 +173,22 @@ public class ParametersHelper {
         if (type == String.class)
             return parseNonNull.map(value -> value);
 
+        if (File.class.isAssignableFrom(type)) {
+            return request -> {
+                if (!request.isMultipart())
+                    return null;
+
+                MultiPartEntry entry = request.entry(name);
+                if (entry == null)
+                    return null;
+
+                if (!(entry instanceof MultiPartFileEntry))
+                    return null;
+
+                return ((MultiPartFileEntry) entry).getFile();
+            };
+        }
+
         if (type == Integer.class)
             return parseNonNull.map(Integer::valueOf);
         if (type == Long.class)
@@ -234,12 +252,22 @@ public class ParametersHelper {
                         return arr;
                     }, arr -> Arrays.copyOf(arr, arr.length));
                 if (subtype == byte.class)
-                    return new PrimitiveArrayConstructor<>(name, def, byte[]::new, (arr, values) -> {
+                    return new PrimitiveArrayConstructor<byte[]>(name, def, byte[]::new, (arr, values) -> {
                         for (int i = 0; i < values.size(); i++) {
                             arr[i] = Byte.parseByte(values.get(i));
                         }
                         return arr;
-                    }, arr -> Arrays.copyOf(arr, arr.length));
+                    }, arr -> Arrays.copyOf(arr, arr.length)) {
+                        @Override
+                        public byte[] map(Request request) {
+                            if (request.isMultipart()) {
+                                MultiPartEntry entry = request.entry(name);
+                                if (entry != null)
+                                    return entry.asBytes();
+                            }
+                            return super.map(request);
+                        }
+                    };
                 if (subtype == char.class)
                     return new PrimitiveArrayConstructor<>(name, def, char[]::new, (arr, values) -> {
                         for (int i = 0; i < values.size(); i++) {

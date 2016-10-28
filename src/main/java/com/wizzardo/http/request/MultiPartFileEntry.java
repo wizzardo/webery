@@ -49,7 +49,7 @@ public class MultiPartFileEntry extends MultiPartEntry {
         return new FileInputStream(file);
     }
 
-    File getFile() {
+    public File getFile() {
         return file;
     }
 
