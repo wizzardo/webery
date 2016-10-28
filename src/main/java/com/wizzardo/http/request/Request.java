@@ -7,15 +7,10 @@ import com.wizzardo.http.Session;
 import com.wizzardo.http.mapping.Path;
 import com.wizzardo.http.response.CookieBuilder;
 import com.wizzardo.http.response.Response;
-import com.wizzardo.tools.io.BlockInputStream;
-import com.wizzardo.tools.io.BoyerMoore;
-import com.wizzardo.tools.io.ProgressListener;
+import com.wizzardo.tools.misc.Mapper;
 import com.wizzardo.tools.misc.Unchecked;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.*;
 
 /**
@@ -81,7 +76,11 @@ public class Request<C extends HttpConnection> {
     }
 
     public String header(Header header) {
-        return header == null ? null : header(header.value);
+        return header(header, null);
+    }
+
+    public String header(Header header, String def) {
+        return header == null ? def : header(header.value, def);
     }
 
     public long headerLong(Header header) {
@@ -116,8 +115,12 @@ public class Request<C extends HttpConnection> {
     }
 
     public String header(String key) {
+        return header(key, null);
+    }
+
+    public String header(String key, String def) {
         MultiValue value = headers.get(key);
-        return value == null ? null : value.getValue();
+        return value == null ? def : value.getValue();
     }
 
     public List<String> headers(String key) {
@@ -172,7 +175,7 @@ public class Request<C extends HttpConnection> {
 
     public boolean isMultipart() {
         if (multipart == null)
-            multipart = header(Header.KEY_CONTENT_TYPE).startsWith("multipart/form-data;");
+            multipart = header(Header.KEY_CONTENT_TYPE, "").startsWith("multipart/form-data;");
 
         return multipart;
     }
@@ -185,6 +188,14 @@ public class Request<C extends HttpConnection> {
             return null;
 
         return multiPartEntryMap.get(key);
+    }
+
+    public <T> T entry(String key, Mapper<MultiPartEntry, T> mapper) {
+        MultiPartEntry entry = entry(key);
+        if (entry == null)
+            return null;
+
+        return mapper.map(entry);
     }
 
     public void entry(String key, MultiPartEntry entry) {

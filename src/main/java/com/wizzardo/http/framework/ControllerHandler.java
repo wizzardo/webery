@@ -2,10 +2,10 @@ package com.wizzardo.http.framework;
 
 import com.wizzardo.epoll.readable.ReadableData;
 import com.wizzardo.http.Handler;
+import com.wizzardo.http.MultipartHandler;
 import com.wizzardo.http.framework.di.DependencyFactory;
 import com.wizzardo.http.framework.parameters.ParametersHelper;
 import com.wizzardo.http.framework.template.Renderer;
-import com.wizzardo.http.request.Parameters;
 import com.wizzardo.http.request.Request;
 import com.wizzardo.http.response.Response;
 import com.wizzardo.http.response.Status;
@@ -73,6 +73,14 @@ public class ControllerHandler<T extends Controller> implements Handler {
         c.request = request;
         c.response = response;
 
+        if (request.isMultipart()) {
+            return new MultipartHandler((req, resp) -> doHandle(resp, c)).handle(request, response);
+        }
+
+        return doHandle(response, c);
+    }
+
+    protected Response doHandle(Response response, T c) {
         ReadableData data = renderer.execute(c);
         if (data != null)
             response.setBody(data);
