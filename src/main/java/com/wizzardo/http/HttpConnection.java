@@ -264,6 +264,10 @@ public class HttpConnection<H extends AbstractHttpServer, Q extends Request, S e
             IOTools.close(this);
     }
 
+    public boolean isKeepAlive() {
+        return keepAlive;
+    }
+
     public Q getRequest() {
         return request;
     }

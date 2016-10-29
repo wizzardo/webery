@@ -48,6 +48,8 @@ public class MultipartHandler implements Handler {
 
         request.connection().setInputListener(createListener((c) -> {
             handler.handle(request, response);
+            if (!c.isKeepAlive())
+                c.setCloseOnFinishWriting(true);
             response.commit(c);
             c.onFinishingHandling();
         }, length, br));
