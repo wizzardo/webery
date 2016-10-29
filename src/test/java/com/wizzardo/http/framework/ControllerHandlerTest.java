@@ -387,8 +387,16 @@ public class ControllerHandlerTest extends WebApplicationTest {
             return renderString(Arrays.toString(v));
         }
 
+        public Renderer test_bytes_opt(@Parameter(name = "v") Optional<byte[]> v) {
+            return renderString(v.map(Arrays::toString).orElse("default"));
+        }
+
         public Renderer test_file(@Parameter(name = "v") File v) {
             return renderString(FileTools.text(v));
+        }
+
+        public Renderer test_file_opt(@Parameter(name = "v") Optional<File> v) {
+            return renderString(v.map(FileTools::text).orElse("default"));
         }
     }
 
@@ -401,7 +409,9 @@ public class ControllerHandlerTest extends WebApplicationTest {
                 .append("/enum", controller, "test_enum")
                 .append("/enum_def", controller, "test_enum_def")
                 .append("/bytes", controller, "test_bytes")
+                .append("/bytes_opt", controller, "test_bytes_opt")
                 .append("/file", controller, "test_file")
+                .append("/file_opt", controller, "test_file_opt")
         ;
 
         Assert.assertEquals("string", makeRequest("/string").param("v", "string").get().asString());
@@ -416,6 +426,10 @@ public class ControllerHandlerTest extends WebApplicationTest {
 
         Assert.assertEquals("[1, 2, 3]", makeRequest("/bytes").addByteArray("v", new byte[]{1, 2, 3}, "v").post().asString());
         Assert.assertEquals("[1, 2, 3]", makeRequest("/file").addByteArray("v", "[1, 2, 3]".getBytes(), "v").post().asString());
+        Assert.assertEquals("[1, 2, 3]", makeRequest("/bytes_opt").addByteArray("v", new byte[]{1, 2, 3}, "v").post().asString());
+        Assert.assertEquals("[1, 2, 3]", makeRequest("/file_opt").addByteArray("v", "[1, 2, 3]".getBytes(), "v").post().asString());
+        Assert.assertEquals("default", makeRequest("/bytes_opt").addByteArray("vv", new byte[]{1, 2, 3}, "vv").post().asString());
+        Assert.assertEquals("default", makeRequest("/file_opt").addByteArray("vv", "[1, 2, 3]".getBytes(), "vv").post().asString());
     }
 
 
