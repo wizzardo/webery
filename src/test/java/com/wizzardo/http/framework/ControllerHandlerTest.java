@@ -367,6 +367,7 @@ public class ControllerHandlerTest extends WebApplicationTest {
     }
 
     public static class TestParametersPojo {
+        @Parameter(def = "0")
         public int i;
 
         @Override
@@ -446,6 +447,7 @@ public class ControllerHandlerTest extends WebApplicationTest {
         Assert.assertEquals("default", makeRequest("/file_opt").addByteArray("vv", "[1, 2, 3]".getBytes(), "vv").post().asString());
 
         Assert.assertEquals("i=1", makeRequest("/pojo").param("i", "1").get().asString());
+        Assert.assertEquals("i=0", makeRequest("/pojo").get().asString());
     }
 
 
