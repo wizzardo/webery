@@ -133,20 +133,20 @@ public class ControllerHandlerTest extends WebApplicationTest {
         Assert.assertEquals("true", makeRequest("/boolean").param("v", true).addByteArray("data", new byte[0], "data").post().asString());
         Assert.assertEquals("a", makeRequest("/char").param("v", 'a').addByteArray("data", new byte[0], "data").post().asString());
 
-        checkResponse(400, "{\"messages\":[\"java.lang.NullPointerException: parameter 'v' it not present\"]}", makeRequest("/int").get());
+        checkResponse(400, "{\"messages\":[\"java.lang.NullPointerException: parameter 'v' is not present\"]}", makeRequest("/int").get());
         checkResponse(400, "{\"messages\":[\"java.lang.NumberFormatException: For input string: \\\"a\\\"\"]}", makeRequest("/int").param("v", "a").get());
-        checkResponse(400, "{\"messages\":[\"java.lang.NullPointerException: parameter 'v' it not present\"]}", makeRequest("/long").get());
+        checkResponse(400, "{\"messages\":[\"java.lang.NullPointerException: parameter 'v' is not present\"]}", makeRequest("/long").get());
         checkResponse(400, "{\"messages\":[\"java.lang.NumberFormatException: For input string: \\\"a\\\"\"]}", makeRequest("/long").param("v", "a").get());
-        checkResponse(400, "{\"messages\":[\"java.lang.NullPointerException: parameter 'v' it not present\"]}", makeRequest("/short").get());
+        checkResponse(400, "{\"messages\":[\"java.lang.NullPointerException: parameter 'v' is not present\"]}", makeRequest("/short").get());
         checkResponse(400, "{\"messages\":[\"java.lang.NumberFormatException: For input string: \\\"a\\\"\"]}", makeRequest("/short").param("v", "a").get());
-        checkResponse(400, "{\"messages\":[\"java.lang.NullPointerException: parameter 'v' it not present\"]}", makeRequest("/byte").get());
+        checkResponse(400, "{\"messages\":[\"java.lang.NullPointerException: parameter 'v' is not present\"]}", makeRequest("/byte").get());
         checkResponse(400, "{\"messages\":[\"java.lang.NumberFormatException: For input string: \\\"a\\\"\"]}", makeRequest("/byte").param("v", "a").get());
-        checkResponse(400, "{\"messages\":[\"java.lang.NullPointerException: parameter 'v' it not present\"]}", makeRequest("/float").get());
+        checkResponse(400, "{\"messages\":[\"java.lang.NullPointerException: parameter 'v' is not present\"]}", makeRequest("/float").get());
         checkResponse(400, "{\"messages\":[\"java.lang.NumberFormatException: For input string: \\\"a\\\"\"]}", makeRequest("/float").param("v", "a").get());
-        checkResponse(400, "{\"messages\":[\"java.lang.NullPointerException: parameter 'v' it not present\"]}", makeRequest("/double").get());
+        checkResponse(400, "{\"messages\":[\"java.lang.NullPointerException: parameter 'v' is not present\"]}", makeRequest("/double").get());
         checkResponse(400, "{\"messages\":[\"java.lang.NumberFormatException: For input string: \\\"a\\\"\"]}", makeRequest("/double").param("v", "a").get());
-        checkResponse(400, "{\"messages\":[\"java.lang.NullPointerException: parameter 'v' it not present\"]}", makeRequest("/boolean").get());
-        checkResponse(400, "{\"messages\":[\"java.lang.NullPointerException: parameter 'v' it not present\"]}", makeRequest("/char").get());
+        checkResponse(400, "{\"messages\":[\"java.lang.NullPointerException: parameter 'v' is not present\"]}", makeRequest("/boolean").get());
+        checkResponse(400, "{\"messages\":[\"java.lang.NullPointerException: parameter 'v' is not present\"]}", makeRequest("/char").get());
         checkResponse(400, "{\"messages\":[\"java.lang.IllegalArgumentException: Can't assign to char String with more then 1 character\"]}", makeRequest("/char").param("v", "abc").get());
     }
 
