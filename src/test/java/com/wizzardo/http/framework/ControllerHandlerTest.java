@@ -366,6 +366,15 @@ public class ControllerHandlerTest extends WebApplicationTest {
         ONE, TWO, THREE;
     }
 
+    public static class TestParametersPojo {
+        public int i;
+
+        @Override
+        public String toString() {
+            return "i=" + i;
+        }
+    }
+
     public static class TestParametersOtherController extends Controller {
         public Renderer test_string(@Parameter(name = "v") String v) {
             return renderString(String.valueOf(v));
@@ -398,6 +407,10 @@ public class ControllerHandlerTest extends WebApplicationTest {
         public Renderer test_file_opt(@Parameter(name = "v") Optional<File> v) {
             return renderString(v.map(FileTools::text).orElse("default"));
         }
+
+        public Renderer test_pojo(@Parameter(name = "v") TestParametersPojo v) {
+            return renderString(String.valueOf(v));
+        }
     }
 
     @Test
@@ -412,6 +425,7 @@ public class ControllerHandlerTest extends WebApplicationTest {
                 .append("/bytes_opt", controller, "test_bytes_opt")
                 .append("/file", controller, "test_file")
                 .append("/file_opt", controller, "test_file_opt")
+                .append("/pojo", controller, "test_pojo")
         ;
 
         Assert.assertEquals("string", makeRequest("/string").param("v", "string").get().asString());
@@ -430,6 +444,8 @@ public class ControllerHandlerTest extends WebApplicationTest {
         Assert.assertEquals("[1, 2, 3]", makeRequest("/file_opt").addByteArray("v", "[1, 2, 3]".getBytes(), "v").post().asString());
         Assert.assertEquals("default", makeRequest("/bytes_opt").addByteArray("vv", new byte[]{1, 2, 3}, "vv").post().asString());
         Assert.assertEquals("default", makeRequest("/file_opt").addByteArray("vv", "[1, 2, 3]".getBytes(), "vv").post().asString());
+
+        Assert.assertEquals("i=1", makeRequest("/pojo").param("i", "1").get().asString());
     }
 
 
