@@ -315,7 +315,10 @@ public class ParametersHelper {
         Fields<FieldInfo> fields = Fields.getFields(type);
         List<Pair<FieldInfo, Mapper<Request, Object>>> mappers = new ArrayList<>(fields.size());
         for (FieldInfo field : fields) {
-            mappers.add(new Pair<>(field, createParametersMapper(field.field.getName(), null, field.field.getType())));
+            Parameter annotation = field.field.getAnnotation(Parameter.class);
+            String name = !annotation.name().isEmpty() ? annotation.name() : field.field.getName();
+            String def = !annotation.def().isEmpty() ? annotation.def() : null;
+            mappers.add(new Pair<>(field, createParametersMapper(name, def, field.field.getType())));
         }
         return request -> {
             try {
