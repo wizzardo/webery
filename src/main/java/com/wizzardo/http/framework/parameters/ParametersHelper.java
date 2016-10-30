@@ -4,9 +4,13 @@ import com.wizzardo.http.MultiValue;
 import com.wizzardo.http.request.MultiPartEntry;
 import com.wizzardo.http.request.MultiPartFileEntry;
 import com.wizzardo.http.request.Request;
+import com.wizzardo.tools.collections.Pair;
 import com.wizzardo.tools.misc.Mapper;
 import com.wizzardo.tools.misc.Supplier;
+import com.wizzardo.tools.reflection.FieldInfo;
+import com.wizzardo.tools.reflection.Fields;
 
+import javax.swing.*;
 import java.io.File;
 import java.lang.reflect.Array;
 import java.lang.reflect.Modifier;
@@ -115,7 +119,10 @@ public class ParametersHelper {
         String name = getParameterName(parameter);
         Parameter annotation = parameter.getAnnotation(Parameter.class);
         String def = annotation != null ? annotation.def() : null;
+        return createParametersMapper(name, def, type);
+    }
 
+    public static Mapper<Request, Object> createParametersMapper(String name, String def, Class type) {
         Mapper<Mapper<String, Object>, Mapper<Request, Object>> failIfEmpty = mapper -> {
             return request -> {
                 MultiValue multiValue = request.params().get(name);
@@ -126,7 +133,7 @@ public class ParametersHelper {
                     value = def;
 
                 if (value == null || value.isEmpty())
-                    throw new NullPointerException("parameter '" + name + "' it not present");
+                    throw new NullPointerException("parameter '" + name + "' is not present");
 
                 return mapper.map(value);
             };
@@ -301,6 +308,27 @@ public class ParametersHelper {
             }
         }
 
-        throw new IllegalArgumentException("Can't create mapper for parameter '" + name + "' of type '" + type + "'");
+        return createPojoMapper(type);
+    }
+
+    protected static Mapper<Request, Object> createPojoMapper(Class type) {
+        Fields<FieldInfo> fields = Fields.getFields(type);
+        List<Pair<FieldInfo, Mapper<Request, Object>>> mappers = new ArrayList<>(fields.size());
+        for (FieldInfo field : fields) {
+            mappers.add(new Pair<>(field, createParametersMapper(field.field.getName(), null, field.field.getType())));
+        }
+        return request -> {
+            try {
+                Object instance = type.newInstance();
+                for (Pair<FieldInfo, Mapper<Request, Object>> mapper : mappers) {
+                    Object value = mapper.value.map(request);
+                    if (value != null)
+                        mapper.key.field.set(instance, value);
+                }
+                return instance;
+            } catch (InstantiationException | IllegalAccessException e) {
+                throw new IllegalStateException("Cannot create instance of argument type " + type.getCanonicalName(), e);
+            }
+        };
     }
 }
