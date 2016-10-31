@@ -3,6 +3,8 @@ package com.wizzardo.http.framework;
 import com.wizzardo.http.framework.parameters.Parameter;
 import com.wizzardo.http.framework.template.Renderer;
 import com.wizzardo.tools.io.FileTools;
+import com.wizzardo.tools.json.JsonTools;
+import com.wizzardo.tools.misc.With;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -448,6 +450,7 @@ public class ControllerHandlerTest extends WebApplicationTest {
 
         Assert.assertEquals("i=1", makeRequest("/pojo").param("i", "1").get().asString());
         Assert.assertEquals("i=0", makeRequest("/pojo").get().asString());
+        Assert.assertEquals("i=1", makeRequest("/pojo").json(JsonTools.serialize(With.with(new TestParametersPojo(), it -> it.i = 1))).post().asString());
     }
 
 
