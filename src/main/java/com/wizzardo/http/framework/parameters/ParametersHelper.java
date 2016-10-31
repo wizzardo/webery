@@ -1,16 +1,17 @@
 package com.wizzardo.http.framework.parameters;
 
 import com.wizzardo.http.MultiValue;
+import com.wizzardo.http.request.Header;
 import com.wizzardo.http.request.MultiPartEntry;
 import com.wizzardo.http.request.MultiPartFileEntry;
 import com.wizzardo.http.request.Request;
 import com.wizzardo.tools.collections.Pair;
+import com.wizzardo.tools.json.JsonTools;
 import com.wizzardo.tools.misc.Mapper;
 import com.wizzardo.tools.misc.Supplier;
 import com.wizzardo.tools.reflection.FieldInfo;
 import com.wizzardo.tools.reflection.Fields;
 
-import javax.swing.*;
 import java.io.File;
 import java.lang.reflect.Array;
 import java.lang.reflect.Modifier;
@@ -321,6 +322,9 @@ public class ParametersHelper {
             mappers.add(new Pair<>(field, createParametersMapper(name, def, field.field.getType())));
         }
         return request -> {
+            if (request.data() != null && Header.VALUE_APPLICATION_JSON.value.equalsIgnoreCase(request.header(Header.KEY_CONTENT_TYPE)))
+                return JsonTools.parse(request.data(), type);
+
             try {
                 Object instance = type.newInstance();
                 for (Pair<FieldInfo, Mapper<Request, Object>> mapper : mappers) {
