@@ -18,6 +18,13 @@ ext {
     descriptionString = 'Java HTTP-server, based on epoll-lib'
 }
 apply from: 'gradle/sonatype.gradle'
+apply plugin: 'jacoco'
+
+jacocoTestReport {
+    reports {
+        xml.enabled true
+    }
+}
 
 dependencies {
     compile 'com.wizzardo:epoll:0.1'
