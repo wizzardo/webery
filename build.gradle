@@ -47,6 +47,7 @@ task fatJar(type: Jar) {
 
 test {
     testLogging {
-        showStandardStreams = true
+        events "failed"
+        exceptionFormat "full"
     }
 }
