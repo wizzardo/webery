@@ -1,5 +1,6 @@
 package com.wizzardo.http.framework;
 
+import com.wizzardo.http.MultipartHandler;
 import com.wizzardo.http.framework.parameters.Parameter;
 import com.wizzardo.http.framework.template.Renderer;
 import com.wizzardo.tools.io.FileTools;
@@ -429,6 +430,7 @@ public class ControllerHandlerTest extends WebApplicationTest {
                 .append("/file", controller, "test_file")
                 .append("/file_opt", controller, "test_file_opt")
                 .append("/pojo", controller, "test_pojo")
+                .append("/double_multipart", new MultipartHandler(new ControllerHandler<>(controller, "test_bytes")))
         ;
 
         Assert.assertEquals("string", makeRequest("/string").param("v", "string").get().asString());
@@ -451,6 +453,8 @@ public class ControllerHandlerTest extends WebApplicationTest {
         Assert.assertEquals("i=1", makeRequest("/pojo").param("i", "1").get().asString());
         Assert.assertEquals("i=0", makeRequest("/pojo").get().asString());
         Assert.assertEquals("i=1", makeRequest("/pojo").json(JsonTools.serialize(With.with(new TestParametersPojo(), it -> it.i = 1))).post().asString());
+
+        Assert.assertEquals("[1, 2, 3]", makeRequest("/double_multipart").addByteArray("v", new byte[]{1, 2, 3}, "v").post().asString());
     }
 
 

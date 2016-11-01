@@ -62,6 +62,10 @@ public class ControllerHandler<T extends Controller> implements Handler {
 
     @Override
     public Response handle(Request request, Response response) throws IOException {
+        if (request.isMultipart() && !request.isMultiPartDataPrepared()) {
+            return new MultipartHandler(this).handle(request, response);
+        }
+
 //        request.controller(controllerName);
 //        request.action(actionName);
 
@@ -72,10 +76,6 @@ public class ControllerHandler<T extends Controller> implements Handler {
         T c = DependencyFactory.get(controller);
         c.request = request;
         c.response = response;
-
-        if (request.isMultipart()) {
-            return new MultipartHandler((req, resp) -> doHandle(resp, c)).handle(request, response);
-        }
 
         return doHandle(response, c);
     }

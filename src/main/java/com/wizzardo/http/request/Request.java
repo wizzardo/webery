@@ -199,11 +199,18 @@ public class Request<C extends HttpConnection> {
     }
 
     public void entry(String key, MultiPartEntry entry) {
-        multiPartDataPrepared = true;
         if (multiPartEntryMap == null)
             multiPartEntryMap = new HashMap<>();
 
         multiPartEntryMap.put(key, entry);
+    }
+
+    public boolean isMultiPartDataPrepared() {
+        return multiPartDataPrepared;
+    }
+
+    public void setMultiPartDataPrepared() {
+        multiPartDataPrepared = true;
     }
 
     public Collection<MultiPartEntry> entries() {
