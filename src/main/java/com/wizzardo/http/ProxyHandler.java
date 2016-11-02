@@ -223,14 +223,19 @@ public class ProxyHandler implements Handler {
         }
 
         protected void end() {
-            if (srcRequest.header(Header.KEY_CONNECTION).equalsIgnoreCase(Header.VALUE_CLOSE.value))
-                srcRequest.connection().setCloseOnFinishWriting(true);
-
             srcRequest.connection().onFinishingHandling();
             limit = -1;
-            connections.add(this);
+            if (Header.VALUE_CLOSE.value.equalsIgnoreCase(srcRequest.header(Header.KEY_CONNECTION)))
+                srcRequest.connection().setCloseOnFinishWriting(true);
+            else
+                connections.add(this);
         }
 
+        @Override
+        public void close() throws IOException {
+            read(((ByteBufferProvider) Thread.currentThread()));
+            super.close();
+        }
 
         private class CustomReadableByteArray extends ReadableByteArray {
             public CustomReadableByteArray(byte[] bytes) {
