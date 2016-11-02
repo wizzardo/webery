@@ -123,6 +123,23 @@ public class TestDependencies extends WebApplicationTest {
         Assert.assertSame(holder, test);
     }
 
+    public interface SomeInterface {
+    }
+
+    public static class SomeImplementation1 implements SomeInterface, Service {
+    }
+    public static class SomeImplementation2 implements SomeInterface, Service {
+    }
+
+    @Test
+    public void testRegisterManually_2() {
+        DependencyFactory.get().register(SomeInterface.class, SomeImplementation1.class);
+
+        SomeInterface test = DependencyFactory.get(SomeInterface.class);
+        Assert.assertNotNull(test);
+        Assert.assertTrue(test instanceof SomeImplementation1);
+    }
+
     @Test
     public void testCircularDependencies() {
         A a = DependencyFactory.get(A.class);
