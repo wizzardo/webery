@@ -284,6 +284,8 @@ public class ProxyHandler implements Handler {
             for (Map.Entry<String, MultiValue> header : headers.entrySet()) {
                 if (header.getKey().equalsIgnoreCase("Host"))
                     continue;
+                if (header.getKey().equalsIgnoreCase("Connection"))
+                    continue;
 
                 if (header.getValue().size() == 1)
                     requestBuilder.append(header.getKey()).append(": ").append(header.getValue().getValue()).append("\r\n");
