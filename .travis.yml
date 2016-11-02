@@ -3,4 +3,4 @@ sudo: false # faster builds
 jdk:
   - oraclejdk8
 after_success:
- - bash <(curl -s https://codecov.io/bash)
+  - bash <(curl -s https://codecov.io/bash)

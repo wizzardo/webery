@@ -1,3 +1,6 @@
+[![Build Status](https://travis-ci.org/wizzardo/http.svg?branch=master)](https://travis-ci.org/wizzardo/http)
+[![codecov](https://codecov.io/gh/wizzardo/http/branch/master/graph/badge.svg)](https://codecov.io/gh/wizzardo/http)
+
 Java HTTP-server
 =========
 
