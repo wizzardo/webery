@@ -83,6 +83,9 @@ public class WebApplication extends HttpServer<HttpConnection> {
 
     protected void onStart() {
         resourcesTools = createResourceTools();
+        List<Class> classes = resourcesTools.getClasses();
+        DependencyFactory.get().setClasses(classes);
+
         DependencyFactory.get().register(ResourceTools.class, new SingletonDependency<>(resourcesTools));
         DependencyFactory.get().register(UrlMapping.class, new SingletonDependency<>(getUrlMapping()));
         DependencyFactory.get().register(ControllerUrlMapping.class, new SingletonDependency<>(getUrlMapping()));
@@ -101,9 +104,6 @@ public class WebApplication extends HttpServer<HttpConnection> {
         readProfiles(config);
         setupApplication();
         processListener(onSetup);
-
-        List<Class> classes = resourcesTools.getClasses();
-        DependencyFactory.get().setClasses(classes);
 
         TagLib.findTags(classes);
         DependencyFactory.get().register(DecoratorLib.class, new SingletonDependency<>(new DecoratorLib(classes)));
