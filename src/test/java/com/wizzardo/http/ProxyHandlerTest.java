@@ -57,6 +57,7 @@ public class ProxyHandlerTest extends ServerTest {
         proxy.start();
 
         try {
+            Thread.sleep(25);
             writeSocket(data, 0);
             writeSocket(data, 10);
         } catch (Exception e) {
@@ -114,6 +115,7 @@ public class ProxyHandlerTest extends ServerTest {
         proxy.start();
 
         try {
+            Thread.sleep(25);
             Assert.assertEquals("ok", makeRequest("/").header("Connection", "Close").get().asString());
             Assert.assertEquals("ok", makeRequest("/").header("Connection", "Keep-Alive").get().asString());
             Assert.assertEquals("ok", makeRequest("/", port + 1).header("Connection", "Close").get().asString());
@@ -139,6 +141,7 @@ public class ProxyHandlerTest extends ServerTest {
         proxy.start();
 
         try {
+            Thread.sleep(25);
             Assert.assertEquals("null null", makeRequest("/", port + 1).get().asString());
             Assert.assertEquals("foo null", makeRequest("/", port + 1).param("foo", "foo").get().asString());
             Assert.assertEquals("null bar", makeRequest("/", port + 1).param("bar", "bar").get().asString());
