@@ -38,6 +38,9 @@ public class DependencyFactory {
 
     protected Class findImplementation(Class<?> interfase) {
         Class implementation = mappingByClass.get(interfase);
+        if (implementation != null)
+            return implementation;
+
         for (Class<?> cl : classes) {
             if (interfase.isAssignableFrom(cl) && !isAbstract(cl)) {
                 if (implementation != null) {
