@@ -324,5 +324,8 @@ public class HttpConnection<H extends AbstractHttpServer, Q extends Request, S e
 
     public void setCloseOnFinishWriting(boolean closeOnFinishWriting) {
         this.closeOnFinishWriting = closeOnFinishWriting;
+        if (sending == null || sending.isEmpty()) {
+            IOTools.close(this);
+        }
     }
 }

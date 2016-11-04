@@ -223,12 +223,12 @@ public class ProxyHandler implements Handler {
         }
 
         protected void end() {
+            if (srcRequest.header(Header.KEY_CONNECTION).equalsIgnoreCase(Header.VALUE_CLOSE.value))
+                srcRequest.connection().setCloseOnFinishWriting(true);
+
             srcRequest.connection().onFinishingHandling();
             limit = -1;
-            if (Header.VALUE_CLOSE.value.equalsIgnoreCase(srcRequest.header(Header.KEY_CONNECTION)))
-                srcRequest.connection().setCloseOnFinishWriting(true);
-            else
-                connections.add(this);
+            connections.add(this);
         }
 
         @Override
@@ -264,6 +264,7 @@ public class ProxyHandler implements Handler {
         connection.srcRequest = request;
         connection.srcResponse = response;
         connection.responseReader = new ResponseReader();
+        response.async();
 
         final ProxyConnection finalConnection = connection;
         BUILDER_POOL.provide(requestBuilder -> {
@@ -303,7 +304,6 @@ public class ProxyHandler implements Handler {
 
             return null;
         });
-        response.async();
 
         return response;
     }
