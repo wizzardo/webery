@@ -44,15 +44,15 @@ public class TokenFilter implements AuthFilter {
 
         BytesHolder secret = hashes.get(new BytesHolder(data, 0, 16));
         if (secret == null)
-            return returnNotAuthorized(response);
+            return authFilter.filter(request, response);
 
         MD5.create().update(data, 32, 8).update(secret.bytes).asBytes(data, 0);
         if (!BytesHolder.equals(data, 0, 16, data, 16, 16))
-            return returnNotAuthorized(response);
+            return authFilter.filter(request, response);
 
         long time = BytesTools.toLong(data, 32);
         if (System.currentTimeMillis() > time)
-            return returnNotAuthorized(response);
+            return authFilter.filter(request, response);
 
         return true;
     }
