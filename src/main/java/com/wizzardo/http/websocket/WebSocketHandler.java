@@ -137,8 +137,8 @@ public class WebSocketHandler<T extends WebSocketHandler.WebSocketListener> impl
 
         private boolean handleClose() {
             if (tempFrame.isClose()) {
-                connection.setCloseOnFinishWriting(true);
                 sendFrame(tempFrame);
+                connection.setCloseOnFinishWriting(true);
                 tempFrame = null;
                 return true;
             }

@@ -160,11 +160,11 @@ public abstract class AbstractHttpServer<T extends HttpConnection> {
     }
 
     protected void closeConnection(T connection, Status status) {
-        connection.setCloseOnFinishWriting(true);
         connection.getResponse()
                 .status(status)
                 .appendHeader(Header.KV_CONNECTION_CLOSE)
                 .commit(connection, getBufferProvider());
+        connection.setCloseOnFinishWriting(true);
     }
 
     void process(T connection, ByteBufferProvider bufferProvider) {

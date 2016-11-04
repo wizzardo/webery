@@ -49,9 +49,9 @@ public class MultipartHandler implements Handler {
         request.connection().setInputListener(createListener((c) -> {
             request.setMultiPartDataPrepared();
             handler.handle(request, response);
+            response.commit(c);
             if (!c.isKeepAlive())
                 c.setCloseOnFinishWriting(true);
-            response.commit(c);
             c.onFinishingHandling();
         }, length, br));
         response.async();
