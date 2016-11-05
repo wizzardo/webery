@@ -9,6 +9,7 @@ import com.wizzardo.tools.misc.Unchecked;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.Collection;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
@@ -62,6 +63,7 @@ public class MultipartHandler implements Handler {
             if (!c.isKeepAlive())
                 c.setCloseOnFinishWriting(true);
             c.onFinishingHandling();
+            clean(request);
         }, length, br));
         response.async();
         return response;
@@ -73,6 +75,13 @@ public class MultipartHandler implements Handler {
 
     protected interface EntrySetter {
         void set(MultiPartEntry entry);
+    }
+
+    protected void clean(Request request) {
+        Collection<MultiPartEntry> entries = request.entries();
+        for (MultiPartEntry entry : entries) {
+            entry.delete();
+        }
     }
 
     protected InputListener<HttpConnection> createListener(OnFinishProcessing onFinishProcessing, long length, BlockReader br) {
@@ -114,6 +123,7 @@ public class MultipartHandler implements Handler {
 
             boolean checkLimit(long read, HttpConnection c) {
                 if (read > length) {
+                    clean(c.request);
                     c.response.setStatus(Status._413).commit(c);
                     c.setCloseOnFinishWriting(true);
                     return false;
