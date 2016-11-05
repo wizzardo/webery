@@ -3,6 +3,7 @@ package com.wizzardo.http.framework;
 import com.wizzardo.http.MultipartHandler;
 import com.wizzardo.http.framework.parameters.Parameter;
 import com.wizzardo.http.framework.template.Renderer;
+import com.wizzardo.tools.evaluation.Config;
 import com.wizzardo.tools.io.FileTools;
 import com.wizzardo.tools.json.JsonTools;
 import com.wizzardo.tools.misc.With;
@@ -17,6 +18,11 @@ import java.util.*;
  * Created by wizzardo on 02.05.15.
  */
 public class ControllerHandlerTest extends WebApplicationTest {
+
+    @Override
+    protected void configure(Config config) {
+        config.config("server").config("multipart").put("enabled", true);
+    }
 
     public static class HelloController extends Controller {
         public Renderer hello() {

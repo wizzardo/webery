@@ -40,12 +40,14 @@ public class ControllerHandler<T extends Controller> implements Handler {
     protected String controllerName;
     protected String actionName;
     protected CollectionTools.Closure<ReadableData, T> renderer;
+    protected boolean multipartEnabled;
 
     public ControllerHandler(Class<T> controller, String action) {
         this.controller = controller;
         controllerName = Controller.getControllerName(controller);
         actionName = action;
         renderer = createRenderer(controller, action);
+        multipartEnabled = DependencyFactory.get(ServerConfiguration.class).multipart.enabled;
     }
 
     public ControllerHandler(Class<T> controller, String action, CollectionTools.Closure<ReadableData, T> renderer) {
@@ -53,6 +55,7 @@ public class ControllerHandler<T extends Controller> implements Handler {
         this.renderer = renderer;
         controllerName = Controller.getControllerName(controller);
         actionName = action;
+        multipartEnabled = DependencyFactory.get(ServerConfiguration.class).multipart.enabled;
     }
 
     @Override
@@ -62,7 +65,7 @@ public class ControllerHandler<T extends Controller> implements Handler {
 
     @Override
     public Response handle(Request request, Response response) throws IOException {
-        if (request.isMultipart() && !request.isMultiPartDataPrepared()) {
+        if (multipartEnabled && request.isMultipart() && !request.isMultiPartDataPrepared()) {
             return new MultipartHandler(this).handle(request, response);
         }
 

@@ -17,8 +17,9 @@ public class ServerConfiguration implements Configuration {
     public final SslConfig ssl;
     public final BasicAuth basicAuth;
     public final Resources resources;
+    public final Multipart multipart;
 
-    public ServerConfiguration(String hostname, int port, String context, Session session, boolean debugOutput, int ioWorkersCount, int workersCount, long ttl, SslConfig ssl, BasicAuth basicAuth, Resources resources) {
+    public ServerConfiguration(String hostname, int port, String context, Session session, boolean debugOutput, int ioWorkersCount, int workersCount, long ttl, SslConfig ssl, BasicAuth basicAuth, Resources resources, Multipart multipart) {
         this.hostname = hostname;
         this.port = port;
         this.context = context;
@@ -30,10 +31,11 @@ public class ServerConfiguration implements Configuration {
         this.ssl = ssl;
         this.basicAuth = basicAuth;
         this.resources = resources;
+        this.multipart = multipart;
     }
 
     public ServerConfiguration() {
-        this(null, -1, null, null, false, -1, -1, -1, null, null, null);
+        this(null, -1, null, null, false, -1, -1, -1, null, null, null, null);
     }
 
     public static class Session {
@@ -45,6 +47,20 @@ public class ServerConfiguration implements Configuration {
 
         public Session() {
             this(-1);
+        }
+    }
+
+    public static class Multipart {
+        public final long limit;
+        public final boolean enabled;
+
+        public Multipart(int ttl, boolean enabled) {
+            this.limit = ttl;
+            this.enabled = enabled;
+        }
+
+        public Multipart() {
+            this(-1, false);
         }
     }
 

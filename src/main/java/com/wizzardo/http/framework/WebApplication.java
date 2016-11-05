@@ -282,6 +282,10 @@ public class WebApplication extends HttpServer<HttpConnection> {
         resourcesCache.put("maxFileSize", 5 * 1024 * 1024L);
         resourcesCache.put("enabled", true);
         resourcesCache.put("gzip", true);
+
+        Config multipart = server.config("multipart");
+        multipart.put("limit", -1L);
+        multipart.put("enabled", false);
     }
 
     protected void loadEnvironmentVariables(Config config) {

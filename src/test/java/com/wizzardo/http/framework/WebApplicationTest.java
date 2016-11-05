@@ -35,9 +35,14 @@ public class WebApplicationTest extends ServerTest<WebApplication> {
         server.setContext(context);
         server.setWorkersCount(workers);
 
+        server.onLoadConfiguration(app -> configure(app.config));
+
         server.setIoThreadsCount(1);
         server.setEnvironment(Environment.TEST);
         server.start();
+    }
+
+    protected void configure(Config config) {
     }
 
     protected MessageBundle initMessageSource(MessageBundle bundle) {
