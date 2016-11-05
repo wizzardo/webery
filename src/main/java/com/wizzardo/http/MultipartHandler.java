@@ -17,9 +17,15 @@ import java.util.concurrent.atomic.AtomicLong;
 public class MultipartHandler implements Handler {
 
     protected Handler handler;
+    protected final long limit;
+
+    public MultipartHandler(Handler handler, long limit) {
+        this.handler = handler;
+        this.limit = limit;
+    }
 
     public MultipartHandler(Handler handler) {
-        this.handler = handler;
+        this(handler, -1);
     }
 
     @Override
@@ -33,6 +39,9 @@ public class MultipartHandler implements Handler {
             return response.status(Status._400);
 
         long length = request.contentLength();
+        if (length > limit)
+            return response.setStatus(Status._413);
+
         String boundary = request.header(Header.KEY_CONTENT_TYPE);
         boundary = "--" + boundary.substring(boundary.indexOf("boundary=") + "boundary=".length());
         BlockReader br = new BlockReader(boundary.getBytes(), new MultipartConsumer(entry -> {
@@ -67,8 +76,9 @@ public class MultipartHandler implements Handler {
     }
 
     protected InputListener<HttpConnection> createListener(OnFinishProcessing onFinishProcessing, long length, BlockReader br) {
-        AtomicLong read = new AtomicLong();
         return new InputListener<HttpConnection>() {
+            final AtomicLong read = new AtomicLong();
+
             @Override
             public void onReadyToRead(HttpConnection c) {
                 try {
@@ -78,7 +88,8 @@ public class MultipartHandler implements Handler {
                         ByteBufferProvider bufferProvider = (ByteBufferProvider) Thread.currentThread();
                         while ((r = c.read(buffer, bufferProvider)) > 0) {
                             br.process(buffer, 0, r);
-                            read.addAndGet(r);
+                            if (!checkLimit(read.addAndGet(r), c))
+                                return;
                         }
                         if (read.get() != length)
                             return;
@@ -95,8 +106,19 @@ public class MultipartHandler implements Handler {
                 int r = c.getBufferLimit() - c.getBufferPosition();
                 br.process(buffer, c.getBufferPosition(), r);
                 c.resetBuffer();
-                read.addAndGet(r);
+                if (!checkLimit(read.addAndGet(r), c))
+                    return;
+
                 onReadyToRead(c);
+            }
+
+            boolean checkLimit(long read, HttpConnection c) {
+                if (read > length) {
+                    c.response.setStatus(Status._413).commit(c);
+                    c.setCloseOnFinishWriting(true);
+                    return false;
+                }
+                return true;
             }
         };
     }
