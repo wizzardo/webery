@@ -40,7 +40,7 @@ public class MultipartHandler implements Handler {
             return response.status(Status._400);
 
         long length = request.contentLength();
-        if (length > limit)
+        if (length < limit)
             return response.setStatus(Status._413);
 
         String boundary = request.header(Header.KEY_CONTENT_TYPE);
