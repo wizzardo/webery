@@ -66,7 +66,7 @@ public class RequestReader extends HttpHeadersReader {
         request.params = params;
         try {
             request.method = Request.Method.valueOf(method);
-        } catch (IllegalArgumentException e) {
+        } catch (IllegalArgumentException | NullPointerException e) {
             throw new HttpException(e, Status._501);
         }
         request.path = path;
