@@ -2,16 +2,20 @@ package com.wizzardo.http.framework;
 
 import com.wizzardo.http.MultipartHandler;
 import com.wizzardo.http.framework.parameters.Parameter;
+import com.wizzardo.http.framework.parameters.ParametersHelper;
 import com.wizzardo.http.framework.template.Renderer;
 import com.wizzardo.tools.evaluation.Config;
 import com.wizzardo.tools.io.FileTools;
 import com.wizzardo.tools.json.JsonTools;
 import com.wizzardo.tools.misc.With;
+import com.wizzardo.tools.reflection.FieldReflectionFactory;
+import com.wizzardo.tools.reflection.UnsafeTools;
 import org.junit.Assert;
 import org.junit.Test;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.*;
 import java.util.*;
 
 /**
@@ -1007,5 +1011,20 @@ public class ControllerHandlerTest extends WebApplicationTest {
         Assert.assertEquals("ArrayList: [1, 2, 3]", makeRequest("/i").param("v", 1).param("v", 2).param("v", 3).get().asString());
         Assert.assertEquals("ArrayList: [1, 2, 3]", makeRequest("/i_def").param("v", 1).param("v", 2).param("v", 3).get().asString());
         Assert.assertEquals("ArrayList: [4, 5, 6]", makeRequest("/i_def").get().asString());
+    }
+
+    @Test
+    public void test_parameter_has_name() throws IllegalAccessException, InvocationTargetException, InstantiationException, NoSuchFieldException {
+        Constructor<java.lang.reflect.Parameter> parameterConstructor = (Constructor<java.lang.reflect.Parameter>) java.lang.reflect.Parameter.class.getDeclaredConstructors()[0];
+        parameterConstructor.setAccessible(true);
+
+        Method method = (Method) UnsafeTools.getUnsafe().allocateInstance(Method.class);
+
+        java.lang.reflect.Parameter parameter = parameterConstructor.newInstance("fieldName", 0, method, 0);
+
+        new FieldReflectionFactory().create(Executable.class, "hasRealParameterData", true).setBoolean(method, true);
+        new FieldReflectionFactory().create(Executable.class, "parameters", true).setObject(method, Array.newInstance(java.lang.reflect.Parameter.class, 1));
+
+        Assert.assertEquals("fieldName", ParametersHelper.getParameterName(parameter));
     }
 }
