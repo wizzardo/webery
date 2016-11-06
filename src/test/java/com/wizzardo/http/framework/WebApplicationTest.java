@@ -1,6 +1,7 @@
 package com.wizzardo.http.framework;
 
 import com.wizzardo.http.ServerTest;
+import com.wizzardo.http.framework.di.DependencyFactory;
 import com.wizzardo.http.framework.message.MessageBundle;
 import com.wizzardo.tools.evaluation.Config;
 import org.junit.Before;
@@ -12,6 +13,8 @@ public class WebApplicationTest extends ServerTest<WebApplication> {
 
     @Before
     public void setUp() throws NoSuchMethodException, ClassNotFoundException, NoSuchFieldException {
+        DependencyFactory.get().clear();
+
         System.out.println("setUp " + this.getClass().getSimpleName() + "." + name.getMethodName());
         server = new WebApplication() {
             @Override

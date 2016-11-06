@@ -77,6 +77,10 @@ public class DependencyFactory {
         return null;
     }
 
+    public void clear() {
+        dependencies.clear();
+    }
+
     private static class DependencyFactoryHolder {
         private static final DependencyFactory instance = new DependencyFactory();
     }
