@@ -43,7 +43,7 @@ public class Radio extends Tag {
             if (ch.equalsIgnoreCase("true"))
                 append(" checked=\"checked\"");
             else if (!ch.equalsIgnoreCase("false")) {
-                ExpressionHolder checked = asExpression(ch, true);
+                ExpressionHolder checked = asExpression(ch, false);
                 append((model) -> new RenderResult(AsBooleanExpression.toBoolean(checked.getRaw(model)) ? " checked=\"checked\"" : ""));
             }
         }
