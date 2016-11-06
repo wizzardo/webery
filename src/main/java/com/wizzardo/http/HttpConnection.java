@@ -227,6 +227,11 @@ public class HttpConnection<H extends AbstractHttpServer, Q extends Request, S e
             inputListener.onReady(this);
             return false;
         }
+        if (response.status().code > 300) {
+            resetBuffer();
+            setCloseOnFinishWriting(true);
+            return false;
+        }
 
         ready = false;
         inputStream = null;
