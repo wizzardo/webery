@@ -55,4 +55,11 @@ public class RadioTest implements TagTest {
 
         Assert.assertEquals("<input type=\"radio\" name=\"myGroup\" id=\"radio_id\" value=\"5\" style=\"border: 0\"/>\n", result.toString());
     }
+
+    @Test
+    public void test_6() {
+        RenderResult result = prepare("<g:radio name=\"myGroup_${1}\" checked=\"${1>2}\" value=\"${2+2}\"/>").get(new Model());
+
+        Assert.assertEquals("<input type=\"radio\" name=\"myGroup_1\" id=\"myGroup_1\" value=\"4\"/>\n", result.toString());
+    }
 }
