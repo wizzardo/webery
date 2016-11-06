@@ -1027,4 +1027,15 @@ public class ControllerHandlerTest extends WebApplicationTest {
 
         Assert.assertEquals("fieldName", ParametersHelper.getParameterName(parameter));
     }
+
+    static class MethodHolder {
+        void method(Integer parameter) {
+        }
+    }
+
+    @Test
+    public void test_parameter_has_not_name() throws IllegalAccessException, InvocationTargetException, InstantiationException, NoSuchFieldException, NoSuchMethodException {
+        Method method = MethodHolder.class.getDeclaredMethod("method", Integer.class);
+        Assert.assertEquals(null, ParametersHelper.getParameterName(method.getParameters()[0]));
+    }
 }
