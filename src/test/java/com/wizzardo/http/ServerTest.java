@@ -86,6 +86,17 @@ public class ServerTest<S extends HttpServer> {
         context = null;
     }
 
+    public String name() {
+        return name.getMethodName();
+    }
+
+    public String path() {
+        return "/" + name();
+    }
+
+    public String get() {
+        return Unchecked.call(() -> makeRequest(path()).get().asString());
+    }
 
     static class FilterWrapper implements Filter {
         String mapping;
