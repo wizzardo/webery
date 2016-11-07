@@ -189,7 +189,21 @@ public class ViewRenderer extends Renderer {
 
                 template = template.substring(i + 1);
             }
-            l.add(createRenderClosure(dir + path + "_" + template + ".gsp", model, offset));
+            String collection = n.attr("collection");
+            if (collection != null) {
+                Node fakeEach = new Node("g:each")
+                        .attr("in", n.attributes().remove("collection"))
+                        .add(n);
+
+                String var = n.attributes().remove("var");
+                if (var == null)
+                    var = "it";
+
+                n.attr("model", "[" + var + ": it]");
+                return checkTagLib(fakeEach, l, dir, offset, imports);
+            } else {
+                l.add(createRenderClosure(dir + path + "_" + template + ".gsp", model, offset));
+            }
             return true;
         }
 
