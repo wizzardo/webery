@@ -66,29 +66,32 @@ public class ParametersHelper {
     }
 
     public static Mapper<Request, Object> createParametersMapper(java.lang.reflect.Parameter parameter, Type genericType) {
+        String name = getParameterName(parameter);
+        Parameter annotation = parameter.getAnnotation(Parameter.class);
+        String def = annotation != null ? annotation.def() : null;
+        return createParametersMapper(name, def, genericType);
+    }
+
+    public static Mapper<Request, Object> createParametersMapper(String name, String def, Type genericType) {
         if (genericType instanceof Class)
-            return createParametersMapper(parameter, ((Class) genericType));
+            return createParametersMapper(name, def, ((Class) genericType));
 
         if (genericType instanceof ParameterizedType) {
             ParameterizedType type = (ParameterizedType) genericType;
             if (type.getRawType().equals(Optional.class)) {
-                Mapper<Request, Object> mapper = createParametersMapper(parameter, type.getActualTypeArguments()[0]);
+                Mapper<Request, Object> mapper = createParametersMapper(name, def, type.getActualTypeArguments()[0]);
                 return parameters -> Optional.ofNullable(mapper.map(parameters));
             }
             if (Iterable.class.isAssignableFrom((Class<?>) type.getRawType())) {
                 Class subtype = (Class) type.getActualTypeArguments()[0];
-                return createParametersMapper(parameter, createCollection((Class<? extends Iterable>) type.getRawType()), subtype);
+                return createParametersMapper(name, def, createCollection((Class<? extends Iterable>) type.getRawType()), subtype);
             }
         }
 
-        throw new IllegalArgumentException("Can't create mapper for parameter '" + parameter.getName() + "' of type '" + genericType + "'");
+        throw new IllegalArgumentException("Can't create mapper for parameter '" + name + "' of type '" + genericType + "'");
     }
 
-    public static <C extends Collection> Mapper<Request, Object> createParametersMapper(java.lang.reflect.Parameter parameter, Supplier<C> collectionSupplier, Class subtype) {
-        String name = getParameterName(parameter);
-        Parameter annotation = parameter.getAnnotation(Parameter.class);
-        String def = annotation != null ? annotation.def() : null;
-
+    public static <C extends Collection> Mapper<Request, Object> createParametersMapper(String name, String def, Supplier<C> collectionSupplier, Class subtype) {
         if (subtype == Integer.class)
             return new CollectionConstructor<>(name, def, (Supplier<Collection<Integer>>) collectionSupplier, Integer::valueOf);
         if (subtype == Long.class)
@@ -113,14 +116,7 @@ public class ParametersHelper {
             return new CollectionConstructor<>(name, def, collectionSupplier, s -> (Object) Enum.valueOf((Class<? extends Enum>) subtype, s));
 
 
-        throw new IllegalArgumentException("Can't create collection mapper for parameter '" + parameter.getName() + "' with subtype '" + subtype + "'");
-    }
-
-    public static Mapper<Request, Object> createParametersMapper(java.lang.reflect.Parameter parameter, Class type) {
-        String name = getParameterName(parameter);
-        Parameter annotation = parameter.getAnnotation(Parameter.class);
-        String def = annotation != null ? annotation.def() : null;
-        return createParametersMapper(name, def, type);
+        throw new IllegalArgumentException("Can't create collection mapper for parameter '" + name + "' with subtype '" + subtype + "'");
     }
 
     public static Mapper<Request, Object> createParametersMapper(String name, String def, Class type) {
@@ -317,9 +313,15 @@ public class ParametersHelper {
         List<Pair<FieldInfo, Mapper<Request, Object>>> mappers = new ArrayList<>(fields.size());
         for (FieldInfo field : fields) {
             Parameter annotation = field.field.getAnnotation(Parameter.class);
-            String name = !annotation.name().isEmpty() ? annotation.name() : field.field.getName();
-            String def = !annotation.def().isEmpty() ? annotation.def() : null;
-            mappers.add(new Pair<>(field, createParametersMapper(name, def, field.field.getType())));
+            String name = field.field.getName();
+            String def = null;
+            if (annotation != null) {
+                if (!annotation.name().isEmpty())
+                    name = annotation.name();
+                if (!annotation.def().isEmpty())
+                    def = annotation.def();
+            }
+            mappers.add(new Pair<>(field, createParametersMapper(name, def, field.field.getGenericType())));
         }
         return request -> {
             if (request.data() != null && Header.VALUE_APPLICATION_JSON.value.equalsIgnoreCase(request.header(Header.KEY_CONTENT_TYPE)))
