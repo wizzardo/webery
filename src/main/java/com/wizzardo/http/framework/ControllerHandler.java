@@ -121,7 +121,7 @@ public class ControllerHandler<T extends Controller> implements Handler {
                 try {
                     argsMappers[i] = ParametersHelper.createParametersMapper(parameters[i], types[i]);
                 } catch (Exception e) {
-                    throw new IllegalArgumentException("Can't create collection mapper ' in '" + controllerName + "." + actionName + "'", e);
+                    throw new IllegalArgumentException("Can't create parameter mapper ' in '" + controllerName + "." + actionName + "'", e);
                 }
             }
 
