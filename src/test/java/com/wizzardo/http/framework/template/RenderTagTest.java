@@ -27,6 +27,10 @@ public class RenderTagTest extends WebApplicationTest {
         public Renderer test_collection() {
             return renderView();
         }
+
+        public Renderer test_unparsable_model() {
+            return renderView();
+        }
     }
 
     @Test
@@ -86,6 +90,16 @@ public class RenderTagTest extends WebApplicationTest {
                 "        </p>\n" +
                 "    </body>\n" +
                 "</html>\n", get());
+    }
+
+    @Test
+    public void test_unparsable_model() throws IOException {
+        server.getUrlMapping()
+                .append(path(), RenderTagTestController.class, name());
+
+        server.errorHandler((request, response, e) -> response.setBody(e.getClass().getCanonicalName() + ": " + e.getMessage()));
+
+        Assert.assertEquals("java.lang.IllegalArgumentException: Cannot parse 'unparsable' as model attribute", get());
     }
 
 }

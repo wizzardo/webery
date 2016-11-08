@@ -33,6 +33,7 @@ public class HttpServer<T extends HttpConnection> extends AbstractHttpServer<T> 
                     .setBody(request.path() + " not found");
 
     protected ErrorHandler errorHandler = (request, response, e) -> {
+        e.printStackTrace();
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         PrintWriter writer = new PrintWriter(out);
         e.printStackTrace(writer);
@@ -135,7 +136,6 @@ public class HttpServer<T extends HttpConnection> extends AbstractHttpServer<T> 
 
     @Override
     protected void onError(T connection, Exception e) throws Exception {
-        e.printStackTrace();
         errorHandler.handle(connection.request, connection.response, e);
     }
 
