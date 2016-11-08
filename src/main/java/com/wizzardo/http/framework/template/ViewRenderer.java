@@ -222,7 +222,7 @@ public class ViewRenderer extends Renderer {
     }
 
     private static Renderable createRenderClosure(final String pathToView, String params, final String offset) {
-        ExecutableTagHolder.AttributeVariableMapper p = new ExecutableTagHolder.AttributeVariableMapper(params);
+        AttributeVariableMapper p = new AttributeVariableMapper(params);
         CollectionTools.Closure2<RenderResult, String, Map<String, Object>> c = (path, model) -> {
             List<Renderable> l = viewsCache.get(new Pair<>(path, offset));
             RenderResult result = new RenderResult();
