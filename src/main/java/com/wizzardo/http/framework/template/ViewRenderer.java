@@ -222,7 +222,7 @@ public class ViewRenderer extends Renderer {
     }
 
     private static Renderable createRenderClosure(final String pathToView, String params, final String offset) {
-        ExecutableTagHolder.InnerHolderHelper p = new ExecutableTagHolder.InnerHolderHelper(params);
+        ExecutableTagHolder.AttributeVariableMapper p = new ExecutableTagHolder.AttributeVariableMapper(params);
         CollectionTools.Closure2<RenderResult, String, Map<String, Object>> c = (path, model) -> {
             List<Renderable> l = viewsCache.get(new Pair<>(path, offset));
             RenderResult result = new RenderResult();
@@ -235,7 +235,7 @@ public class ViewRenderer extends Renderer {
         return new ExpressionHolder<Object>() {
             @Override
             public RenderResult get(Map<String, Object> model) {
-                Map m = (Map) p.get(model);
+                Map m = (Map) p.map(model);
                 return c.execute(pathToView, m);
             }
         };
