@@ -33,9 +33,9 @@ public class FileTreeHandler<T extends FileTreeHandler.HandlerContext> implement
     protected static final String ORDER_ASC = "asc";
     protected static final String ORDER_DESC = "desc";
 
-    private String prefix;
-    private String workDirPath;
-    private File workDir;
+    protected String prefix;
+    protected String workDirPath;
+    protected File workDir;
     protected boolean showFolder = true;
     protected final String name;
     protected RangeResponseHelper rangeResponseHelper = new RangeResponseHelper();
