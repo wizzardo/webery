@@ -12,24 +12,14 @@ import java.util.regex.Pattern;
  * Created by wizzardo on 08/11/16.
  */
 class AttributeVariableMapper implements Mapper<Map<String, Object>, Object> {
-    private String string;
-    private volatile boolean prepared = false;
     private Expression expression;
 
     public AttributeVariableMapper(String string) {
-        this.string = string;
+        expression = EvalTools.prepare(prepare(string));
     }
 
     @Override
     public Object map(Map<String, Object> model) {
-        if (!prepared) {
-            synchronized (this) {
-                if (!prepared) {
-                    expression = EvalTools.prepare(prepare(string), model);
-                    prepared = true;
-                }
-            }
-        }
         return expression.get(model);
     }
 
