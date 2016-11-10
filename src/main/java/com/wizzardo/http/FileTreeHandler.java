@@ -131,11 +131,7 @@ public class FileTreeHandler<T extends FileTreeHandler.HandlerContext> implement
     }
 
     protected String getCanonicalPath(File file) {
-        try {
-            return file.getCanonicalPath();
-        } catch (IOException e) {
-            throw Unchecked.rethrow(e);
-        }
+        return Unchecked.call(file::getCanonicalPath);
     }
 
     protected Tag createHeader(File dir, Tag holder) {
