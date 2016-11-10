@@ -6,6 +6,7 @@ import org.junit.Test;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Comparator;
 
 /**
  * Created by wizzardo on 09/11/16.
@@ -71,6 +72,38 @@ public class FileTreeHandlerTest extends ServerTest {
         FileTreeHandler handler = new FileTreeHandler("/", "");
         Assert.assertEquals("FileTreeHandlerTest/", handler.generateUrl(testDir, null));
         Assert.assertEquals("foo", handler.generateUrl(new File(testDir, "foo"), null));
+    }
+
+    @Test
+    public void test_sort() throws InterruptedException {
+        FileTreeHandler<FileTreeHandler.HandlerContext> handler = new FileTreeHandler<>("/", "");
+        File dir1 = new File(testDir, "dir1");
+        dir1.mkdirs();
+        File dir2 = new File(testDir, "dir2");
+        dir2.mkdirs();
+        File file2 = new File(testDir, " file2");
+        FileTools.text(file2, "foo");
+        Thread.sleep(1001);
+        File file1 = new File(testDir, " file1");
+        FileTools.text(file1, "foobar");
+
+        Comparator<File> comparator;
+        comparator = handler.createFileComparator(1, false, false);
+
+        Assert.assertEquals(-1, comparator.compare(dir1, file1));
+        Assert.assertEquals(1, comparator.compare(file1, dir1));
+        Assert.assertEquals(-1, comparator.compare(dir1, dir2));
+        Assert.assertEquals(1, comparator.compare(dir2, dir1));
+
+        comparator = handler.createFileComparator(1, true, false);
+        Assert.assertEquals(1, comparator.compare(file1, file2));
+        Assert.assertEquals(-1, comparator.compare(file2, file1));
+        Assert.assertEquals(0, comparator.compare(file1, file1));
+
+        comparator = handler.createFileComparator(1, false, true);
+        Assert.assertEquals(1, comparator.compare(file1, file2));
+        Assert.assertEquals(-1, comparator.compare(file2, file1));
+        Assert.assertEquals(0, comparator.compare(file1, file1));
     }
 
     @Test

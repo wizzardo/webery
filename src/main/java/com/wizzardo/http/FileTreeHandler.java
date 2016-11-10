@@ -12,10 +12,10 @@ import com.wizzardo.tools.misc.DateIso8601;
 import com.wizzardo.tools.misc.Unchecked;
 
 import java.io.File;
-import java.io.IOException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.regex.Pattern;
 
@@ -177,36 +177,37 @@ public class FileTreeHandler<T extends FileTreeHandler.HandlerContext> implement
         String sort = request.paramWithDefault("sort", "name");
         String order = request.paramWithDefault("order", "asc");
 
-        int orderInt = order.equals("asc") ? 1 : -1;
-        int sortInt = sort.equals("modified") ? 3 : sort.equals("size") ? 2 : 1;
-
-        Arrays.sort(files, (o1, o2) -> {
-            if (o1.isDirectory() && !o2.isDirectory())
-                return -1;
-
-            if (o2.isDirectory() && !o1.isDirectory())
-                return 1;
-
-            if (sortInt == 3) {
-                int result = Long.compare(o1.lastModified(), o2.lastModified());
-                if (result != 0)
-                    return result * orderInt;
-            }
-
-            if (sortInt == 2) {
-                int result = Long.compare(o1.length(), o2.length());
-                if (result != 0)
-                    return result * orderInt;
-            }
-
-            return o1.getName().compareTo(o2.getName()) * orderInt;
-        });
+        Arrays.sort(files, createFileComparator(order.equals("asc") ? 1 : -1, sort.equals("modified"), sort.equals("size")));
 
         if (!path.endsWith("/"))
             path += '/';
 
         T handlerContext = createHandlerContext(path, request);
         return render(path, dir, files, sort, order, handlerContext);
+    }
+
+    protected Comparator<File> createFileComparator(int order, boolean sortLastModified, boolean sortSize) {
+        return (o1, o2) -> {
+            if (o1.isDirectory() && !o2.isDirectory())
+                return -1;
+
+            if (o2.isDirectory() && !o1.isDirectory())
+                return 1;
+
+            if (sortLastModified) {
+                int result = Long.compare(o1.lastModified(), o2.lastModified());
+                if (result != 0)
+                    return result * order;
+            }
+
+            if (sortSize) {
+                int result = Long.compare(o1.length(), o2.length());
+                if (result != 0)
+                    return result * order;
+            }
+
+            return o1.getName().compareTo(o2.getName()) * order;
+        };
     }
 
     protected Tag render(String path, File dir, File[] files, String sort, String order, T handlerContext) {
