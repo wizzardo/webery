@@ -13,6 +13,19 @@ import java.io.IOException;
 public class FileTreeHandlerTest extends ServerTest {
     File testDir;
 
+    @Override
+    public void setUp() throws NoSuchMethodException, ClassNotFoundException, NoSuchFieldException {
+        super.setUp();
+        testDir = new File(FileTreeHandlerTest.class.getSimpleName());
+        testDir.mkdirs();
+    }
+
+    @Override
+    public void tearDown() throws InterruptedException {
+        super.tearDown();
+        FileTools.deleteRecursive(testDir);
+    }
+
     @Test
     public void test_prefix() {
         FileTreeHandler handler;
@@ -34,6 +47,15 @@ public class FileTreeHandlerTest extends ServerTest {
 
         handler = new FileTreeHandler("/", "/prefix");
         Assert.assertEquals("/prefix", handler.prefix);
+    }
+
+    @Test
+    public void test_formatFileSize() {
+        FileTreeHandler handler = new FileTreeHandler("/", "");
+        Assert.assertEquals("1", handler.formatFileSize(1));
+        Assert.assertEquals("1K", handler.formatFileSize(1024));
+        Assert.assertEquals("1M", handler.formatFileSize(1024 * 1024));
+        Assert.assertEquals("1G", handler.formatFileSize(1024 * 1024 * 1024));
     }
 
     @Test
@@ -76,18 +98,5 @@ public class FileTreeHandlerTest extends ServerTest {
         handler = new FileTreeHandler(testDir, "");
         FileTools.text(new File(testDir, "foo"), "bar");
         Assert.assertEquals("bar", makeRequest("/" + context + "/foo").get().asString());
-    }
-
-    @Override
-    public void setUp() throws NoSuchMethodException, ClassNotFoundException, NoSuchFieldException {
-        super.setUp();
-        testDir = new File(FileTreeHandlerTest.class.getSimpleName());
-        testDir.mkdirs();
-    }
-
-    @Override
-    public void tearDown() throws InterruptedException {
-        super.tearDown();
-        FileTools.deleteRecursive(testDir);
     }
 }
