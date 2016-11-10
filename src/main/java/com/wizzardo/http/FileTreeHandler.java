@@ -239,7 +239,7 @@ public class FileTreeHandler<T extends FileTreeHandler.HandlerContext> implement
         return encodeName(file.getName()) + (file.isDirectory() ? "/" : "");
     }
 
-    private String encodeName(String name) {
+    protected String encodeName(String name) {
         return Unchecked.call(() -> URLEncoder.encode(name, "utf-8").replace("+", "%20"));
     }
 
