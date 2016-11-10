@@ -14,7 +14,7 @@ public class ReadableByteArrayPool {
             .queue(PoolBuilder.createThreadLocalQueueSupplier())
             .supplier(() -> new PooledReadableByteArray(new byte[10240]))
             .holder((pool, value) -> value.holder = new SoftHolder<>(pool, value))
-            .resetter(it -> it.unread((int) it.complete()))
+            .resetter(PooledReadableByteArray::reset)
             .build();
 
     private static class SoftHolder<T> implements Holder<T> {
@@ -61,6 +61,11 @@ public class ReadableByteArrayPool {
         @Override
         public void close() throws IOException {
             holder.close();
+        }
+
+        public void reset() {
+            length = bytes.length;
+            position = 0;
         }
     }
 
