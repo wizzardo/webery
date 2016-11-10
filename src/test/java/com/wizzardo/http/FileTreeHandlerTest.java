@@ -59,6 +59,14 @@ public class FileTreeHandlerTest extends ServerTest {
     }
 
     @Test
+    public void test_encode() {
+        FileTreeHandler handler = new FileTreeHandler("/", "");
+        Assert.assertEquals("foo", handler.encodeName("foo"));
+        Assert.assertEquals("foo%20bar", handler.encodeName("foo bar"));
+        Assert.assertEquals("%D1%82%D0%B5%D1%81%D1%82", handler.encodeName("тест"));
+    }
+
+    @Test
     public void test_handle() throws IOException, InterruptedException, NoSuchMethodException, NoSuchFieldException, ClassNotFoundException {
         FileTools.text(new File(testDir, "foo"), "bar");
 
