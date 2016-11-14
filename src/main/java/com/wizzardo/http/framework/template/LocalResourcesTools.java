@@ -96,12 +96,7 @@ public class LocalResourcesTools implements ResourceTools {
     }
 
     public String getResourceAsString(String path) {
-        try {
-            return new String(IOTools.bytes(getResource(path)), StandardCharsets.UTF_8);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return null;
+        return Unchecked.ignore(() -> new String(IOTools.bytes(getResource(path)), StandardCharsets.UTF_8));
     }
 
     @Override
