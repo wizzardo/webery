@@ -1,12 +1,14 @@
 package com.wizzardo.http;
 
 import com.wizzardo.tools.io.FileTools;
+import com.wizzardo.tools.misc.DateIso8601;
 import org.junit.Assert;
 import org.junit.Test;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.Comparator;
+import java.util.Date;
 
 /**
  * Created by wizzardo on 09/11/16.
@@ -146,5 +148,26 @@ public class FileTreeHandlerTest extends ServerTest {
         handler = new FileTreeHandler(testDir, "");
         FileTools.text(new File(testDir, "foo"), "bar");
         Assert.assertEquals("bar", makeRequest("/" + context + "/foo").get().asString());
+    }
+
+    @Test
+    public void test_handle_dir() throws IOException, InterruptedException, NoSuchMethodException, NoSuchFieldException, ClassNotFoundException {
+        File subDir = new File(testDir, "sub");
+        subDir.mkdirs();
+
+        FileTools.text(new File(subDir, "foo"), "foo");
+        FileTools.text(new File(subDir, "bar"), "bar");
+
+        handler = new FileTreeHandler(testDir, "");
+        Assert.assertEquals("<!DOCTYPE html><html><header><meta charset=\"utf-8\">" +
+                "<title>/sub/</title>" +
+                "</meta></header>" +
+                "<body>" +
+                "<h1><a href=\"/\">root: </a><a href=\"/\"></a>/<a href=\"/sub/\">sub</a>/</h1>" +
+                "<table border=\"0\">" +
+                "<tr><th><a href=\"/sub/?sort=name&order=desc\">Name</a></th><th><a href=\"/sub/?sort=modified&order=desc\">Last modified</a></th><th><a href=\"/sub/?sort=size&order=desc\">Size</a></th></tr>\n" +
+                "<tr><td><a href=\"bar\">bar</a></td><td>" + DateIso8601.format(new Date(new File(subDir, "bar").lastModified())) + "</td><td align=\"right\">3</td></tr>\n" +
+                "<tr><td><a href=\"foo\">foo</a></td><td>" + DateIso8601.format(new Date(new File(subDir, "foo").lastModified())) + "</td><td align=\"right\">3</td></tr>\n" +
+                "</table></body></html>", makeRequest("/sub").get().asString());
     }
 }
