@@ -136,54 +136,38 @@ public class LocalResourcesTools implements ResourceTools {
         return classpathFilters;
     }
 
+    protected final static String[] classpathFiltersNotEndsWith = new String[]{
+            "/jre/lib/charsets.jar",
+            "/jre/lib/jfxswt.jar",
+            "/jre/lib/resources.jar",
+            "/jre/lib/jsse.jar",
+            "/jre/lib/rt.jar",
+            "/jre/lib/jce.jar",
+            "/jre/lib/management-agent.jar",
+            "/jre/lib/javaws.jar",
+            "/jre/lib/plugin.jar",
+            "/jre/lib/jfr.jar",
+            "/jre/lib/deploy.jar",
+            "/jre/lib/ext/sunjce_provider.jar",
+            "/jre/lib/ext/sunec.jar",
+            "/jre/lib/ext/localedata.jar",
+            "/jre/lib/ext/jfxrt.jar",
+            "/jre/lib/ext/dnsns.jar",
+            "/jre/lib/ext/cldrdata.jar",
+            "/jre/lib/ext/zipfs.jar",
+            "/jre/lib/ext/nashorn.jar",
+            "/jre/lib/ext/sunpkcs11.jar",
+            "/jre/lib/ext/jaccess.jar",
+            "/lib/idea_rt.jar",
+            "/plugins/Groovy/lib/agent/gragent.jar",
+    };
+
     protected boolean filterClasspath(File file) {
         String abs = file.getAbsolutePath();
-        if (abs.endsWith("/jre/lib/charsets.jar"))
-            return false;
-        if (abs.endsWith("/jre/lib/jfxswt.jar"))
-            return false;
-        if (abs.endsWith("/jre/lib/resources.jar"))
-            return false;
-        if (abs.endsWith("/jre/lib/jsse.jar"))
-            return false;
-        if (abs.endsWith("/jre/lib/rt.jar"))
-            return false;
-        if (abs.endsWith("/jre/lib/jce.jar"))
-            return false;
-        if (abs.endsWith("/jre/lib/management-agent.jar"))
-            return false;
-        if (abs.endsWith("/jre/lib/javaws.jar"))
-            return false;
-        if (abs.endsWith("/jre/lib/plugin.jar"))
-            return false;
-        if (abs.endsWith("/jre/lib/jfr.jar"))
-            return false;
-        if (abs.endsWith("/jre/lib/deploy.jar"))
-            return false;
-        if (abs.endsWith("/jre/lib/ext/sunjce_provider.jar"))
-            return false;
-        if (abs.endsWith("/jre/lib/ext/sunec.jar"))
-            return false;
-        if (abs.endsWith("/jre/lib/ext/localedata.jar"))
-            return false;
-        if (abs.endsWith("/jre/lib/ext/jfxrt.jar"))
-            return false;
-        if (abs.endsWith("/jre/lib/ext/dnsns.jar"))
-            return false;
-        if (abs.endsWith("/jre/lib/ext/cldrdata.jar"))
-            return false;
-        if (abs.endsWith("/jre/lib/ext/zipfs.jar"))
-            return false;
-        if (abs.endsWith("/jre/lib/ext/nashorn.jar"))
-            return false;
-        if (abs.endsWith("/jre/lib/ext/sunpkcs11.jar"))
-            return false;
-        if (abs.endsWith("/jre/lib/ext/jaccess.jar"))
-            return false;
-        if (abs.endsWith("/lib/idea_rt.jar"))
-            return false;
-        if (abs.endsWith("/plugins/Groovy/lib/agent/gragent.jar"))
-            return false;
+        for (String s : classpathFiltersNotEndsWith) {
+            if (abs.endsWith(s))
+                return false;
+        }
 
         return true;
     }
