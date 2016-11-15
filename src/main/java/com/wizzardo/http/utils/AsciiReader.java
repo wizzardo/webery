@@ -28,7 +28,7 @@ public class AsciiReader {
 
     public static String read(byte[] bytes, int offset, int length, int hash) {
 //            return read(bytes, offset, length);
-        if (length == 0)
+        if (length <= 0)
             return new String();
 
         char[] data = new char[length];
