@@ -25,6 +25,7 @@ public class SimpleWebSocketClient extends Thread {
     protected volatile int bufferOffset = 0;
     protected volatile boolean closed = false;
     protected Message message = new Message();
+    protected Socket socket;
 
     public static class Request {
         private URI uri;
@@ -109,9 +110,9 @@ public class SimpleWebSocketClient extends Thread {
     }
 
     private void handShake(Request request) throws IOException {
-        Socket s = new Socket(request.host(), request.port());
-        in = s.getInputStream();
-        out = s.getOutputStream();
+        socket = new Socket(request.host(), request.port());
+        in = socket.getInputStream();
+        out = socket.getOutputStream();
 
         out.write(request.build().getBytes());
         out.flush();
@@ -130,12 +131,12 @@ public class SimpleWebSocketClient extends Thread {
 
     @Override
     public void run() {
-        while (true) {
-            try {
+        try {
+            while (true) {
                 waitForMessage();
-            } catch (IOException e) {
-                e.printStackTrace();
             }
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 
@@ -208,6 +209,10 @@ public class SimpleWebSocketClient extends Thread {
 
     public void send(byte[] data) throws IOException {
         send(data, 0, data.length);
+    }
+
+    public void send(Frame frame) throws IOException {
+        frame.write(out);
     }
 
     public void send(byte[] data, int offset, int length) throws IOException {

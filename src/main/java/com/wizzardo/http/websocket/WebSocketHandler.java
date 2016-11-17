@@ -115,7 +115,7 @@ public class WebSocketHandler<T extends WebSocketHandler.WebSocketListener> impl
                     }
                 }
 
-            } catch (IOException e) {
+            } catch (Exception e) {
                 e.printStackTrace();
                 try {
                     connection.close();

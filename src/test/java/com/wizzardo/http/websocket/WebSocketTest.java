@@ -6,6 +6,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import java.io.IOException;
+import java.net.SocketException;
 import java.net.URISyntaxException;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicReference;
@@ -93,6 +94,34 @@ public class WebSocketTest extends ServerTest {
         client.send(data);
         client.waitForMessage();
         Assert.assertEquals(MD5.create().update(data).asString(), md5Holder.get());
+    }
+
+    @Test
+    public void limitTest() throws IOException, URISyntaxException, InterruptedException {
+        handler = new WebSocketHandler() {
+            @Override
+            public void onMessage(WebSocketListener listener, Message message) {
+                listener.sendMessage(message);
+            }
+        };
+
+        SimpleWebSocketClient client = new SimpleWebSocketClient("ws://localhost:" + getPort()) {
+            @Override
+            public void onMessage(Message message) {
+                throw new IllegalArgumentException();
+            }
+        };
+        byte[] data;
+
+        data = new byte[1024 * 1024];
+        ThreadLocalRandom.current().nextBytes(data);
+        client.send(data);
+        try {
+            client.waitForMessage();
+            Assert.assertTrue(false);
+        } catch (SocketException e) {
+            Assert.assertEquals("Connection reset", e.getMessage());
+        }
     }
 
     @Test
