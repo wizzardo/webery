@@ -74,7 +74,7 @@ public class RequestReader extends HttpHeadersReader {
         request.protocol = protocol;
 
         if (request.contentLength() > 0
-                && request.contentLength() < POST_BODY_SIMPLE_LIMIT
+                && request.contentLength() < request.connection().getServer().getPostBodyLimit()
                 && !request.isMultipart())
             request.body = new SimpleRequestBody((int) request.contentLength());
         return request;

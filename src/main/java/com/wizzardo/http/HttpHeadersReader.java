@@ -13,7 +13,6 @@ import java.util.Map;
  */
 public abstract class HttpHeadersReader {
 
-    protected static final int POST_BODY_SIMPLE_LIMIT = 2 * 1024 * 1024;
     protected static final ByteTree headersTree = new ByteTree();
     protected byte[] buffer;
     protected int r;

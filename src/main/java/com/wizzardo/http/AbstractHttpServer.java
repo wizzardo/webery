@@ -19,6 +19,7 @@ public abstract class AbstractHttpServer<T extends HttpConnection> {
     protected volatile BlockingQueue<T> queue = new LinkedBlockingQueue<>();
     protected volatile int workersCount;
     protected volatile int sessionTimeoutSec = 30 * 60;
+    protected int postBodyLimit = 2 * 1024 * 1024;
     protected String context;
     protected final EpollServer<T> server;
 
@@ -123,6 +124,14 @@ public abstract class AbstractHttpServer<T extends HttpConnection> {
 
     public void close() {
         server.close();
+    }
+
+    public int getPostBodyLimit() {
+        return postBodyLimit;
+    }
+
+    public void setPostBodyLimit(int postBodyLimit) {
+        this.postBodyLimit = postBodyLimit;
     }
 
     protected T createConnection(int fd, int ip, int port) {
