@@ -20,6 +20,7 @@ public abstract class AbstractHttpServer<T extends HttpConnection> {
     protected volatile int workersCount;
     protected volatile int sessionTimeoutSec = 30 * 60;
     protected int postBodyLimit = 2 * 1024 * 1024;
+    protected int websocketFrameLengthLimit = 64 * 1024;
     protected String context;
     protected final EpollServer<T> server;
 
@@ -132,6 +133,14 @@ public abstract class AbstractHttpServer<T extends HttpConnection> {
 
     public void setPostBodyLimit(int postBodyLimit) {
         this.postBodyLimit = postBodyLimit;
+    }
+
+    public int getWebsocketFrameLengthLimit() {
+        return websocketFrameLengthLimit;
+    }
+
+    public void setWebsocketFrameLengthLimit(int websocketFrameLengthLimit) {
+        this.websocketFrameLengthLimit = websocketFrameLengthLimit;
     }
 
     protected T createConnection(int fd, int ip, int port) {

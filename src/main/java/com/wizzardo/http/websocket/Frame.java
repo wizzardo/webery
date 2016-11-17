@@ -39,6 +39,7 @@ class Frame {
     private int offset;
     private int read;
     private boolean readHeaders = false;
+    protected int limit;
 
     public Frame(byte[] data, int offset, int length) {
         byte[] bytes = new byte[MAX_HEADER_LENGTH + length];
@@ -52,7 +53,12 @@ class Frame {
         this.opcode = opCode;
     }
 
+    public Frame(int limit) {
+        this.limit = limit;
+    }
+
     public Frame() {
+        this(Integer.MAX_VALUE);
     }
 
     @Override
@@ -171,6 +177,8 @@ class Frame {
                                 + ((bytes[offset + 8] & 0xff) << 8)
                                 + (bytes[offset + 9] & 0xff);
                 r += 8;
+                if (this.length > limit)
+                    throw new IllegalStateException("Max frame length is exceeded");
             }
             if (masked) {
                 maskingKey = new byte[]{bytes[offset + r], bytes[offset + r + 1], bytes[offset + r + 2], bytes[offset + r + 3]};

@@ -83,7 +83,7 @@ public class WebSocketHandler<T extends WebSocketHandler.WebSocketListener> impl
                             if (!Frame.hasHeaders(buffer, 0, read))
                                 continue outer;
 
-                            tempFrame = new Frame();
+                            tempFrame = new Frame(connection.getServer().getWebsocketFrameLengthLimit());
                         }
 
                         int k = tempFrame.read(buffer, 0, read);
