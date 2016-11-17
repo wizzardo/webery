@@ -15,12 +15,13 @@ public class ServerConfiguration implements Configuration {
     public final int workersCount;
     public final long ttl;
     public final int postBodyLimit;
+    public final int websocketFrameLengthLimit;
     public final SslConfig ssl;
     public final BasicAuth basicAuth;
     public final Resources resources;
     public final Multipart multipart;
 
-    public ServerConfiguration(String hostname, int port, String context, Session session, boolean debugOutput, int ioWorkersCount, int workersCount, long ttl, int postBodyLimit, SslConfig ssl, BasicAuth basicAuth, Resources resources, Multipart multipart) {
+    public ServerConfiguration(String hostname, int port, String context, Session session, boolean debugOutput, int ioWorkersCount, int workersCount, long ttl, int postBodyLimit, int websocketFrameLengthLimit, SslConfig ssl, BasicAuth basicAuth, Resources resources, Multipart multipart) {
         this.hostname = hostname;
         this.port = port;
         this.context = context;
@@ -30,6 +31,7 @@ public class ServerConfiguration implements Configuration {
         this.workersCount = workersCount;
         this.ttl = ttl;
         this.postBodyLimit = postBodyLimit;
+        this.websocketFrameLengthLimit = websocketFrameLengthLimit;
         this.ssl = ssl;
         this.basicAuth = basicAuth;
         this.resources = resources;
@@ -37,7 +39,7 @@ public class ServerConfiguration implements Configuration {
     }
 
     public ServerConfiguration() {
-        this(null, -1, null, null, false, -1, -1, -1, -1, null, null, null, null);
+        this(null, -1, null, null, false, -1, -1, -1, -1, -1, null, null, null, null);
     }
 
     public static class Session {
