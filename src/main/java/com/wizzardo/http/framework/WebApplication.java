@@ -149,6 +149,7 @@ public class WebApplication extends HttpServer<HttpConnection> {
         super.setHostname(server.hostname);
         super.setPort(server.port);
         super.setDebugOutput(server.debugOutput);
+        super.setPostBodyLimit(server.postBodyLimit);
         super.setSessionTimeout(server.session.ttl);
         setContext(server.context);
 
@@ -268,6 +269,7 @@ public class WebApplication extends HttpServer<HttpConnection> {
         server.put("hostname", "0.0.0.0");
         server.put("port", 8080);
         server.put("debugOutput", false);
+        server.put("postBodyLimit", 2 * 1024 * 1024);
 
         Config session = server.config("session");
         session.put("ttl", 30 * 60);
