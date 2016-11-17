@@ -23,7 +23,7 @@ public abstract class Dependency<T> {
         this.clazz = clazz;
     }
 
-    protected static Cache<Class, List<FieldReflection>> dependencies = new Cache<>(0, clazz -> {
+    protected static Cache<Class, List<FieldReflection>> dependencies = new Cache<>("class-fields", 0, clazz -> {
         ArrayList<FieldReflection> l = new ArrayList<>();
         FieldReflectionFactory reflectionFactory = new FieldReflectionFactory();
         while (clazz != null) {

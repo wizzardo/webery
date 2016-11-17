@@ -25,7 +25,7 @@ public class Session extends ConcurrentHashMap {
     }
 
     static void createSessionsHolder(long ttl) {
-        cache = new Cache<>(ttl);
+        cache = new Cache<>("sessions", ttl);
     }
 
     public static Session find(String id) {

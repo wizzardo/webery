@@ -25,7 +25,7 @@ public class ViewRenderer extends Renderer {
     private String template;
 
     private static Pattern p = Pattern.compile("\\$\\{(.+)\\}|\\$([\\w]+)");
-    private static Cache<Pair<String, String>, RenderableList> viewsCache = new Cache<>(10, s -> prepareView(s.key, s.value));
+    private static Cache<Pair<String, String>, RenderableList> viewsCache = new Cache<>("views", 10, s -> prepareView(s.key, s.value));
 
     public ViewRenderer(Model model, String controller, String view) {
         super(model);
@@ -82,7 +82,7 @@ public class ViewRenderer extends Renderer {
         return l;
     }
 
-    private static Cache<Pair<String, String>, RenderableList> templatesCache = new Cache<>(1, s -> {
+    private static Cache<Pair<String, String>, RenderableList> templatesCache = new Cache<>("templates", 1, s -> {
         RenderableList l = new RenderableList();
         prepare(s.key, l, null);
         return l;

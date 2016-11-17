@@ -19,7 +19,7 @@ public class DependencyFactory {
     private Map<Class, Class> mappingByClass = new HashMap<>();
     private Map<String, Dependency> mappingByName = new HashMap<>();
 
-    private Cache<Class<?>, Dependency> dependencies = new Cache<>(0, clazz -> {
+    private Cache<Class<?>, Dependency> dependencies = new Cache<>("dependencies", 0, clazz -> {
         Injectable injectable = getAnnotation(clazz, Injectable.class);
         if (injectable != null && !isAbstract(clazz))
             return injectable.scope().createDependency(clazz);
