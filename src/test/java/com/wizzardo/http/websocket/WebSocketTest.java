@@ -61,6 +61,7 @@ public class WebSocketTest extends ServerTest {
 
     @Test
     public void echoDifferentSizeTest() throws IOException, URISyntaxException, InterruptedException {
+        server.setWebsocketFrameLengthLimit(1024 * 1024);
         handler = new WebSocketHandler() {
             @Override
             public void onMessage(WebSocketListener listener, Message message) {
