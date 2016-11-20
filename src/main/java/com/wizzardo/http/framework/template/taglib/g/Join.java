@@ -5,7 +5,6 @@ import com.wizzardo.http.framework.template.ExpressionHolder;
 import com.wizzardo.http.framework.template.RenderResult;
 import com.wizzardo.http.framework.template.Tag;
 import com.wizzardo.tools.collections.CollectionTools;
-import com.wizzardo.tools.collections.MapTools;
 
 import java.util.Collection;
 import java.util.Map;
@@ -16,7 +15,7 @@ import java.util.Map;
 public class Join extends Tag {
     public Tag init(Map<String, String> attrs, Body body, String offset) {
         ExpressionHolder<Collection> in = asExpression(attrs, "in", false, true);
-        String delimiter = MapTools.getString(attrs, "delimiter", ", ");
+        String delimiter = attrs.getOrDefault("delimiter", ", ");
 
         add(model -> {
             Collection src = in.getRaw(model);
