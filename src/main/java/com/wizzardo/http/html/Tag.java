@@ -1,7 +1,5 @@
 package com.wizzardo.http.html;
 
-import com.wizzardo.tools.collections.CollectionTools;
-import com.wizzardo.tools.misc.Supplier;
 import com.wizzardo.tools.misc.Unchecked;
 
 import java.util.*;
@@ -111,6 +109,14 @@ public class Tag {
         public void render(Renderer renderer) {
             for (Tag tag : tags)
                 tag.render(renderer);
+        }
+
+        public Tag get(int i) {
+            return tags.get(i);
+        }
+
+        public int size() {
+            return tags.size();
         }
     }
 
