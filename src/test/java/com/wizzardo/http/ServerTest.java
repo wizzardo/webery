@@ -164,7 +164,7 @@ public class ServerTest<S extends HttpServer> {
         return null;
     }
 
-    protected void checkException(Runnable runnable, Class<? extends Exception> exceptionClass, String message) {
+    public static void checkException(Runnable runnable, Class<? extends Exception> exceptionClass, String message) {
         boolean b = false;
         try {
             runnable.run();
