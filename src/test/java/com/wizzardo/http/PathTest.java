@@ -21,6 +21,7 @@ public class PathTest {
         path = parse("/");
         Assert.assertEquals("/", path.toString());
         Assert.assertEquals(0, path.length());
+        Assert.assertEquals(null, path.getPart(0));
         Assert.assertEquals(true, path.isEndsWithSlash());
 
         path = parse("/foo");
