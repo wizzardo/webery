@@ -1,6 +1,7 @@
 package com.wizzardo.http;
 
 import com.wizzardo.http.mapping.Path;
+import com.wizzardo.tools.misc.ExceptionDrivenStringBuilder;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -96,5 +97,24 @@ public class PathTest {
         ServerTest.checkException(() -> parse("/foo/../../"), IllegalStateException.class, "can't parse: /foo/../../");
         ServerTest.checkException(() -> parse("/.."), IllegalStateException.class, "can't parse: /..");
         ServerTest.checkException(() -> parse("foo"), IllegalStateException.class, "path must starts with '/'");
+    }
+
+    @Test
+    public void add() {
+        Assert.assertTrue(new Path().add("").isEndsWithSlash());
+        Assert.assertEquals("/", new Path().add("").toString());
+
+        ServerTest.checkException(() -> new Path().add(".."), IllegalStateException.class, "can't parse: ..");
+
+        Assert.assertEquals("/foo/bar", new Path().add("/foo//bar").toString());
+        Assert.assertFalse(new Path().add("/foo//bar").isEndsWithSlash());
+        Assert.assertTrue(new Path().add("/foo//bar/").isEndsWithSlash());
+    }
+
+    @Test
+    public void test_toString() {
+        ExceptionDrivenStringBuilder sb = new ExceptionDrivenStringBuilder();
+        new Path().add("/foo//bar").toString(sb);
+        Assert.assertEquals("/foo/bar", sb.toString());
     }
 }
