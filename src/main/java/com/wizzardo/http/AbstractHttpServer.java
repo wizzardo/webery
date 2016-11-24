@@ -21,6 +21,7 @@ public abstract class AbstractHttpServer<T extends HttpConnection> {
     protected volatile int sessionTimeoutSec = 30 * 60;
     protected int postBodyLimit = 2 * 1024 * 1024;
     protected int websocketFrameLengthLimit = 64 * 1024;
+    protected int maxRequestsInQueue = 1000;
     protected String context;
     protected final EpollServer<T> server;
 
@@ -143,6 +144,14 @@ public abstract class AbstractHttpServer<T extends HttpConnection> {
         this.websocketFrameLengthLimit = websocketFrameLengthLimit;
     }
 
+    public int getMaxRequestsInQueue() {
+        return maxRequestsInQueue;
+    }
+
+    public void setMaxRequestsInQueue(int maxRequestsInQueue) {
+        this.maxRequestsInQueue = maxRequestsInQueue > 0 ? maxRequestsInQueue : Integer.MAX_VALUE;
+    }
+
     protected T createConnection(int fd, int ip, int port) {
         return (T) new HttpConnection(fd, ip, port, this);
     }
@@ -187,10 +196,16 @@ public abstract class AbstractHttpServer<T extends HttpConnection> {
 
     void process(T connection, ByteBufferProvider bufferProvider) {
         if (workersCount > 0) {
+            if (queue.size() > maxRequestsInQueue) {
+                safeOnError(connection, new IllegalStateException("Too many requests"));
+                return;
+            }
+
             queue.add(connection);
-        } else if (checkData(connection, bufferProvider))
+        } else if (checkData(connection, bufferProvider)) {
             while (processConnection(connection)) {
             }
+        }
     }
 
     protected boolean processConnection(T connection) {
@@ -199,11 +214,7 @@ public abstract class AbstractHttpServer<T extends HttpConnection> {
             if (handleAsync(connection))
                 return false;
         } catch (Exception t) {
-            try {
-                onError(connection, t);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+            safeOnError(connection,t);
         }
         try {
             return finishHandling(connection);
@@ -217,6 +228,14 @@ public abstract class AbstractHttpServer<T extends HttpConnection> {
 
     protected void onError(T connection, Exception e) throws Exception {
         e.printStackTrace();
+    }
+
+    protected void safeOnError(T connection, Exception e) {
+        try {
+            onError(connection, e);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
     }
 
     protected boolean handleAsync(T connection) throws IOException {
