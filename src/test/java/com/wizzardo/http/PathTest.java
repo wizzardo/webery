@@ -90,4 +90,11 @@ public class PathTest {
         Assert.assertEquals("bar", path.getPart(0));
         Assert.assertEquals(false, path.isEndsWithSlash());
     }
+
+    @Test
+    public void exceptions() {
+        ServerTest.checkException(() -> parse("/foo/../../"), IllegalStateException.class, "can't parse: /foo/../../");
+        ServerTest.checkException(() -> parse("/.."), IllegalStateException.class, "can't parse: /..");
+        ServerTest.checkException(() -> parse("foo"), IllegalStateException.class, "path must starts with '/'");
+    }
 }
