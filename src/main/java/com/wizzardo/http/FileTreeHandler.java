@@ -76,7 +76,7 @@ public class FileTreeHandler<T extends FileTreeHandler.HandlerContext> implement
 
     public String getVersionedPath(String path) {
         File file = new File(workDir, path);
-        if (!file.exists())
+        if (!file.exists() || !file.isFile())
             return path;
 
         RangeResponseHelper.FileHolder fileHolder = rangeResponseHelper.getFileHolder(file);
