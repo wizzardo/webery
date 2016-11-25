@@ -16,19 +16,6 @@ public class ByteTree {
         return root;
     }
 
-    public ByteTree(String s) {
-        byte[] bytes = s.getBytes();
-
-        root = new SingleNode();
-        Node temp = root;
-
-        for (int i = 0; i < bytes.length; i++) {
-            byte b = bytes[i];
-            temp = temp.append(b).next(b);
-        }
-        temp.setValue(s);
-    }
-
     public ByteTree append(String s) {
         return append(s.getBytes(), s);
     }
