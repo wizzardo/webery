@@ -27,8 +27,6 @@ public class Resource extends Tag implements RenderableString {
         boolean isStatic = !fileName.contains("$");
 
         UrlTemplate template = urlMapping.getUrlTemplate("resources");
-        if (template == null)
-            throw new IllegalStateException("can not find mapping for handler 'static'");
 
         append(offset);
 
@@ -109,9 +107,6 @@ public class Resource extends Tag implements RenderableString {
         }
 
         UrlTemplate template = urlMapping.getUrlTemplate("resources");
-        if (template == null)
-            throw new IllegalStateException("can not find mapping for handler 'resources'");
-
 
         String p = fileTreeHandler.getVersionedPath(path.toString());
         if (absolute != null && absolute)
