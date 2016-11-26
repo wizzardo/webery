@@ -335,6 +335,9 @@ src/main/resources/views/app/index.gsp
  - [hiddenField](#hiddenField)
  - [if](#if)
  - [join](#join)
+ - layoutBody
+ - layoutHead
+ - layoutTitle
  - [link](#link)
  - [message](#message)
  - passwordField
