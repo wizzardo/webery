@@ -1,5 +1,6 @@
 package com.wizzardo.http;
 
+import com.wizzardo.http.request.Request;
 import com.wizzardo.tools.http.ConnectionMethod;
 import org.junit.Assert;
 import org.junit.Test;
@@ -27,6 +28,7 @@ public class RestHandlerTest extends ServerTest {
         Assert.assertEquals("put", makeRequest("/rest").method(ConnectionMethod.PUT).execute().asString());
         Assert.assertEquals(405, makeRequest("/rest").get().getResponseCode());
         Assert.assertEquals("POST, PUT, OPTIONS", makeRequest("/rest").get().header("Allow"));
+        Assert.assertEquals("POST, PUT, OPTIONS", makeRequest("/rest").options().header("Allow"));
     }
 
     @Test
