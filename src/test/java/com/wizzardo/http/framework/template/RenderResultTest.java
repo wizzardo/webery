@@ -6,6 +6,7 @@ import org.junit.Test;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class RenderResultTest {
 
@@ -38,5 +39,12 @@ public class RenderResultTest {
         result.append("qwe");
         Assert.assertEquals(null, result.bytes);
         Assert.assertEquals("foobarqwe", result.toString());
+    }
+
+    @Test
+    public void test_provide_bytes_empty() {
+        AtomicInteger counter = new AtomicInteger();
+        new RenderResult().provideBytes(bytes -> counter.incrementAndGet());
+        Assert.assertEquals(0, counter.get());
     }
 }
