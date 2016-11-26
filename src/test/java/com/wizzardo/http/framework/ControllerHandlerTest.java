@@ -4,6 +4,7 @@ import com.wizzardo.http.MultipartHandler;
 import com.wizzardo.http.framework.parameters.Parameter;
 import com.wizzardo.http.framework.parameters.ParametersHelper;
 import com.wizzardo.http.framework.template.Renderer;
+import com.wizzardo.http.request.Request;
 import com.wizzardo.tools.evaluation.Config;
 import com.wizzardo.tools.io.FileTools;
 import com.wizzardo.tools.json.JsonTools;
@@ -17,6 +18,8 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.*;
 import java.util.*;
+
+import static com.wizzardo.http.request.Request.Method.GET;
 
 /**
  * Created by wizzardo on 02.05.15.
@@ -40,6 +43,17 @@ public class ControllerHandlerTest extends WebApplicationTest {
                 .append("/hello", HelloController.class, "hello");
 
         Assert.assertEquals("hello!", makeRequest("/hello").get().asString());
+        Assert.assertEquals("GET, HEAD, POST, PUT, DELETE, OPTIONS", makeRequest("/hello").options().header("Allow"));
+    }
+
+    @Test
+    public void test_only_get() throws IOException {
+        server.getUrlMapping()
+                .append("/hello", HelloController.class, "hello", GET);
+
+        Assert.assertEquals("hello!", makeRequest("/hello").get().asString());
+        Assert.assertEquals("GET, HEAD, OPTIONS", makeRequest("/hello").options().header("Allow"));
+        Assert.assertEquals(405, makeRequest("/hello").delete().getResponseCode());
     }
 
 
