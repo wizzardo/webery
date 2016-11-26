@@ -87,6 +87,21 @@ public class RestHandler implements Handler {
         return this;
     }
 
+    public RestHandler set(Request.Method method, Handler handler) {
+        switch (method) {
+            case GET:
+                return get(handler);
+            case PUT:
+                return put(handler);
+            case POST:
+                return post(handler);
+            case DELETE:
+                return delete(handler);
+            default:
+                throw new IllegalArgumentException("Method " + method + " is not supported with custom handler");
+        }
+    }
+
     public RestHandler get(Handler get) {
         return setGetHandler(get);
     }

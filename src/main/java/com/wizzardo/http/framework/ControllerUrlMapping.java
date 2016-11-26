@@ -5,6 +5,7 @@ import com.wizzardo.http.Handler;
 import com.wizzardo.http.framework.di.DependencyFactory;
 import com.wizzardo.http.mapping.UrlMapping;
 import com.wizzardo.http.mapping.UrlTemplate;
+import com.wizzardo.http.request.Request;
 import com.wizzardo.tools.collections.CollectionTools.Closure;
 
 /**
@@ -12,12 +13,12 @@ import com.wizzardo.tools.collections.CollectionTools.Closure;
  */
 public class ControllerUrlMapping extends UrlMapping<Handler> {
 
-    public <T extends Controller> ControllerUrlMapping append(String url, Class<T> controllerClass, String action) {
-        return append(url, new ControllerHandler<>(controllerClass, action));
+    public <T extends Controller> ControllerUrlMapping append(String url, Class<T> controllerClass, String action, Request.Method... methods) {
+        return append(url, new ControllerHandler<>(controllerClass, action, methods));
     }
 
-    public <T extends Controller> ControllerUrlMapping append(String url, Class<T> controllerClass, String action, Closure<ReadableData, T> renderer) {
-        return append(url, new ControllerHandler<>(controllerClass, action, renderer));
+    public <T extends Controller> ControllerUrlMapping append(String url, Class<T> controllerClass, String action, Closure<ReadableData, T> renderer, Request.Method... methods) {
+        return append(url, new ControllerHandler<>(controllerClass, action, renderer, methods));
     }
 
     @Override

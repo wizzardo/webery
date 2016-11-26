@@ -3,6 +3,7 @@ package com.wizzardo.http.framework;
 import com.wizzardo.epoll.readable.ReadableData;
 import com.wizzardo.http.Handler;
 import com.wizzardo.http.MultipartHandler;
+import com.wizzardo.http.RestHandler;
 import com.wizzardo.http.framework.di.DependencyFactory;
 import com.wizzardo.http.framework.parameters.ParametersHelper;
 import com.wizzardo.http.framework.template.Renderer;
@@ -36,26 +37,42 @@ public class ControllerHandler<T extends Controller> implements Handler {
             Character.class
     )));
 
+    protected static final Handler HANDLER_NOOP = (request, response) -> response;
+
     protected Class<T> controller;
     protected String controllerName;
     protected String actionName;
     protected CollectionTools.Closure<ReadableData, T> renderer;
     protected ServerConfiguration configuration;
+    protected RestHandler restHandler = new RestHandler();
 
-    public ControllerHandler(Class<T> controller, String action) {
-        this.controller = controller;
-        controllerName = Controller.getControllerName(controller);
-        actionName = action;
+    public ControllerHandler(Class<T> controller, String action, Request.Method... methods) {
+        init(controller, action, methods);
         renderer = createRenderer(controller, action);
-        configuration = DependencyFactory.get(ServerConfiguration.class);
     }
 
-    public ControllerHandler(Class<T> controller, String action, CollectionTools.Closure<ReadableData, T> renderer) {
-        this.controller = controller;
+    public ControllerHandler(Class<T> controller, String action, CollectionTools.Closure<ReadableData, T> renderer, Request.Method... methods) {
+        init(controller, action, methods);
         this.renderer = renderer;
+    }
+
+    protected void init(Class<T> controller, String action, Request.Method[] methods) {
+        this.controller = controller;
         controllerName = Controller.getControllerName(controller);
         actionName = action;
         configuration = DependencyFactory.get(ServerConfiguration.class);
+
+        if (methods == null || methods.length == 0) {
+            restHandler
+                    .get(HANDLER_NOOP)
+                    .post(HANDLER_NOOP)
+                    .put(HANDLER_NOOP)
+                    .delete(HANDLER_NOOP);
+        } else {
+            for (Request.Method method : methods) {
+                restHandler.set(method, HANDLER_NOOP);
+            }
+        }
     }
 
     @Override
@@ -65,6 +82,9 @@ public class ControllerHandler<T extends Controller> implements Handler {
 
     @Override
     public Response handle(Request request, Response response) throws IOException {
+        if (restHandler.handle(request, response).status() != Status._200)
+            return response;
+
         if (configuration.multipart.enabled && request.isMultipart() && !request.isMultiPartDataPrepared()) {
             return new MultipartHandler(this, configuration.multipart.limit).handle(request, response);
         }
