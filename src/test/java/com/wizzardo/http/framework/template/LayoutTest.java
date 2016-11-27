@@ -45,4 +45,10 @@ public class LayoutTest extends WebApplicationTest {
                 "    </body>\n" +
                 "</html>\n", new ViewRenderer(new Model(), "layoutTest", "test2").render().toString());
     }
+
+    @Test
+    public void test3() {
+        checkException(() -> new ViewRenderer(new Model(), "layoutTest", "test3").render(),
+                IllegalArgumentException.class, "Layout 'not_found' not found");
+    }
 }
