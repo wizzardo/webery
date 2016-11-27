@@ -296,6 +296,21 @@ public class WebApplication extends HttpServer<HttpConnection> {
         Config renderer = server.config("renderer");
         renderer.put("viewCacheTtl", -1L);
         renderer.put("templateCacheTtl", -1L);
+
+        loadDefaultDevelopmentConfiguration(config.config("environments").config("dev"));
+    }
+
+    protected void loadDefaultDevelopmentConfiguration(Config config) {
+        Config server = config.config("server");
+        server.put("debugOutput", true);
+
+        Config resources = server.config("resources");
+        Config resourcesCache = resources.config("cache");
+        resourcesCache.put("enabled", false);
+
+        Config renderer = server.config("renderer");
+        renderer.put("viewCacheTtl", 1L);
+        renderer.put("templateCacheTtl", 1L);
     }
 
     protected void loadEnvironmentVariables(Config config) {
