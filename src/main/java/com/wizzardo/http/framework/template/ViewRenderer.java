@@ -71,7 +71,11 @@ public class ViewRenderer extends Renderer {
         if (layoutTag != null) {
             layoutTag.parent().children().remove(layoutTag);
 
-            Node layout = new GspParser().parse(resourceTools.getResourceAsString("layouts/" + layoutTag.attr("content") + ".gsp"));
+            String layoutContent = resourceTools.getResourceAsString("views/layouts/" + layoutTag.attr("content") + ".gsp");
+            if (layoutContent == null)
+                throw new IllegalArgumentException("Layout '" + layoutTag.attr("content") + "' not found");
+
+            Node layout = new GspParser().parse(layoutContent);
             for (Decorator decorator : DependencyFactory.get(DecoratorLib.class).list()) {
                 decorator.decorate(html, layout);
             }
