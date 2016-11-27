@@ -123,7 +123,7 @@ public class IfTest implements TagTest {
     public void test_exceptions() {
         Node n = new GspParser().parse("<div><g:if test=\"${flag}\">text</g:if>error<g:else>foo</g:else></div>");
         try {
-            ViewRenderer.prepare(n.children(), new RenderableList(), "", "");
+            new ViewRenderingService().prepare(n.children(), new RenderableList(), "", "");
             assert false;
         } catch (IllegalStateException e) {
             Assert.assertEquals("If tag must be before Else tag", e.getMessage());
@@ -131,7 +131,7 @@ public class IfTest implements TagTest {
 
         n = new GspParser().parse("<div><g:if test=\"${flag}\">text</g:if>error<g:elseif test=\"${flag}\">foo</g:elseif></div>");
         try {
-            ViewRenderer.prepare(n.children(), new RenderableList(), "", "");
+            new ViewRenderingService().prepare(n.children(), new RenderableList(), "", "");
             assert false;
         } catch (IllegalStateException e) {
             Assert.assertEquals("If tag must be before Else tag", e.getMessage());

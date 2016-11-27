@@ -20,7 +20,7 @@ public class Body extends RenderableList {
         this.node = node;
 
         for (Node child : node.children()) {
-            ViewRenderer.prepare(child, this, dir, offset, addNewLine, imports);
+            new ViewRenderingService().prepare(child, this, dir, offset, addNewLine, imports);
         }
     }
 

@@ -23,7 +23,7 @@ public class RenderTest {
         Node n = new GspParser().parse("<div style=\"width: 100px\"><a href=\"http://${host.toLowerCase()}\">yandex</a><br></div>");
 
         RenderableList l = new RenderableList();
-        ViewRenderer.prepare(n.children(), l, "", "");
+        new ViewRenderingService().prepare(n.children(), l, "", "");
 
 
         Model model = new Model();
@@ -48,14 +48,14 @@ public class RenderTest {
 
         reset(l, model);
         s = "abc";
-        ViewRenderer.prepare(s, l);
+        new ViewRenderingService().prepare(s, l);
         Assert.assertEquals(1, l.size());
         Assert.assertEquals("abc", l.get(0).get(null).toString());
 
         reset(l, model);
         s = "abc$qwerty";
         model.put("qwerty", "abc");
-        ViewRenderer.prepare(s, l);
+        new ViewRenderingService().prepare(s, l);
         Assert.assertEquals(2, l.size());
         Assert.assertEquals("abc", l.get(0).get(null).toString());
         Assert.assertEquals("abc", l.get(1).get(model).toString());
@@ -64,7 +64,7 @@ public class RenderTest {
         reset(l, model);
         s = "foo${qwerty}bar";
         model.put("qwerty", "abc");
-        ViewRenderer.prepare(s, l);
+        new ViewRenderingService().prepare(s, l);
         Assert.assertEquals(3, l.size());
         Assert.assertEquals("foo", l.get(0).get(null).toString());
         Assert.assertEquals("abc", l.get(1).get(model).toString());
@@ -74,7 +74,7 @@ public class RenderTest {
         reset(l, model);
         s = "abc$qwerty-$qwerty";
         model.put("qwerty", "abc");
-        ViewRenderer.prepare(s, l);
+        new ViewRenderingService().prepare(s, l);
         Assert.assertEquals(4, l.size());
         Assert.assertEquals("abc", l.get(0).get(null).toString());
         Assert.assertEquals("abc", l.get(1).get(model).toString());
@@ -85,7 +85,7 @@ public class RenderTest {
         reset(l, model);
         s = "abc$qwerty+$qwerty";
         model.put("qwerty", "abc");
-        ViewRenderer.prepare(s, l);
+        new ViewRenderingService().prepare(s, l);
         Assert.assertEquals(4, l.size());
         Assert.assertEquals("abc", l.get(0).get(null).toString());
         Assert.assertEquals("abc", l.get(1).get(model).toString());
@@ -96,7 +96,7 @@ public class RenderTest {
         reset(l, model);
         s = "abc${qwerty}";
         model.put("qwerty", "abc");
-        ViewRenderer.prepare(s, l);
+        new ViewRenderingService().prepare(s, l);
         Assert.assertEquals(2, l.size());
         Assert.assertEquals("abc", l.get(0).get(null).toString());
         Assert.assertEquals("abc", l.get(1).get(model).toString());
@@ -105,7 +105,7 @@ public class RenderTest {
         reset(l, model);
         s = "abc${qwerty+qwerty}";
         model.put("qwerty", "abc");
-        ViewRenderer.prepare(s, l);
+        new ViewRenderingService().prepare(s, l);
         Assert.assertEquals(2, l.size());
         Assert.assertEquals("abc", l.get(0).get(null).toString());
         Assert.assertEquals("abcabc", l.get(1).get(model).toString());
@@ -115,7 +115,7 @@ public class RenderTest {
         s = "a${b+\"${c}d\"}e";
         model.put("b", "b");
         model.put("c", "c");
-        ViewRenderer.prepare(s, l);
+        new ViewRenderingService().prepare(s, l);
         Assert.assertEquals(3, l.size());
         Assert.assertEquals("abcde", l.get(model).toString());
         Assert.assertEquals("a", l.get(0).get(null).toString());
@@ -137,7 +137,7 @@ public class RenderTest {
                 "</div>";
 
         RenderableList renderable = new RenderableList();
-        ViewRenderer.prepare(new GspParser().parse(gsp).children(), renderable, "", "");
+        new ViewRenderingService().prepare(new GspParser().parse(gsp).children(), renderable, "", "");
         Assert.assertEquals("<div>\n" +
                 "    before\n" +
                 "    after\n" +

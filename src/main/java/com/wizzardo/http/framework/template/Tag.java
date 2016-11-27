@@ -6,10 +6,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
 
-/**
- * @author: moxa
- * Date: 7/3/13
- */
 public abstract class Tag extends RenderableList {
 
     protected List<String> imports;
@@ -19,7 +15,7 @@ public abstract class Tag extends RenderableList {
     }
 
     protected String getBodyOffset(String offset) {
-        return offset + ViewRenderer.OFFSET;
+        return offset + ViewRenderingService.OFFSET;
     }
 
     public Tag init(Map<String, String> attrs) {
@@ -35,9 +31,9 @@ public abstract class Tag extends RenderableList {
     protected void prepareAttrs(Map<String, String> attrs) {
         for (Map.Entry<String, String> attr : attrs.entrySet()) {
             append(" ");
-            ViewRenderer.prepare(attr.getKey(), this, imports);
+            ViewRenderingService.prepare(attr.getKey(), this, imports);
             append("=\"");
-            ViewRenderer.prepare(attr.getValue(), this, imports);
+            ViewRenderingService.prepare(attr.getValue(), this, imports);
             append("\"");
         }
     }
