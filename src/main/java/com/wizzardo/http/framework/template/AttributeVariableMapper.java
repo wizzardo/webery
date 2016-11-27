@@ -11,7 +11,7 @@ import java.util.regex.Pattern;
 /**
  * Created by wizzardo on 08/11/16.
  */
-class AttributeVariableMapper implements Mapper<Map<String, Object>, Object> {
+class AttributeVariableMapper<T> implements Mapper<Map<String, Object>, T> {
     private Expression expression;
 
     public AttributeVariableMapper(String string) {
@@ -20,8 +20,8 @@ class AttributeVariableMapper implements Mapper<Map<String, Object>, Object> {
     }
 
     @Override
-    public Object map(Map<String, Object> model) {
-        return expression.get(model);
+    public T map(Map<String, Object> model) {
+        return (T) expression.get(model);
     }
 
     private static Pattern p = Pattern.compile("\\$\\{([^\\{\\}]+)\\}|\\$([^\\., -]+)|(\\[.+\\])");
