@@ -292,6 +292,10 @@ public class WebApplication extends HttpServer<HttpConnection> {
         Config multipart = server.config("multipart");
         multipart.put("limit", -1L);
         multipart.put("enabled", false);
+
+        Config renderer = server.config("renderer");
+        renderer.put("viewCacheTtl", -1L);
+        renderer.put("templateCacheTtl", -1L);
     }
 
     protected void loadEnvironmentVariables(Config config) {

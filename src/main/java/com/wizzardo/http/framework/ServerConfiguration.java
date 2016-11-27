@@ -21,8 +21,9 @@ public class ServerConfiguration implements Configuration {
     public final BasicAuth basicAuth;
     public final Resources resources;
     public final Multipart multipart;
+    public final Renderer renderer;
 
-    public ServerConfiguration(String hostname, int port, String context, Session session, boolean debugOutput, int ioWorkersCount, int workersCount, long ttl, int postBodyLimit, int websocketFrameLengthLimit, int maxRequestsInQueue, SslConfig ssl, BasicAuth basicAuth, Resources resources, Multipart multipart) {
+    public ServerConfiguration(String hostname, int port, String context, Session session, boolean debugOutput, int ioWorkersCount, int workersCount, long ttl, int postBodyLimit, int websocketFrameLengthLimit, int maxRequestsInQueue, SslConfig ssl, BasicAuth basicAuth, Resources resources, Multipart multipart, Renderer renderer) {
         this.hostname = hostname;
         this.port = port;
         this.context = context;
@@ -38,10 +39,11 @@ public class ServerConfiguration implements Configuration {
         this.basicAuth = basicAuth;
         this.resources = resources;
         this.multipart = multipart;
+        this.renderer = renderer;
     }
 
     public ServerConfiguration() {
-        this(null, -1, null, null, false, -1, -1, -1, -1, -1, -1, null, null, null, null);
+        this(null, -1, null, null, false, -1, -1, -1, -1, -1, -1, null, null, null, null, null);
     }
 
     public static class Session {
@@ -81,6 +83,20 @@ public class ServerConfiguration implements Configuration {
 
         public SslConfig() {
             this(null, null);
+        }
+    }
+
+    public static class Renderer {
+        public final long viewCacheTtl;
+        public final long templateCacheTtl;
+
+        public Renderer(long viewCacheTtl, long templateCacheTtl) {
+            this.viewCacheTtl = viewCacheTtl;
+            this.templateCacheTtl = templateCacheTtl;
+        }
+
+        public Renderer() {
+            this(-1, -1);
         }
     }
 
