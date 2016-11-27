@@ -1,7 +1,10 @@
 package com.wizzardo.http.framework.template;
 
+import com.wizzardo.http.framework.RequestContext;
 import com.wizzardo.tools.evaluation.EvalTools;
 import com.wizzardo.tools.evaluation.Expression;
+import com.wizzardo.tools.evaluation.Variable;
+import com.wizzardo.tools.misc.Supplier;
 import com.wizzardo.tools.misc.Unchecked;
 
 import java.util.List;
@@ -42,7 +45,7 @@ public class ExpressionHolder<T> implements Renderable {
     public T raw(Map<String, Object> model) {
         return getRaw(model);
     }
-    
+
     public T getRaw(Map<String, Object> model) {
         if (!prepared) {
             synchronized (this) {
@@ -64,6 +67,7 @@ public class ExpressionHolder<T> implements Renderable {
                             } else
                                 expression = EvalTools.prepare(string, model, TagLib.getTagFunctions(), imports);
                         }
+                        setVariables(expression);
                     });
                     prepared = true;
                 }
@@ -75,5 +79,37 @@ public class ExpressionHolder<T> implements Renderable {
     @Override
     public String toString() {
         return string;
+    }
+
+    static void setVariables(Expression expression) {
+        expression.setVariable(new ReadOnlyVariable<>("request", () -> RequestContext.get().getRequestHolder().request));
+        expression.setVariable(new ReadOnlyVariable<>("response", () -> RequestContext.get().getRequestHolder().response));
+        expression.setVariable(new ReadOnlyVariable<>("controller", () -> RequestContext.get().controller()));
+        expression.setVariable(new ReadOnlyVariable<>("action", () -> RequestContext.get().action()));
+        expression.setVariable(new ReadOnlyVariable<>("handler", () -> RequestContext.get().handler()));
+    }
+
+    static class ReadOnlyVariable<T> extends Variable {
+        final Supplier<T> supplier;
+
+        public ReadOnlyVariable(String name, Supplier<T> supplier) {
+            super(name, null);
+            this.supplier = supplier;
+        }
+
+        @Override
+        public Object get() {
+            return supplier.supply();
+        }
+
+        @Override
+        public void set(Object o) {
+            throw new UnsupportedOperationException("set");
+        }
+
+        @Override
+        public String toString() {
+            return getName() + ": " + get();
+        }
     }
 }

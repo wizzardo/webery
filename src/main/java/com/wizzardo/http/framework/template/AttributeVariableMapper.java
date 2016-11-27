@@ -16,6 +16,7 @@ class AttributeVariableMapper implements Mapper<Map<String, Object>, Object> {
 
     public AttributeVariableMapper(String string) {
         expression = EvalTools.prepare(prepare(string));
+        ExpressionHolder.setVariables(expression);
     }
 
     @Override
