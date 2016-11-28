@@ -207,23 +207,9 @@ public class ViewRenderingService implements Service, PostConstruct{
     }
 
     private Renderable createRenderClosure(final String pathToView, String params, final String offset) {
-        AttributeVariableMapper p = new AttributeVariableMapper(params);
-        CollectionTools.Closure2<RenderResult, String, Map<String, Object>> c = (path, model) -> {
-            List<Renderable> l = prepareView(path, offset);
-            RenderResult result = new RenderResult();
-            for (Renderable renderable : l) {
-                result.append(renderable.get(model));
-            }
-            return result;
-        };
-
-        return new ExpressionHolder<Object>() {
-            @Override
-            public RenderResult get(Map<String, Object> model) {
-                Map<String, Object> m = (Map<String, Object>) p.map(model);
-                return c.execute(pathToView, m);
-            }
-        };
+        AttributeVariableMapper<Map<String, Object>> p = new AttributeVariableMapper<>(params);
+        RenderableList l = prepareView(pathToView, offset);
+        return model -> l.get(p.map(model));
     }
 
     public RenderResult render(String controller, String view, Model model) {
