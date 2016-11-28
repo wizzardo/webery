@@ -115,8 +115,8 @@ public class WebSocketTest extends ServerTest {
 
         data = new byte[1024 * 1024];
         ThreadLocalRandom.current().nextBytes(data);
-        client.send(data);
         try {
+            client.send(data);
             client.waitForMessage();
             Assert.assertTrue(false);
         } catch (SocketException e) {
@@ -142,8 +142,12 @@ public class WebSocketTest extends ServerTest {
 
         SimpleWebSocketClient client = new SimpleWebSocketClient("ws://localhost:" + getPort());
         client.send("close");
-        client.waitForMessage();
-        Assert.assertTrue(client.isClosed());
+        try {
+            client.waitForMessage();
+            Assert.assertTrue(client.isClosed());
+        } catch (SocketException e) {
+            Assert.assertEquals("Connection reset", e.getMessage());
+        }
         Assert.assertEquals("closed", messageHolder.get());
 
         messageHolder.set(null);
