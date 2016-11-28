@@ -1052,4 +1052,23 @@ public class ControllerHandlerTest extends WebApplicationTest {
         Method method = MethodHolder.class.getDeclaredMethod("method", Integer.class);
         Assert.assertEquals(null, ParametersHelper.getParameterName(method.getParameters()[0]));
     }
+
+    public static class DefaultVariablesController extends Controller {
+        public Renderer test_1() {
+            response.header("foo", "bar");
+            return renderView();
+        }
+    }
+
+    @Test
+    public void test_request_in_view() throws IOException {
+        server.getUrlMapping().append("/variables", DefaultVariablesController.class, "test_1");
+        Assert.assertEquals("" +
+                        "/variables\n" +
+                        "bar\n" +
+                        "defaultVariables\n" +
+                        "test_1\n" +
+                        "defaultVariables.test_1\n"
+                , makeRequest("/variables").get().asString());
+    }
 }
