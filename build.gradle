@@ -12,6 +12,9 @@ repositories {
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
 
+group = 'com.wizzardo'
+version = '0.1'
+
 mainClassName = "com.wizzardo.http.HttpServer"
 
 ext {
@@ -34,7 +37,7 @@ task codeCoverageReport(type: JacocoReport) {
 
 dependencies {
     compile 'com.wizzardo:epoll:0.1'
-    compile 'com.wizzardo.tools:tools:0.16+'
+    compile 'com.wizzardo.tools:tools:0.16'
 
     testCompile 'junit:junit:4.12'
 }
