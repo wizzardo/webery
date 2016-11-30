@@ -52,7 +52,7 @@ public class RangeResponseHelper {
     }
 
     protected MemoryLimitedCache<String, FileHolder> createFileHolderCache(long cacheMemoryLimit, long cacheTTL, boolean gzip) {
-        return new MemoryLimitedCache<>(cacheMemoryLimit, cacheTTL, path -> {
+        return new MemoryLimitedCache<>("resources", cacheMemoryLimit, cacheTTL, path -> {
             byte[] bytes = FileTools.bytes(path);
             if (gzip) {
                 ByteArrayOutputStream out = new ByteArrayOutputStream(bytes.length);
