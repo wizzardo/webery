@@ -6,20 +6,16 @@ import com.wizzardo.http.response.Response;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-/**
- * @author: moxa
- * Date: 7/24/13
- */
 public class RequestHolder {
     public final Request request;
     public final Response response;
-    public final long startTime;
+    public final long startNanoTime;
     private volatile Map<Object, Object> requestScope;
 
     public RequestHolder(Request request, Response response) {
         this.request = request;
         this.response = response;
-        startTime = System.currentTimeMillis();
+        startNanoTime = System.nanoTime();
     }
 
     public <T> T get(Object key) {
@@ -34,5 +30,10 @@ public class RequestHolder {
             requestScope = new ConcurrentHashMap<>();
 
         requestScope.put(key, value);
+    }
+
+    public long getExecutionTimeUntilNow() {
+        long time = System.nanoTime() - startNanoTime;
+        return time < 0 ? -1 : time;
     }
 }
