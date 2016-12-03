@@ -117,12 +117,20 @@ public class FileTreeHandler<T extends FileTreeHandler.HandlerContext> implement
             return response.setStatus(Status._403).setBody(path + " is forbidden");
 
         if (file.isDirectory())
-            if (showFolder)
-                return response.appendHeader(Header.KV_CONTENT_TYPE_HTML_UTF8).setBody(renderDirectory(request, file));
-            else
-                return response.setStatus(Status._403).setBody(path + " is forbidden");
+            return handleDirectory(request, response, path, file);
+        else
+            return handleFile(request, response, file);
+    }
 
+    protected Response handleFile(Request request, Response response, File file) {
         return rangeResponseHelper.makeRangeResponse(request, response, file);
+    }
+
+    protected Response handleDirectory(Request request, Response response, String path, File file) {
+        if (showFolder)
+            return response.appendHeader(Header.KV_CONTENT_TYPE_HTML_UTF8).setBody(renderDirectory(request, file));
+        else
+            return response.setStatus(Status._403).setBody(path + " is forbidden");
     }
 
     public FileTreeHandler<T> setShowFolder(boolean showFolder) {
