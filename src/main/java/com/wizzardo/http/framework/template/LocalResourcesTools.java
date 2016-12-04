@@ -27,9 +27,10 @@ import java.util.zip.ZipInputStream;
 @Injectable
 public class LocalResourcesTools implements ResourceTools {
 
-    private List<String> classpath = new ArrayList<>();
-    private List<File> resourcesDirs = new ArrayList<>();
+    protected List<String> classpath = new ArrayList<>();
+    protected List<File> resourcesDirs = new ArrayList<>();
     protected List<Filter<String>> classpathFilters = new ArrayList<>();
+    protected File unzippedJar;
 
     {
         ClassLoader cl = ClassLoader.getSystemClassLoader();
@@ -53,7 +54,16 @@ public class LocalResourcesTools implements ResourceTools {
 
             ZipTools.unzip(jarFile, outDir, entry -> entry.getName().startsWith("public"));
             addResourcesDir(outDir);
+            unzippedJar = outDir;
         }
+    }
+
+    public boolean isJar() {
+        return unzippedJar != null;
+    }
+
+    public File getUnzippedJarDirectory() {
+        return unzippedJar;
     }
 
     public InputStream getResource(String path) throws FileNotFoundException {
