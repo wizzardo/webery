@@ -6,9 +6,9 @@ import com.wizzardo.http.request.MultiPartEntry;
 import com.wizzardo.http.request.MultiPartFileEntry;
 import com.wizzardo.http.request.Request;
 import com.wizzardo.tools.collections.Pair;
+import com.wizzardo.tools.interfaces.Mapper;
+import com.wizzardo.tools.interfaces.Supplier;
 import com.wizzardo.tools.json.JsonTools;
-import com.wizzardo.tools.misc.Mapper;
-import com.wizzardo.tools.misc.Supplier;
 import com.wizzardo.tools.reflection.FieldInfo;
 import com.wizzardo.tools.reflection.Fields;
 

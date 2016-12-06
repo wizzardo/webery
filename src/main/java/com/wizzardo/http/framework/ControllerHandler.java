@@ -11,8 +11,8 @@ import com.wizzardo.http.request.Request;
 import com.wizzardo.http.response.Response;
 import com.wizzardo.http.response.Status;
 import com.wizzardo.tools.collections.CollectionTools;
+import com.wizzardo.tools.interfaces.Mapper;
 import com.wizzardo.tools.json.JsonTools;
-import com.wizzardo.tools.misc.Mapper;
 import com.wizzardo.tools.misc.Unchecked;
 
 import java.io.IOException;

@@ -2,7 +2,7 @@ package com.wizzardo.http.framework.template;
 
 import com.wizzardo.tools.evaluation.EvalTools;
 import com.wizzardo.tools.evaluation.Expression;
-import com.wizzardo.tools.misc.Mapper;
+import com.wizzardo.tools.interfaces.Mapper;
 
 import java.util.Map;
 import java.util.regex.Matcher;

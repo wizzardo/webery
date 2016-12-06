@@ -7,7 +7,7 @@ import com.wizzardo.http.Session;
 import com.wizzardo.http.mapping.Path;
 import com.wizzardo.http.response.CookieBuilder;
 import com.wizzardo.http.response.Response;
-import com.wizzardo.tools.misc.Mapper;
+import com.wizzardo.tools.interfaces.Mapper;
 import com.wizzardo.tools.misc.Unchecked;
 
 import java.io.InputStream;

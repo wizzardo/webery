@@ -4,7 +4,7 @@ import com.wizzardo.http.framework.RequestContext;
 import com.wizzardo.tools.evaluation.EvalTools;
 import com.wizzardo.tools.evaluation.Expression;
 import com.wizzardo.tools.evaluation.Variable;
-import com.wizzardo.tools.misc.Supplier;
+import com.wizzardo.tools.interfaces.Supplier;
 import com.wizzardo.tools.misc.Unchecked;
 
 import java.util.List;

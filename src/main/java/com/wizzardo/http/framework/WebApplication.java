@@ -19,7 +19,7 @@ import com.wizzardo.http.framework.message.MessageSource;
 import com.wizzardo.http.framework.template.*;
 import com.wizzardo.http.mapping.UrlMapping;
 import com.wizzardo.tools.evaluation.EvalTools;
-import com.wizzardo.tools.misc.Consumer;
+import com.wizzardo.tools.interfaces.Consumer;
 import com.wizzardo.tools.misc.TextTools;
 import com.wizzardo.tools.misc.Unchecked;
 

@@ -4,11 +4,11 @@ package com.wizzardo.http.framework.template;
 import com.wizzardo.http.framework.Environment;
 import com.wizzardo.http.framework.Holders;
 import com.wizzardo.http.framework.di.Injectable;
-import com.wizzardo.tools.collections.flow.Filter;
+import com.wizzardo.tools.interfaces.Consumer;
+import com.wizzardo.tools.interfaces.Filter;
 import com.wizzardo.tools.io.FileTools;
 import com.wizzardo.tools.io.IOTools;
 import com.wizzardo.tools.io.ZipTools;
-import com.wizzardo.tools.misc.Consumer;
 import com.wizzardo.tools.misc.Unchecked;
 
 import java.io.*;

@@ -1,10 +1,9 @@
 package com.wizzardo.http.framework.parameters;
 
 import com.wizzardo.http.MultiValue;
-import com.wizzardo.http.request.Parameters;
 import com.wizzardo.http.request.Request;
 import com.wizzardo.tools.collections.CollectionTools;
-import com.wizzardo.tools.misc.Mapper;
+import com.wizzardo.tools.interfaces.Mapper;
 
 import java.util.Arrays;
 import java.util.List;

@@ -1,7 +1,7 @@
 package com.wizzardo.http.framework.template;
 
-import com.wizzardo.tools.collections.flow.Filter;
-import com.wizzardo.tools.misc.Consumer;
+import com.wizzardo.tools.interfaces.Consumer;
+import com.wizzardo.tools.interfaces.Filter;
 
 import java.io.File;
 import java.io.IOException;
