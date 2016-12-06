@@ -31,8 +31,14 @@ public abstract class Worker<T> extends Thread implements ByteBufferProvider {
             try {
                 process(queue.take());
             } catch (InterruptedException ignored) {
+            } catch (Exception e) {
+                onError(e);
             }
         }
+    }
+
+    protected void onError(Exception e) {
+        e.printStackTrace();
     }
 
     @Override
