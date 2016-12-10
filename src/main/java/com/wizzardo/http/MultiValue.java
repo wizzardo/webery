@@ -22,6 +22,10 @@ public class MultiValue {
         return value;
     }
 
+    public String value() {
+        return value;
+    }
+
     public List<String> getValues() {
         if (values == null) {
             values = new ArrayList<>();
