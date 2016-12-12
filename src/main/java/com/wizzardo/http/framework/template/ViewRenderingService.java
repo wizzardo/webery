@@ -150,6 +150,8 @@ public class ViewRenderingService implements Service, PostConstruct{
             l.append("</").append(n.name()).append(">");
         } else if (n.name().equalsIgnoreCase("div"))
             l.append("></").append(n.name()).append(">");
+        else if (n.name().equalsIgnoreCase("!DOCTYPE"))
+            l.append(">");
         else
             l.append("/>");
 
