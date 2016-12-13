@@ -37,7 +37,7 @@ task codeCoverageReport(type: JacocoReport) {
 
 dependencies {
     compile 'com.wizzardo:epoll:0.1'
-    compile 'com.wizzardo.tools:tools:0.17+'
+    compile 'com.wizzardo.tools:tools:0.18+'
 
     testCompile 'junit:junit:4.12'
 }
