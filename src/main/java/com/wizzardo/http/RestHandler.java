@@ -38,6 +38,7 @@ public class RestHandler implements Handler {
     @Override
     public Response handle(Request request, Response response) throws IOException {
         switch (request.method()) {
+            case HEAD:
             case GET:
                 return handle(request, response, get);
             case PUT:
