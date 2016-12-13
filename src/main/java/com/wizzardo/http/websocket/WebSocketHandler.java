@@ -3,6 +3,7 @@ package com.wizzardo.http.websocket;
 import com.wizzardo.epoll.ByteBufferProvider;
 import com.wizzardo.epoll.Connection;
 import com.wizzardo.epoll.readable.ReadableBuilder;
+import com.wizzardo.epoll.readable.ReadableByteArray;
 import com.wizzardo.epoll.readable.ReadableData;
 import com.wizzardo.http.Handler;
 import com.wizzardo.http.HttpConnection;
@@ -168,7 +169,7 @@ public class WebSocketHandler<T extends WebSocketHandler.WebSocketListener> impl
         }
 
         private ReadableData convertFrameToReadableData(Frame frame) {
-            return new ReadableBuilder().append(frame.getFrameBytes(), frame.getFrameOffset(), frame.getFrameLength());
+            return new ReadableByteArray(frame.getFrameBytes(), frame.getFrameOffset(), frame.getFrameLength());
         }
     }
 
