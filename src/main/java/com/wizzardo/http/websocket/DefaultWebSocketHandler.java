@@ -2,8 +2,8 @@ package com.wizzardo.http.websocket;
 
 import com.wizzardo.http.framework.di.Injectable;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -25,7 +25,15 @@ public class DefaultWebSocketHandler<T extends WebSocketHandler.WebSocketListene
     }
 
     public void broadcast(String s) {
-        Message message = new Message(s);
+        broadcast(s.getBytes(StandardCharsets.UTF_8));
+    }
+
+    public void broadcast(byte[] bytes) {
+        broadcast(bytes, 0, bytes.length);
+    }
+
+    public void broadcast(byte[] bytes, int offset, int length) {
+        Message message = new Message(bytes, offset, length);
         for (T listener : listeners) {
             try {
                 listener.sendMessage(message);
