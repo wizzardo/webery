@@ -96,12 +96,12 @@ public class WebApplication extends HttpServer<HttpConnection> {
 
         loadConfig("Config.groovy");
         processListener(onLoadConfiguration);
+        readProfiles(config);
 
         loadEnvironmentVariables(config);
         loadSystemProperties(config);
         cliArgs.forEach((key, value) -> putInto(config, key, value));
 
-        readProfiles(config);
         setupApplication();
         processListener(onSetup);
 
