@@ -265,6 +265,7 @@ Configuration is loaded in this order:
  - Default configuration and manifest
  - Config.groovy
  - External configuration (```webApp.onLoadConfiguration(app -> app.loadConfig("MyCustomConfig.groovy"))```)
+ - Profiles and environments
  - OS environment variables (```System.getenv()```)
  - Java System properties (```System.getProperties()```)
  - Command line arguments
