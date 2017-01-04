@@ -129,6 +129,7 @@ urlMapping
     .append("/${foo}-${bar}", AppController.class, "fooBar")
     .append("/any/*", AppController.class, "any")
     .append("*.html", AppController.class, "html")
+    .append("/upload", AppController.class, "upload", Request.Method.POST) // only POST method is allowed
     ;
 ```
 
