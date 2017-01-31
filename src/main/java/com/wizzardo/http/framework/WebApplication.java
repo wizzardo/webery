@@ -2,22 +2,22 @@ package com.wizzardo.http.framework;
 
 import com.wizzardo.epoll.IOThread;
 import com.wizzardo.epoll.SslConfig;
+import com.wizzardo.http.*;
 import com.wizzardo.http.filter.AuthFilter;
 import com.wizzardo.http.filter.BasicAuthFilter;
 import com.wizzardo.http.filter.TokenFilter;
-import com.wizzardo.http.request.Request;
-import com.wizzardo.http.response.RangeResponseHelper;
-import com.wizzardo.http.response.Response;
-import com.wizzardo.tools.collections.CollectionTools;
-import com.wizzardo.tools.collections.flow.Flow;
-import com.wizzardo.tools.evaluation.Config;
-import com.wizzardo.http.*;
 import com.wizzardo.http.framework.di.DependencyFactory;
 import com.wizzardo.http.framework.di.SingletonDependency;
 import com.wizzardo.http.framework.message.MessageBundle;
 import com.wizzardo.http.framework.message.MessageSource;
 import com.wizzardo.http.framework.template.*;
 import com.wizzardo.http.mapping.UrlMapping;
+import com.wizzardo.http.request.Request;
+import com.wizzardo.http.response.RangeResponseHelper;
+import com.wizzardo.http.response.Response;
+import com.wizzardo.tools.collections.CollectionTools;
+import com.wizzardo.tools.collections.flow.Flow;
+import com.wizzardo.tools.evaluation.Config;
 import com.wizzardo.tools.evaluation.EvalTools;
 import com.wizzardo.tools.interfaces.Consumer;
 import com.wizzardo.tools.misc.TextTools;
@@ -109,7 +109,7 @@ public class WebApplication extends HttpServer<HttpConnection> {
         DependencyFactory.get().register(DecoratorLib.class, new SingletonDependency<>(new DecoratorLib(classes)));
 
         super.onStart();
-        System.out.println("application has started");
+        System.out.println("application has started on port " + server.getPort());
         System.out.println("environment: " + environment);
         System.out.println("profiles: " + profiles);
     }
