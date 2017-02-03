@@ -152,6 +152,7 @@ public class WebSocketTest extends ServerTest {
 
         messageHolder.set(null);
         client = new SimpleWebSocketClient("ws://localhost:" + getPort());
+        client.connectIfNot();
         client.close();
         Thread.sleep(10);
         Assert.assertTrue(client.isClosed());
@@ -169,6 +170,7 @@ public class WebSocketTest extends ServerTest {
         };
 
         SimpleWebSocketClient client = new SimpleWebSocketClient("ws://localhost:" + getPort());
+        client.connectIfNot();
         client.in.close();
         Thread.sleep(10);
         Assert.assertEquals("closed", messageHolder.get());
