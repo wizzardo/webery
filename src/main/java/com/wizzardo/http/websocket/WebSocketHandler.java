@@ -1,8 +1,6 @@
 package com.wizzardo.http.websocket;
 
 import com.wizzardo.epoll.ByteBufferProvider;
-import com.wizzardo.epoll.Connection;
-import com.wizzardo.epoll.readable.ReadableBuilder;
 import com.wizzardo.epoll.readable.ReadableByteArray;
 import com.wizzardo.epoll.readable.ReadableData;
 import com.wizzardo.http.Handler;
@@ -68,6 +66,10 @@ public class WebSocketHandler<T extends WebSocketHandler.WebSocketListener> impl
         public WebSocketListener(HttpConnection connection, WebSocketHandler webSocketHandler) {
             this.connection = connection;
             this.webSocketHandler = webSocketHandler;
+        }
+
+        public Request getRequest() {
+            return connection.getRequest();
         }
 
         @Override
