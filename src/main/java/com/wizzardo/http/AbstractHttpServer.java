@@ -40,7 +40,8 @@ public abstract class AbstractHttpServer<T extends HttpConnection> {
     }
 
     public AbstractHttpServer(String host, int port, int workersCount) {
-        if (EpollCore.SUPPORTED) {
+        String disabled = System.getenv("EPOLL_DISABLED");
+        if (EpollCore.SUPPORTED && !Boolean.parseBoolean(disabled)) {
             server = new EpollServer<T>(host, port) {
                 @Override
                 protected T createConnection(int fd, int ip, int port) {
