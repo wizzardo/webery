@@ -106,6 +106,7 @@ public class FallbackServerSocket<T extends HttpConnection> extends EpollServer<
                     e.printStackTrace();
                 }
             sending.add(readable);
+            write(bufferProvider);
             return true;
         }
 
@@ -248,11 +249,11 @@ public class FallbackServerSocket<T extends HttpConnection> extends EpollServer<
                     if (wrapper == null)
                         continue;
 
-                    if (key.isReadable()) {
+                    if (key.isValid() && key.isReadable()) {
                         onRead((T) wrapper, this);
                     }
 
-                    if (key.isWritable()) {
+                    if (key.isValid() && key.isWritable()) {
                         wrapper.write(this);
                     }
                 }
@@ -269,6 +270,7 @@ public class FallbackServerSocket<T extends HttpConnection> extends EpollServer<
                 IOTools.close(selector);
                 IOTools.close(server.socket());
                 IOTools.close(server);
+                Thread.sleep(10);
             } catch (Exception ignored) {
             }
         }
