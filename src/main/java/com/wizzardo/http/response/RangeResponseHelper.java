@@ -16,7 +16,6 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Date;
-import java.util.regex.Pattern;
 import java.util.zip.GZIPOutputStream;
 
 /**
@@ -104,7 +103,8 @@ public class RangeResponseHelper {
         FileHolder fileHolder = getFileHolder(file);
 
         if (rangeHeader != null) {
-            range = new Range(rangeHeader, file.length());
+            long length = fileHolder == null ? file.length() : fileHolder.size();
+            range = new Range(rangeHeader, length);
             if (!range.isValid()) {
                 response.setStatus(Status._416);
                 return response;
