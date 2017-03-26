@@ -16,6 +16,7 @@ server.start();
 ---
 
 <a name="up"/>
+
 ## Framework
 
 - [Installation](#installation)
@@ -32,6 +33,7 @@ server.start();
 ---
 
 <a name="installation"/>
+
 #### Installation [↑](#up)
 
 ##### Gradle
@@ -58,7 +60,7 @@ version = '0.1'
 mainClassName = "com.example.MyWebApp"
 
 dependencies {
-    compile 'com.wizzardo:http:0.1+'
+    compile 'com.wizzardo:http:0.2+'
 }
 
 //create a single Jar with all dependencies
@@ -77,6 +79,7 @@ task fatJar(type: Jar) {
 ---
 
 <a name="initialization"/>
+
 #### Initialization [↑](#up)
 
 ```java
@@ -107,6 +110,7 @@ public class MyWebApp {
 ---
 
 <a name="building-and-running"/>
+
 #### Building and running [↑](#up)
 
 ```bash
@@ -117,6 +121,7 @@ java -jar build/libs/MyWebApp-all.jar env=prod profiles.active=profile_A,profile
 ---
 
 <a name="url-mapping"/>
+
 #### Url-mapping [↑](#up)
 
 Controllers and actions could be mapped to static paths or
@@ -136,6 +141,7 @@ urlMapping
 ---
 
 <a name="di"/>
+
 #### Dependency injection [↑](#up)
 Framework supports simple dependency injections, to make class or interface injectable simple annotate it with @Injectable.
 
@@ -174,6 +180,7 @@ CustomBean bean = DependencyFactory.get(CustomBean.class);
 ---
 
 <a name="configuration"/>
+
 #### Configuration [↑](#up)
 
 ```
@@ -274,6 +281,7 @@ Configuration is loaded in this order:
 ---
 
 <a name="template-engine"/>
+
 #### Template engine [↑](#up)
 
 This framework has it's own template engine, inspired and based on Groovy Server Pages (GSP)
@@ -303,6 +311,7 @@ src/main/resources/views/app/index.gsp
 ---
 
 <a name="i18n"/>
+
 #### i18n [↑](#up)
 
 ```java
@@ -324,6 +333,7 @@ src/main/resources/views/app/index.gsp
 ---
 
 <a name="taglib"/>
+
 #### Taglib [↑](#up)
 
  - [checkBox](#checkBox)
@@ -353,6 +363,7 @@ src/main/resources/views/app/index.gsp
 ---
 
 <a name="checkBox"/>
+
 ##### checkBox [↑](#taglib)
 Generates a checkbox form field.
 
@@ -374,6 +385,7 @@ Generates a checkbox form field.
 ---
 
 <a name="collect"/>
+
 ##### collect [↑](#taglib)
 Iterate over each element of the specified collection transforming the result using the expression in the closure
 
@@ -418,6 +430,7 @@ public class Book {
 
 ---
 <a name="createLink"/>
+
 ##### createLink [↑](#taglib)
 Creates a link that can be used where necessary (for example in an href, JavaScript, Ajax call etc.)
 
@@ -471,6 +484,7 @@ app.getUrlMapping()
 
 ---
 <a name="each"/>
+
 ##### each [↑](#taglib)
 Iterate over each element of the specified collection.
 
@@ -501,6 +515,7 @@ Iterate over each element of the specified collection.
 
 ---
 <a name="else"/>
+
 ##### else [↑](#taglib)
 The logical else tag
 
@@ -521,6 +536,7 @@ The logical else tag
 
 ---
 <a name="elseif"/>
+
 ##### elseif [↑](#taglib)
 The logical elseif tag
 
@@ -545,6 +561,7 @@ The logical elseif tag
 
 ---
 <a name="form"/>
+
 ##### form [↑](#taglib)
 Creates a form, extends 'createLink' tag
 
@@ -572,6 +589,7 @@ True!
 
 ---
 <a name="hiddenField"/>
+
 ##### hiddenField [↑](#taglib)
 Creates a input of type 'hidden' (a hidden field).
 
@@ -591,6 +609,7 @@ Creates a input of type 'hidden' (a hidden field).
 
 ---
 <a name="if"/>
+
 ##### if [↑](#taglib)
 The logical if tag to switch on an expression.
 
@@ -611,6 +630,7 @@ The logical if tag to switch on an expression.
 
 ---
 <a name="join"/>
+
 ##### join [↑](#taglib)
 Concatenate the toString() representation of each item in this collection with the given separator.
 
@@ -630,6 +650,7 @@ Hello, World!
 
 ---
 <a name="link"/>
+
 ##### link [↑](#taglib)
 Creates an html anchor tag with the href set based on the specified parameters. Extends 'createLink' tag.
 
@@ -648,6 +669,7 @@ Creates an html anchor tag with the href set based on the specified parameters. 
 
 ---
 <a name="message"/>
+
 ##### message [↑](#taglib)
 Resolves a message from the given code.
 
