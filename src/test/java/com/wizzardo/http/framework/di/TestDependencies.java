@@ -7,6 +7,7 @@ import com.wizzardo.http.framework.template.Renderer;
 import com.wizzardo.http.request.Request;
 import com.wizzardo.http.response.Response;
 import com.wizzardo.tools.http.HttpSession;
+import com.wizzardo.tools.interfaces.Mapper;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -128,6 +129,7 @@ public class TestDependencies extends WebApplicationTest {
 
     public static class SomeImplementation1 implements SomeInterface, Service {
     }
+
     public static class SomeImplementation2 implements SomeInterface, Service {
     }
 
@@ -315,5 +317,17 @@ public class TestDependencies extends WebApplicationTest {
     public void test_do_not_inject_everything() throws IOException {
         JustInterfaceHolder holder = DependencyFactory.get(JustInterfaceHolder.class);
         Assert.assertNull(holder.justInterface);
+    }
+
+    @Test
+    public void test_custom_factories() throws IOException {
+        Mapper<Class<Object>, Dependency<?>> factory = aClass -> aClass.equals(JustInterface.class) ? new SingletonDependency<>(new JustInterfaceImpl()) : null;
+        DependencyFactory.get().addFactory(factory);
+
+        JustInterface anInterface = DependencyFactory.get(JustInterface.class);
+        Assert.assertNotNull(anInterface);
+        Assert.assertEquals(JustInterfaceImpl.class, anInterface.getClass());
+
+        Assert.assertTrue(DependencyFactory.get().removeFactory(factory));
     }
 }
