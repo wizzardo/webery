@@ -10,17 +10,13 @@ public enum DependencyScope {
     REQUEST(RequestDependency::new),
     THREAD_LOCAL(ThreadLocalDependency::new);
 
-    private final DependencyFactory factory;
+    private final DependencyForge forge;
 
-    DependencyScope(DependencyFactory factory) {
-        this.factory = factory;
+    DependencyScope(DependencyForge forge) {
+        this.forge = forge;
     }
 
-    public <T> Dependency<T> createDependency(Class<T> clazz) {
-        return factory.create(clazz);
-    }
-
-    private interface DependencyFactory {
-        <T> Dependency<T> create(Class<T> clazz);
+    public <T> Dependency<? extends T> createDependency(Class<T> clazz) {
+        return forge.forge(clazz);
     }
 }

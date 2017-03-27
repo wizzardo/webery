@@ -7,7 +7,6 @@ import com.wizzardo.http.framework.template.Renderer;
 import com.wizzardo.http.request.Request;
 import com.wizzardo.http.response.Response;
 import com.wizzardo.tools.http.HttpSession;
-import com.wizzardo.tools.interfaces.Mapper;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -321,13 +320,18 @@ public class TestDependencies extends WebApplicationTest {
 
     @Test
     public void test_custom_factories() throws IOException {
-        Mapper<Class<Object>, Dependency<?>> factory = aClass -> aClass.equals(JustInterface.class) ? new SingletonDependency<>(new JustInterfaceImpl()) : null;
-        DependencyFactory.get().addFactory(factory);
+        DependencyForge forge = new DependencyForge() {
+            @Override
+            public <T> Dependency<? extends T> forge(Class<T> clazz) {
+                return clazz.equals(JustInterface.class) ? new SingletonDependency(new JustInterfaceImpl()) : null;
+            }
+        };
+        DependencyFactory.get().addForge(forge);
 
         JustInterface anInterface = DependencyFactory.get(JustInterface.class);
         Assert.assertNotNull(anInterface);
         Assert.assertEquals(JustInterfaceImpl.class, anInterface.getClass());
 
-        Assert.assertTrue(DependencyFactory.get().removeFactory(factory));
+        Assert.assertTrue(DependencyFactory.get().removeForge(forge));
     }
 }

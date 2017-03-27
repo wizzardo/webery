@@ -1,7 +1,6 @@
 package com.wizzardo.http.framework.di;
 
 import com.wizzardo.tools.cache.Cache;
-import com.wizzardo.tools.interfaces.Mapper;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
@@ -20,7 +19,7 @@ public class DependencyFactory {
     private List<Class> classes;
     private final Map<Class, Class> mappingByClass = new ConcurrentHashMap<>();
     private final Map<String, Dependency> mappingByName = new ConcurrentHashMap<>();
-    private final List<Mapper<Class, Dependency>> factories = new CopyOnWriteArrayList<>();
+    private final List<DependencyForge> forges = new CopyOnWriteArrayList<>();
 
     private Cache<Class<?>, Dependency> dependencies = new Cache<>("dependencies", 0, clazz -> {
         Injectable injectable = getAnnotation(clazz, Injectable.class);
@@ -36,9 +35,9 @@ public class DependencyFactory {
                 return injectable.scope().createDependency(implementation);
         }
 
-        for (Mapper<Class, Dependency> factory : factories) {
+        for (DependencyForge factory : forges) {
             try {
-                Dependency dependency = factory.map(clazz);
+                Dependency dependency = factory.forge(clazz);
                 if (dependency != null)
                     return dependency;
             } catch (Exception e) {
@@ -49,12 +48,12 @@ public class DependencyFactory {
         throw new IllegalStateException("can't create dependency-holder for class: " + clazz);
     });
 
-    public <T> void addFactory(Mapper<Class<T>, Dependency<? extends T>> factory) {
-        factories.add((Mapper) factory);
+    public <T> void addForge(DependencyForge provider) {
+        forges.add(provider);
     }
 
-    public <T> boolean removeFactory(Mapper<Class<T>, Dependency<? extends T>> factory) {
-        return factories.remove(factory);
+    public <T> boolean removeForge(DependencyForge forge) {
+        return forges.remove(forge);
     }
 
     protected Class findImplementation(Class<?> interfase) {
