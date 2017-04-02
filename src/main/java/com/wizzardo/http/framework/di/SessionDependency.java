@@ -3,13 +3,15 @@ package com.wizzardo.http.framework.di;
 import com.wizzardo.http.Session;
 import com.wizzardo.http.framework.RequestContext;
 
+import java.util.function.Supplier;
+
 /**
  * Created by wizzardo on 05.05.15.
  */
 public class SessionDependency<T> extends Dependency<T> {
 
-    public SessionDependency(Class<? extends T> clazz, DependencyScope scope) {
-        super(clazz, scope);
+    public SessionDependency(Class<? extends T> clazz, Supplier<T> supplier, DependencyScope scope) {
+        super(clazz, supplier, scope);
     }
 
     @Override

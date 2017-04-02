@@ -10,6 +10,7 @@ import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.function.Supplier;
 
 import static com.wizzardo.http.framework.di.DependencyFactory.hasAnnotation;
 
@@ -18,10 +19,12 @@ import static com.wizzardo.http.framework.di.DependencyFactory.hasAnnotation;
  */
 public abstract class Dependency<T> {
     protected final Class<? extends T> clazz;
+    protected final Supplier<T> supplier;
     protected final DependencyScope scope;
 
-    public Dependency(Class<? extends T> clazz, DependencyScope scope) {
+    public Dependency(Class<? extends T> clazz, Supplier<T> supplier, DependencyScope scope) {
         this.scope = scope;
+        this.supplier = supplier;
         this.clazz = clazz;
     }
 
@@ -61,18 +64,25 @@ public abstract class Dependency<T> {
     public abstract T get();
 
     protected T newInstance() {
-        return newInstance(true);
+        return prepare(supplier.get(), true);
     }
 
     protected T newInstance(boolean injectDependenciesAndInit) {
+        return prepare(supplier.get(), injectDependenciesAndInit);
+    }
+
+    protected T prepare(T t, boolean injectDependenciesAndInit) {
+        if (injectDependenciesAndInit) {
+            injectDependencies(t);
+            if (t instanceof PostConstruct)
+                ((PostConstruct) t).init();
+        }
+        return t;
+    }
+
+    protected static <T> T newInstance(Class<T> clazz) {
         try {
-            T t = clazz.newInstance();
-            if (injectDependenciesAndInit) {
-                injectDependencies(t);
-                if (t instanceof PostConstruct)
-                    ((PostConstruct) t).init();
-            }
-            return t;
+            return clazz.newInstance();
         } catch (InstantiationException | IllegalAccessException e) {
             throw new IllegalStateException("can't create instance of class " + clazz, e);
         }

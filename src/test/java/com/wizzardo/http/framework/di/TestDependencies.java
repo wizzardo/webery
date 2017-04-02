@@ -12,6 +12,7 @@ import org.junit.Test;
 
 import java.io.IOException;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Supplier;
 
 /**
  * @author: moxa
@@ -319,7 +320,7 @@ public class TestDependencies extends WebApplicationTest {
     }
 
 
-    @Injectable(forge = CustomFactoryForge.class)
+    @Injectable(forge = CustomFactoryForge.class, scope = DependencyScope.PROTOTYPE)
     interface CustomFactoryInterface {
     }
 
@@ -330,8 +331,16 @@ public class TestDependencies extends WebApplicationTest {
 
     public static class CustomFactoryForge implements DependencyForge, Service {
         @Override
-        public <T> Dependency<? extends T> forge(Class<T> clazz, DependencyScope scope) {
-            return clazz.equals(CustomFactoryInterface.class) || clazz.equals(CustomFactoryInterfaceImpl.class) ? new SingletonDependency<>((T) new CustomFactoryInterfaceImpl("foo")) : null;
+        public <T> Dependency<? extends T> forge(Class<? extends T> clazz, DependencyScope scope) {
+            if (clazz.equals(CustomFactoryInterface.class) || clazz.equals(CustomFactoryInterfaceImpl.class))
+                return scope.forge(clazz, () -> (T) new CustomFactoryInterfaceImpl("foo"));
+            else
+                return null;
+        }
+
+        @Override
+        public <T> Dependency<? extends T> forge(Class<? extends T> clazz, Supplier<T> supplier, DependencyScope scope) {
+            return forge(clazz, scope);
         }
     }
 
@@ -340,5 +349,11 @@ public class TestDependencies extends WebApplicationTest {
         CustomFactoryInterface anInterface = DependencyFactory.get(CustomFactoryInterface.class);
         Assert.assertNotNull(anInterface);
         Assert.assertEquals(CustomFactoryInterfaceImpl.class, anInterface.getClass());
+
+        CustomFactoryInterface anotherInstance = DependencyFactory.get(CustomFactoryInterface.class);
+        Assert.assertNotNull(anotherInstance);
+        Assert.assertEquals(CustomFactoryInterfaceImpl.class, anotherInstance.getClass());
+
+        Assert.assertFalse(anInterface == anotherInstance);
     }
 }

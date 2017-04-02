@@ -3,13 +3,15 @@ package com.wizzardo.http.framework.di;
 import com.wizzardo.http.framework.RequestContext;
 import com.wizzardo.http.framework.RequestHolder;
 
+import java.util.function.Supplier;
+
 /**
  * Created by wizzardo on 05.05.15.
  */
 public class RequestDependency<T> extends Dependency<T> {
 
-    public RequestDependency(Class<? extends T> clazz, DependencyScope scope) {
-        super(clazz, scope);
+    public RequestDependency(Class<? extends T> clazz, Supplier<T> supplier, DependencyScope scope) {
+        super(clazz, supplier, scope);
     }
 
     @Override

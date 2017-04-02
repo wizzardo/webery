@@ -1,5 +1,7 @@
 package com.wizzardo.http.framework.di;
 
+import java.util.function.Supplier;
+
 /**
  * Created by wizzardo on 27.04.15.
  */
@@ -16,8 +18,12 @@ public enum DependencyScope implements DependencyForge {
         this.defaultForge = forge;
     }
 
+    public <T> Dependency<? extends T> forge(Class<? extends T> clazz, Supplier<T> supplier) {
+        return forge(clazz, supplier, this);
+    }
+
     @Override
-    public <T> Dependency<? extends T> forge(Class<T> clazz, DependencyScope scope) {
-        return defaultForge.forge(clazz, scope);
+    public <T> Dependency<? extends T> forge(Class<? extends T> clazz, Supplier<T> supplier, DependencyScope scope) {
+        return defaultForge.forge(clazz, supplier, scope);
     }
 }

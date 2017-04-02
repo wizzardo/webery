@@ -1,5 +1,7 @@
 package com.wizzardo.http.framework.di;
 
+import java.util.function.Supplier;
+
 /**
  * Created by wizzardo on 05.05.15.
  */
@@ -8,8 +10,8 @@ public class SingletonDependency<T> extends Dependency<T> {
     private boolean injecting = false;
     private volatile boolean init = false;
 
-    public SingletonDependency(Class<? extends T> clazz, DependencyScope scope) {
-        super(clazz, scope);
+    public SingletonDependency(Class<? extends T> clazz, Supplier<T> supplier, DependencyScope scope) {
+        super(clazz, supplier, scope);
     }
 
     public SingletonDependency(T instance) {
@@ -17,7 +19,7 @@ public class SingletonDependency<T> extends Dependency<T> {
     }
 
     public SingletonDependency(T instance, boolean injectDependencies) {
-        super((Class<? extends T>) instance.getClass(), DependencyScope.SINGLETON);
+        super((Class<? extends T>) instance.getClass(), () -> instance, DependencyScope.SINGLETON);
         this.instance = instance;
         init = !injectDependencies;
     }
