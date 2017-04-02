@@ -12,4 +12,6 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Injectable {
     DependencyScope scope() default DependencyScope.SINGLETON;
+
+    Class<? extends DependencyForge> forge() default DependencyForge.class;
 }

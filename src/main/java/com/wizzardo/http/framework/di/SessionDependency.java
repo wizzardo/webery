@@ -8,8 +8,8 @@ import com.wizzardo.http.framework.RequestContext;
  */
 public class SessionDependency<T> extends Dependency<T> {
 
-    public SessionDependency(Class<? extends T> clazz) {
-        super(clazz);
+    public SessionDependency(Class<? extends T> clazz, DependencyScope scope) {
+        super(clazz, scope);
     }
 
     @Override

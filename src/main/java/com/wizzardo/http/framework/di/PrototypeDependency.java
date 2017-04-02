@@ -5,8 +5,8 @@ package com.wizzardo.http.framework.di;
  */
 public class PrototypeDependency<T> extends Dependency<T> {
 
-    public PrototypeDependency(Class<? extends T> clazz) {
-        super(clazz);
+    public PrototypeDependency(Class<? extends T> clazz, DependencyScope scope) {
+        super(clazz, scope);
     }
 
     @Override

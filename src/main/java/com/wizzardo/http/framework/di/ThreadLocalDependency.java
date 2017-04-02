@@ -11,8 +11,8 @@ public class ThreadLocalDependency<T> extends Dependency<T> {
         }
     };
 
-    public ThreadLocalDependency(Class<? extends T> clazz) {
-        super(clazz);
+    public ThreadLocalDependency(Class<? extends T> clazz, DependencyScope scope) {
+        super(clazz, scope);
     }
 
     @Override

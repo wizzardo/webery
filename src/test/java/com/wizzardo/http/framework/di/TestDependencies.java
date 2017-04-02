@@ -318,20 +318,27 @@ public class TestDependencies extends WebApplicationTest {
         Assert.assertNull(holder.justInterface);
     }
 
+
+    @Injectable(forge = CustomFactoryForge.class)
+    interface CustomFactoryInterface {
+    }
+
+    public static class CustomFactoryInterfaceImpl implements CustomFactoryInterface {
+        public CustomFactoryInterfaceImpl(String s) {
+        }
+    }
+
+    public static class CustomFactoryForge implements DependencyForge, Service {
+        @Override
+        public <T> Dependency<? extends T> forge(Class<T> clazz, DependencyScope scope) {
+            return clazz.equals(CustomFactoryInterface.class) || clazz.equals(CustomFactoryInterfaceImpl.class) ? new SingletonDependency<>((T) new CustomFactoryInterfaceImpl("foo")) : null;
+        }
+    }
+
     @Test
     public void test_custom_factories() throws IOException {
-        DependencyForge forge = new DependencyForge() {
-            @Override
-            public <T> Dependency<? extends T> forge(Class<T> clazz) {
-                return clazz.equals(JustInterface.class) ? new SingletonDependency(new JustInterfaceImpl()) : null;
-            }
-        };
-        DependencyFactory.get().addForge(forge);
-
-        JustInterface anInterface = DependencyFactory.get(JustInterface.class);
+        CustomFactoryInterface anInterface = DependencyFactory.get(CustomFactoryInterface.class);
         Assert.assertNotNull(anInterface);
-        Assert.assertEquals(JustInterfaceImpl.class, anInterface.getClass());
-
-        Assert.assertTrue(DependencyFactory.get().removeForge(forge));
+        Assert.assertEquals(CustomFactoryInterfaceImpl.class, anInterface.getClass());
     }
 }

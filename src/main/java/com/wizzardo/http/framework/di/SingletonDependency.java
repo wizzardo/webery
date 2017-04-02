@@ -8,8 +8,8 @@ public class SingletonDependency<T> extends Dependency<T> {
     private boolean injecting = false;
     private volatile boolean init = false;
 
-    public SingletonDependency(Class<? extends T> clazz) {
-        super(clazz);
+    public SingletonDependency(Class<? extends T> clazz, DependencyScope scope) {
+        super(clazz, scope);
     }
 
     public SingletonDependency(T instance) {
@@ -17,7 +17,7 @@ public class SingletonDependency<T> extends Dependency<T> {
     }
 
     public SingletonDependency(T instance, boolean injectDependencies) {
-        super((Class<? extends T>) instance.getClass());
+        super((Class<? extends T>) instance.getClass(), DependencyScope.SINGLETON);
         this.instance = instance;
         init = !injectDependencies;
     }

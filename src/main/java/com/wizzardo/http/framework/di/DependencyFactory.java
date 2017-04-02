@@ -8,7 +8,6 @@ import java.lang.reflect.Modifier;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * @author: moxa
@@ -19,12 +18,11 @@ public class DependencyFactory {
     private List<Class> classes;
     private final Map<Class, Class> mappingByClass = new ConcurrentHashMap<>();
     private final Map<String, Dependency> mappingByName = new ConcurrentHashMap<>();
-    private final List<DependencyForge> forges = new CopyOnWriteArrayList<>();
 
-    private Cache<Class<?>, Dependency> dependencies = new Cache<>("dependencies", 0, clazz -> {
+    private Cache<Class, Dependency> dependencies = new Cache<>("dependencies", 0, clazz -> {
         Injectable injectable = getAnnotation(clazz, Injectable.class);
         if (injectable != null && !isAbstract(clazz))
-            return injectable.scope().createDependency(clazz);
+            return getForge(injectable).forge(clazz, injectable.scope());
 
         Class<?> implementation = findImplementation(clazz);
         if (implementation != null) {
@@ -32,29 +30,11 @@ public class DependencyFactory {
                 injectable = getAnnotation(implementation, Injectable.class);
 
             if (injectable != null)
-                return injectable.scope().createDependency(implementation);
-        }
-
-        for (DependencyForge factory : forges) {
-            try {
-                Dependency dependency = factory.forge(clazz);
-                if (dependency != null)
-                    return dependency;
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+                return getForge(injectable).forge(implementation, injectable.scope());
         }
 
         throw new IllegalStateException("can't create dependency-holder for class: " + clazz);
     });
-
-    public <T> void addForge(DependencyForge provider) {
-        forges.add(provider);
-    }
-
-    public <T> boolean removeForge(DependencyForge forge) {
-        return forges.remove(forge);
-    }
 
     protected Class findImplementation(Class<?> interfase) {
         Class implementation = mappingByClass.get(interfase);
@@ -95,6 +75,14 @@ public class DependencyFactory {
             clazz = clazz.getSuperclass();
         }
         return null;
+    }
+
+    protected DependencyForge getForge(Injectable injectable) {
+        Class<? extends DependencyForge> forge = injectable.forge();
+        if (!DependencyForge.class.equals(forge))
+            return resolve(forge);
+        else
+            return injectable.scope();
     }
 
     public void clear() {

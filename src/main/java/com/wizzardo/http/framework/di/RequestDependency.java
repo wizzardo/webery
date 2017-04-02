@@ -8,8 +8,8 @@ import com.wizzardo.http.framework.RequestHolder;
  */
 public class RequestDependency<T> extends Dependency<T> {
 
-    public RequestDependency(Class<? extends T> clazz) {
-        super(clazz);
+    public RequestDependency(Class<? extends T> clazz, DependencyScope scope) {
+        super(clazz, scope);
     }
 
     @Override

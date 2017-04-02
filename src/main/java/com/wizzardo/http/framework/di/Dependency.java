@@ -18,8 +18,10 @@ import static com.wizzardo.http.framework.di.DependencyFactory.hasAnnotation;
  */
 public abstract class Dependency<T> {
     protected final Class<? extends T> clazz;
+    protected final DependencyScope scope;
 
-    public Dependency(Class<? extends T> clazz) {
+    public Dependency(Class<? extends T> clazz, DependencyScope scope) {
+        this.scope = scope;
         this.clazz = clazz;
     }
 
