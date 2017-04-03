@@ -33,6 +33,13 @@ public class DependencyFactory {
                 return getForge(injectable).forge(implementation, injectable.scope());
         }
 
+        if (injectable != null) {
+            Dependency dependency = getForge(injectable).forge(clazz, injectable.scope());
+            if (dependency != null) {
+                return dependency;
+            }
+        }
+
         throw new IllegalStateException("can't create dependency-holder for class: " + clazz);
     });
 
