@@ -330,17 +330,13 @@ public class TestDependencies extends WebApplicationTest {
     }
 
     public static class CustomFactoryForge implements DependencyForge, Service {
-        @Override
-        public <T> Dependency<? extends T> forge(Class<? extends T> clazz, DependencyScope scope) {
-            if (clazz.equals(CustomFactoryInterface.class) || clazz.equals(CustomFactoryInterfaceImpl.class))
-                return scope.forge(clazz, () -> (T) new CustomFactoryInterfaceImpl("foo"));
-            else
-                return null;
-        }
 
         @Override
-        public <T> Dependency<? extends T> forge(Class<? extends T> clazz, Supplier<T> supplier, DependencyScope scope) {
-            return forge(clazz, scope);
+        public <T> Supplier<T> createSupplier(Class<? extends T> clazz) {
+            if (clazz.equals(CustomFactoryInterface.class) || clazz.equals(CustomFactoryInterfaceImpl.class))
+                return () -> (T) new CustomFactoryInterfaceImpl("foo");
+            else
+                return null;
         }
     }
 

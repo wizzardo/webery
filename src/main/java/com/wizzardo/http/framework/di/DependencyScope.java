@@ -12,9 +12,9 @@ public enum DependencyScope implements DependencyForge {
     REQUEST(RequestDependency::new),
     THREAD_LOCAL(ThreadLocalDependency::new);
 
-    private final DependencyForge defaultForge;
+    private final SimpleForge defaultForge;
 
-    DependencyScope(DependencyForge forge) {
+    DependencyScope(SimpleForge forge) {
         this.defaultForge = forge;
     }
 
@@ -25,5 +25,9 @@ public enum DependencyScope implements DependencyForge {
     @Override
     public <T> Dependency<? extends T> forge(Class<? extends T> clazz, Supplier<T> supplier, DependencyScope scope) {
         return defaultForge.forge(clazz, supplier, scope);
+    }
+
+    interface SimpleForge {
+        <T> Dependency<? extends T> forge(Class<? extends T> clazz, Supplier<T> supplier, DependencyScope scope);
     }
 }

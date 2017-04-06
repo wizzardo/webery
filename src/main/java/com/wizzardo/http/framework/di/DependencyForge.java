@@ -7,8 +7,17 @@ import java.util.function.Supplier;
  */
 public interface DependencyForge {
     default <T> Dependency<? extends T> forge(Class<? extends T> clazz, DependencyScope scope) {
-        return forge(clazz, () -> Dependency.newInstance(clazz), scope);
+        return forge(clazz, createSupplier(clazz), scope);
     }
 
-    <T> Dependency<? extends T> forge(Class<? extends T> clazz, Supplier<T> supplier, DependencyScope scope);
+    default <T> Dependency<? extends T> forge(Class<? extends T> clazz, Supplier<T> supplier, DependencyScope scope) {
+        if (supplier == null)
+            return null;
+
+        return scope.forge(clazz, supplier, scope);
+    }
+
+    default <T> Supplier<T> createSupplier(Class<? extends T> clazz) {
+        return () -> Dependency.newInstance(clazz);
+    }
 }
