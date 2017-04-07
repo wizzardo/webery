@@ -33,8 +33,7 @@ public abstract class Dependency<T> {
         FieldReflectionFactory reflectionFactory = new FieldReflectionFactory();
         while (clazz != null) {
             for (Field f : clazz.getDeclaredFields()) {
-                int mod = f.getModifiers();
-                if (Modifier.isFinal(mod) || f.getType().isPrimitive())
+                if (Modifier.isFinal(f.getModifiers()) || f.getType().isPrimitive())
                     continue;
 
                 if (DependencyFactory.get().contains(f.getType()) || DependencyFactory.get().contains(f.getName())) {
@@ -42,6 +41,7 @@ public abstract class Dependency<T> {
                     continue;
                 }
 
+                int mod = f.getType().getModifiers();
                 if (hasAnnotation(f.getType(), Injectable.class)
                         || Modifier.isAbstract(mod)
                         || Modifier.isInterface(mod)) {
