@@ -352,4 +352,17 @@ public class TestDependencies extends WebApplicationTest {
 
         Assert.assertFalse(anInterface == anotherInstance);
     }
+
+    @Injectable
+    static class FieldInjectedByName {
+        String foo;
+    }
+
+    @Test
+    public void test_inject_by_name() throws IOException {
+        DependencyFactory.get().register("foo", "bar");
+
+        FieldInjectedByName fieldInjectedByName = DependencyFactory.get(FieldInjectedByName.class);
+        Assert.assertEquals("bar", fieldInjectedByName.foo);
+    }
 }
