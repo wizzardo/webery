@@ -149,4 +149,8 @@ public class DependencyFactory {
     public boolean contains(Class clazz) {
         return dependencies.contains(clazz);
     }
+
+    public boolean contains(String clazz) {
+        return mappingByName.containsKey(clazz);
+    }
 }

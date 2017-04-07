@@ -33,11 +33,11 @@ public abstract class Dependency<T> {
         FieldReflectionFactory reflectionFactory = new FieldReflectionFactory();
         while (clazz != null) {
             for (Field f : clazz.getDeclaredFields()) {
-                int mod = f.getType().getModifiers();
+                int mod = f.getModifiers();
                 if (Modifier.isFinal(mod) || f.getType().isPrimitive())
                     continue;
 
-                if (DependencyFactory.get().contains(f.getType())) {
+                if (DependencyFactory.get().contains(f.getType()) || DependencyFactory.get().contains(f.getName())) {
                     l.add(reflectionFactory.create(f, true));
                     continue;
                 }
