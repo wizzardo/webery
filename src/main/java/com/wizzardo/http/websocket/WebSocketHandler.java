@@ -90,6 +90,9 @@ public class WebSocketHandler<T extends WebSocketHandler.WebSocketListener> impl
                         }
 
                         int k = tempFrame.read(buffer, 0, read);
+                        if (k == 0)
+                            break;
+
                         read -= k;
                         if (read != 0)
                             System.arraycopy(buffer, k, buffer, 0, read);
