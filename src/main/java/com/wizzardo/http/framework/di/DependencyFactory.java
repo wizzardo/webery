@@ -21,7 +21,10 @@ public class DependencyFactory {
 
     private Cache<Class, Dependency> dependencies = new Cache<>("dependencies", 0, clazz -> {
         Injectable injectable = getAnnotation(clazz, Injectable.class);
-        if (injectable != null && !isAbstract(clazz))
+        Class mappedClass = mappingByClass.get(clazz);
+        boolean mapped = mappedClass != null && clazz != mappedClass;
+
+        if (injectable != null && !isAbstract(clazz) && !mapped)
             return getForge(injectable).forge(clazz, injectable.scope());
 
         Class<?> implementation = findImplementation(clazz);
