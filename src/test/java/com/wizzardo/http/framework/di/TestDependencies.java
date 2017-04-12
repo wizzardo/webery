@@ -142,6 +142,21 @@ public class TestDependencies extends WebApplicationTest {
         Assert.assertTrue(test instanceof SomeImplementation1);
     }
 
+    public static class InjectableFooService implements Service {
+    }
+
+    public static class MockedFooService extends InjectableFooService {
+    }
+
+    @Test
+    public void testRegisterManually_3() {
+        DependencyFactory.get().register(InjectableFooService.class, MockedFooService.class);
+
+        InjectableFooService test = DependencyFactory.get(InjectableFooService.class);
+        Assert.assertNotNull(test);
+        Assert.assertTrue(test instanceof MockedFooService);
+    }
+
     @Test
     public void testCircularDependencies() {
         A a = DependencyFactory.get(A.class);
