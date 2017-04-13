@@ -162,7 +162,7 @@ public class WebSocketHandler<T extends WebSocketHandler.WebSocketListener> impl
             }
         }
 
-        private synchronized void sendFrame(Frame frame) {
+        protected synchronized void sendFrame(Frame frame) {
             connection.write(convertFrameToReadableData(frame), (ByteBufferProvider) Thread.currentThread());
         }
 
@@ -173,7 +173,7 @@ public class WebSocketHandler<T extends WebSocketHandler.WebSocketListener> impl
             webSocketHandler.onDisconnect(this);
         }
 
-        private ReadableData convertFrameToReadableData(Frame frame) {
+        protected ReadableData convertFrameToReadableData(Frame frame) {
             return new ReadableByteArray(frame.getFrameBytes(), frame.getFrameOffset(), frame.getFrameLength());
         }
     }
