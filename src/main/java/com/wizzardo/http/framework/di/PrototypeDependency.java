@@ -11,6 +11,10 @@ public class PrototypeDependency<T> extends Dependency<T> {
         super(clazz, supplier, scope);
     }
 
+    public PrototypeDependency(Class<? extends T> clazz) {
+        super(clazz, DependencyScope.PROTOTYPE);
+    }
+
     @Override
     public T get() {
         return newInstance();

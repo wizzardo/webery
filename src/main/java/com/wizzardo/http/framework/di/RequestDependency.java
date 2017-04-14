@@ -14,6 +14,10 @@ public class RequestDependency<T> extends Dependency<T> {
         super(clazz, supplier, scope);
     }
 
+    public RequestDependency(Class<? extends T> clazz) {
+        super(clazz, DependencyScope.REQUEST);
+    }
+
     @Override
     public T get() {
         RequestHolder requestHolder = ((RequestContext) Thread.currentThread()).getRequestHolder();

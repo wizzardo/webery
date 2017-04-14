@@ -22,6 +22,10 @@ public abstract class Dependency<T> {
     protected final Supplier<T> supplier;
     protected final DependencyScope scope;
 
+    public Dependency(Class<? extends T> clazz, DependencyScope scope) {
+        this(clazz, scope.createSupplier(clazz), scope);
+    }
+
     public Dependency(Class<? extends T> clazz, Supplier<T> supplier, DependencyScope scope) {
         this.scope = scope;
         this.supplier = supplier;

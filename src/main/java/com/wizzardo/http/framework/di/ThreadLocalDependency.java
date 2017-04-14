@@ -12,6 +12,10 @@ public class ThreadLocalDependency<T> extends Dependency<T> {
         super(clazz, supplier, scope);
     }
 
+    public ThreadLocalDependency(Class<? extends T> clazz) {
+        super(clazz, DependencyScope.THREAD_LOCAL);
+    }
+
     @Override
     public T get() {
         return threadLocal.get();

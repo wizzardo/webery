@@ -18,6 +18,10 @@ public class SingletonDependency<T> extends Dependency<T> {
         this(instance, false);
     }
 
+    public SingletonDependency(Class<? extends T> clazz) {
+        super(clazz, DependencyScope.SINGLETON);
+    }
+
     public SingletonDependency(T instance, boolean injectDependencies) {
         super((Class<? extends T>) instance.getClass(), () -> instance, DependencyScope.SINGLETON);
         this.instance = instance;

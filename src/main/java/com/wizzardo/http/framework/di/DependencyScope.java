@@ -18,6 +18,10 @@ public enum DependencyScope implements DependencyForge {
         this.defaultForge = forge;
     }
 
+    public <T> Dependency<? extends T> forge(Class<? extends T> clazz) {
+        return forge(clazz, createSupplier(clazz), this);
+    }
+
     public <T> Dependency<? extends T> forge(Class<? extends T> clazz, Supplier<T> supplier) {
         return forge(clazz, supplier, this);
     }
@@ -27,7 +31,7 @@ public enum DependencyScope implements DependencyForge {
         return defaultForge.forge(clazz, supplier, scope);
     }
 
-    interface SimpleForge {
+    private interface SimpleForge {
         <T> Dependency<? extends T> forge(Class<? extends T> clazz, Supplier<T> supplier, DependencyScope scope);
     }
 }

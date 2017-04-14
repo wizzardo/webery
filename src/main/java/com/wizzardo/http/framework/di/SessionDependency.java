@@ -14,6 +14,10 @@ public class SessionDependency<T> extends Dependency<T> {
         super(clazz, supplier, scope);
     }
 
+    public SessionDependency(Class<? extends T> clazz) {
+        super(clazz, DependencyScope.SESSION);
+    }
+
     @Override
     public T get() {
         Session session = ((RequestContext) Thread.currentThread()).getRequestHolder().request.session();
