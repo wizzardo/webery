@@ -66,6 +66,7 @@ public class ControllerHandler<T extends Controller> implements Handler {
         controllerName = Controller.getControllerName(controller);
         actionName = action;
         configuration = DependencyFactory.get(ServerConfiguration.class);
+        viewRenderingService = DependencyFactory.get(ViewRenderingService.class);
 
         if (methods == null || methods.length == 0) {
             restHandler
@@ -185,7 +186,7 @@ public class ControllerHandler<T extends Controller> implements Handler {
         if (Renderer.class.isAssignableFrom(method.getReturnType()))
             return (it, args) -> Unchecked.call(() -> (Renderer) method.invoke(it, args));
 
-        if (Model.class.isAssignableFrom(method.getReturnType()) && viewRenderingService.hasView(controllerName, actionName)) {
+        if ((Model.class.isAssignableFrom(method.getReturnType()) || method.getReturnType() == Void.TYPE) && viewRenderingService.hasView(controllerName, actionName)) {
             return (it, args) -> Unchecked.call(() -> {
                 method.invoke(it, args);
                 return it.renderView(actionName);
@@ -201,7 +202,7 @@ public class ControllerHandler<T extends Controller> implements Handler {
         if (byte[].class.isAssignableFrom(method.getReturnType()))
             return (it, args) -> Unchecked.call(() -> it.renderData((byte[]) method.invoke(it, args)));
 
-        if (!PARSABLE_TYPES.contains(method.getReturnType()))
+        if (!PARSABLE_TYPES.contains(method.getReturnType()) && !method.getReturnType().isPrimitive())
             return (it, args) -> Unchecked.call(() -> it.renderJson(method.invoke(it, args)));
 
         throw new IllegalStateException("Cannot create renderer for " + method.getReturnType());
