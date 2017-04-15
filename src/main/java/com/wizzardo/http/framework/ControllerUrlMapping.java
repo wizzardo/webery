@@ -33,6 +33,22 @@ public class ControllerUrlMapping extends UrlMapping<Handler> {
         return this;
     }
 
+    public <T extends Controller> ControllerUrlMapping get(String url, Class<T> controllerClass, String action) {
+        return append(url, controllerClass, action, Request.Method.GET, Request.Method.HEAD);
+    }
+
+    public <T extends Controller> ControllerUrlMapping post(String url, Class<T> controllerClass, String action) {
+        return append(url, controllerClass, action, Request.Method.POST);
+    }
+
+    public <T extends Controller> ControllerUrlMapping put(String url, Class<T> controllerClass, String action) {
+        return append(url, controllerClass, action, Request.Method.PUT);
+    }
+
+    public <T extends Controller> ControllerUrlMapping delete(String url, Class<T> controllerClass, String action) {
+        return append(url, controllerClass, action, Request.Method.DELETE);
+    }
+
     public ControllerUrlMapping append(String url, Class<? extends Handler> handlerClass) {
         return append(url, DependencyFactory.get(handlerClass));
     }
