@@ -4,6 +4,8 @@
  */
 package com.wizzardo.http.framework;
 
+import com.wizzardo.epoll.readable.ReadableByteArray;
+import com.wizzardo.epoll.readable.ReadableData;
 import com.wizzardo.http.Session;
 import com.wizzardo.http.framework.di.DependencyScope;
 import com.wizzardo.http.framework.di.Injectable;
@@ -63,6 +65,14 @@ public abstract class Controller {
 
     public Renderer renderString(String s) {
         return new TextRenderer(s);
+    }
+
+    public Renderer renderData(ReadableData data) {
+        return new ReadableDataRenderer(data);
+    }
+
+    public Renderer renderData(byte[] data) {
+        return renderData(new ReadableByteArray(data));
     }
 
     public Renderer renderJson(Object o) {

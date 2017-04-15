@@ -5,7 +5,6 @@ import com.wizzardo.http.framework.di.DependencyFactory;
 import com.wizzardo.http.framework.di.PostConstruct;
 import com.wizzardo.http.framework.di.Service;
 import com.wizzardo.tools.cache.Cache;
-import com.wizzardo.tools.collections.CollectionTools;
 import com.wizzardo.tools.collections.Pair;
 import com.wizzardo.tools.misc.With;
 import com.wizzardo.tools.xml.GspParser;
@@ -17,13 +16,14 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class ViewRenderingService implements Service, PostConstruct{
+public class ViewRenderingService implements Service, PostConstruct {
     protected static final String OFFSET = "    ";
     protected static Pattern p = Pattern.compile("\\$\\{(.+)\\}|\\$([\\w]+)");
 
     protected Cache<Pair<String, String>, RenderableList> viewsCache;
     protected Cache<Pair<String, String>, RenderableList> templatesCache;
     protected ServerConfiguration configuration;
+    protected ResourceTools resourceTools;
 
     @Override
     public void init() {
@@ -34,7 +34,6 @@ public class ViewRenderingService implements Service, PostConstruct{
     }
 
     protected RenderableList prepareView(String view, String offset) {
-        ResourceTools resourceTools = DependencyFactory.get(ResourceTools.class);
         String template = resourceTools.getResourceAsString(view);
         if (template == null)
             throw new IllegalArgumentException("view '" + view + "' not found");
@@ -215,8 +214,7 @@ public class ViewRenderingService implements Service, PostConstruct{
     }
 
     public RenderResult render(String controller, String view, Model model) {
-        String path = "views/" + controller + "/" + view + ".gsp";
-        RenderableList l = viewsCache.get(new Pair<>(path, ""));
+        RenderableList l = viewsCache.get(new Pair<>(getViewPath(controller, view), ""));
         RenderResult result = l.get(model);
         return result;
     }
@@ -227,4 +225,11 @@ public class ViewRenderingService implements Service, PostConstruct{
         return result;
     }
 
+    public boolean hasView(String controller, String view) {
+        return resourceTools.getResourceAsString(getViewPath(controller, view)) != null;
+    }
+
+    protected String getViewPath(String controller, String view) {
+        return "views/" + controller + "/" + view + ".gsp";
+    }
 }

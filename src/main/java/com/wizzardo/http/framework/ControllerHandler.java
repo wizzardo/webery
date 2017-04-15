@@ -6,7 +6,9 @@ import com.wizzardo.http.MultipartHandler;
 import com.wizzardo.http.RestHandler;
 import com.wizzardo.http.framework.di.DependencyFactory;
 import com.wizzardo.http.framework.parameters.ParametersHelper;
+import com.wizzardo.http.framework.template.Model;
 import com.wizzardo.http.framework.template.Renderer;
+import com.wizzardo.http.framework.template.ViewRenderingService;
 import com.wizzardo.http.request.Request;
 import com.wizzardo.http.response.Response;
 import com.wizzardo.http.response.Status;
@@ -16,8 +18,10 @@ import com.wizzardo.tools.json.JsonTools;
 import com.wizzardo.tools.misc.Unchecked;
 
 import java.io.IOException;
-import java.lang.reflect.*;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.lang.reflect.Parameter;
+import java.lang.reflect.Type;
 import java.util.*;
 
 /**
@@ -44,6 +48,7 @@ public class ControllerHandler<T extends Controller> implements Handler {
     protected String actionName;
     protected CollectionTools.Closure<ReadableData, T> renderer;
     protected ServerConfiguration configuration;
+    protected ViewRenderingService viewRenderingService;
     protected RestHandler restHandler = new RestHandler();
 
     public ControllerHandler(Class<T> controller, String action, Request.Method... methods) {
@@ -117,9 +122,11 @@ public class ControllerHandler<T extends Controller> implements Handler {
     }
 
     protected CollectionTools.Closure<ReadableData, T> createRenderer(Method method) {
+        CollectionTools.Closure2<Renderer, T, Object[]> invoker = createInvoker(method);
         if (method.getParameterCount() == 0) {
+            Object[] args = new Object[0];
             return it -> {
-                Renderer renderer = Unchecked.call(() -> (Renderer) method.invoke(it));
+                Renderer renderer = invoker.execute(it, args);
                 return renderer != null ? renderer.renderReadableData() : null;
             };
         } else {
@@ -168,10 +175,36 @@ public class ControllerHandler<T extends Controller> implements Handler {
                 }
 
 
-                Renderer renderer = Unchecked.call(() -> (Renderer) method.invoke(it, args));
+                Renderer renderer = invoker.execute(it, args);
                 return renderer != null ? renderer.renderReadableData() : null;
             };
         }
+    }
+
+    private CollectionTools.Closure2<Renderer, T, Object[]> createInvoker(Method method) {
+        if (Renderer.class.isAssignableFrom(method.getReturnType()))
+            return (it, args) -> Unchecked.call(() -> (Renderer) method.invoke(it, args));
+
+        if (Model.class.isAssignableFrom(method.getReturnType()) && viewRenderingService.hasView(controllerName, actionName)) {
+            return (it, args) -> Unchecked.call(() -> {
+                method.invoke(it, args);
+                return it.renderView(actionName);
+            });
+        }
+
+        if (String.class.isAssignableFrom(method.getReturnType()))
+            return (it, args) -> Unchecked.call(() -> it.renderString((String) method.invoke(it, args)));
+
+        if (ReadableData.class.isAssignableFrom(method.getReturnType()))
+            return (it, args) -> Unchecked.call(() -> it.renderData((ReadableData) method.invoke(it, args)));
+
+        if (byte[].class.isAssignableFrom(method.getReturnType()))
+            return (it, args) -> Unchecked.call(() -> it.renderData((byte[]) method.invoke(it, args)));
+
+        if (!PARSABLE_TYPES.contains(method.getReturnType()))
+            return (it, args) -> Unchecked.call(() -> it.renderJson(method.invoke(it, args)));
+
+        throw new IllegalStateException("Cannot create renderer for " + method.getReturnType());
     }
 
     static class Exceptions {
