@@ -58,6 +58,7 @@ public enum Header {
     KV_CONNECTION_KEEP_ALIVE("Connection: Keep-Alive\r\n", true),
     KV_CONTENT_ENCODING_GZIP("Content-Encoding: gzip\r\n", true),
     KV_CONTENT_TYPE_APPLICATION_JSON("Content-Type: application/json\r\n", true),
+    KV_CONTENT_TYPE_APPLICATION_OCTET_STREAM("Content-Type: application/octet-stream\r\n", true),
     KV_CONTENT_TYPE_HTML_UTF8("Content-Type: text/html;charset=UTF-8\r\n", true),
     KV_CONTENT_TYPE_TEXT_PLAIN("Content-Type: text/plain;charset=UTF-8\r\n", true),
     KV_CONTENT_TYPE_TEXT_XML("Content-Type: text/xml\r\n", true);
