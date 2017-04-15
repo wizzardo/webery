@@ -1,10 +1,12 @@
 package com.wizzardo.http.framework;
 
+import com.wizzardo.epoll.readable.ReadableByteArray;
+import com.wizzardo.epoll.readable.ReadableData;
 import com.wizzardo.http.MultipartHandler;
 import com.wizzardo.http.framework.parameters.Parameter;
 import com.wizzardo.http.framework.parameters.ParametersHelper;
+import com.wizzardo.http.framework.template.Model;
 import com.wizzardo.http.framework.template.Renderer;
-import com.wizzardo.http.request.Request;
 import com.wizzardo.tools.evaluation.Config;
 import com.wizzardo.tools.io.FileTools;
 import com.wizzardo.tools.json.JsonTools;
@@ -17,6 +19,7 @@ import org.junit.Test;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.*;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 import static com.wizzardo.http.request.Request.Method.GET;
@@ -1070,5 +1073,64 @@ public class ControllerHandlerTest extends WebApplicationTest {
                         "test_1\n" +
                         "defaultVariables.test_1\n"
                 , makeRequest("/variables").get().asString());
+    }
+
+    public static class CustomTypesController extends Controller {
+        public String string() {
+            return "foo";
+        }
+
+        public byte[] bytes() {
+            return "foo".getBytes(StandardCharsets.UTF_8);
+        }
+
+        public ReadableData renderable() {
+            return new ReadableByteArray("foo".getBytes(StandardCharsets.UTF_8));
+        }
+
+        static class JsonOutput {
+            String foo = "bar";
+        }
+
+        public JsonOutput json() {
+            return new JsonOutput();
+        }
+
+        public Model view() {
+            return model();
+        }
+
+        public void nothing() {
+        }
+
+        public int integer() {
+            return -1;
+        }
+
+        public Character character() {
+            return 'A';
+        }
+    }
+
+    @Test
+    public void test_custom_types() throws IOException {
+        server.getUrlMapping()
+                .append("/string", CustomTypesController.class, "string")
+                .append("/bytes", CustomTypesController.class, "bytes")
+                .append("/renderable", CustomTypesController.class, "renderable")
+                .append("/json", CustomTypesController.class, "json")
+                .append("/view", CustomTypesController.class, "view")
+                .append("/nothing", CustomTypesController.class, "nothing")
+        ;
+
+        Assert.assertEquals("foo", makeRequest("/string").get().asString());
+        Assert.assertEquals("foo", makeRequest("/bytes").get().asString());
+        Assert.assertEquals("foo", makeRequest("/renderable").get().asString());
+        Assert.assertEquals("foo", makeRequest("/view").get().asString().trim());
+        Assert.assertEquals("foo", makeRequest("/nothing").get().asString().trim());
+        Assert.assertEquals("{\"foo\":\"bar\"}", makeRequest("/json").get().asString());
+
+        checkException(() -> server.getUrlMapping().append("/integer", CustomTypesController.class, "integer"), IllegalStateException.class, "Cannot create renderer for int");
+        checkException(() -> server.getUrlMapping().append("/character", CustomTypesController.class, "character"), IllegalStateException.class, "Cannot create renderer for class java.lang.Character");
     }
 }
