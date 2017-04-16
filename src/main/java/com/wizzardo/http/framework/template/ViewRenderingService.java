@@ -197,7 +197,7 @@ public class ViewRenderingService implements Service, PostConstruct {
             Tag t = TagLib.createTag(n.name());
             if (t != null) {
                 t.setImports(imports);
-                t.init(n, offset, dir);
+                t.init(n, offset, dir, this);
                 t.appendTo(l);
                 return true;
             }

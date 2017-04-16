@@ -1,9 +1,6 @@
 package com.wizzardo.http.framework.template.taglib.g;
 
-import com.wizzardo.http.framework.template.Body;
-import com.wizzardo.http.framework.template.ExpressionHolder;
-import com.wizzardo.http.framework.template.RenderResult;
-import com.wizzardo.http.framework.template.Tag;
+import com.wizzardo.http.framework.template.*;
 import com.wizzardo.tools.xml.Node;
 
 import java.util.Map;
@@ -14,7 +11,7 @@ import java.util.Map;
 public class TextArea extends Tag {
 
     @Override
-    public Tag init(Node node, String offset, String dir) {
+    public Tag init(Node node, String offset, String dir, ViewRenderingService viewRenderingService) {
         return init(node.attributes(), new Body(node, "", dir, false, imports), offset);
     }
 
