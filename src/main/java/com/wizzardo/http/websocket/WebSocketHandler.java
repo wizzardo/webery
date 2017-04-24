@@ -122,12 +122,16 @@ public class WebSocketHandler<T extends WebSocketHandler.WebSocketListener> impl
                 }
 
             } catch (Exception e) {
-                e.printStackTrace();
-                try {
-                    connection.close();
-                } catch (IOException e1) {
-                    e1.printStackTrace();
-                }
+                onError(e);
+            }
+        }
+
+        protected void onError(Exception e) {
+            e.printStackTrace();
+            try {
+                connection.close();
+            } catch (IOException e1) {
+                e1.printStackTrace();
             }
         }
 
