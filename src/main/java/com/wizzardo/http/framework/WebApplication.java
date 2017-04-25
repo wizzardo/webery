@@ -72,7 +72,15 @@ public class WebApplication extends HttpServer<HttpConnection> {
     }
 
     public WebApplication onSetup(Consumer<WebApplication> onSetup) {
-        this.onSetup = onSetup;
+        if (this.onSetup == null)
+            this.onSetup = onSetup;
+        else {
+            Consumer<WebApplication> setup = this.onSetup;
+            this.onSetup = it -> {
+                setup.consume(it);
+                onSetup.consume(it);
+            };
+        }
         return this;
     }
 
