@@ -84,7 +84,17 @@ public class ParametersHelper {
             }
             if (Iterable.class.isAssignableFrom((Class<?>) type.getRawType())) {
                 Class subtype = (Class) type.getActualTypeArguments()[0];
-                return createParametersMapper(name, def, createCollection((Class<? extends Iterable>) type.getRawType()), subtype);
+                Class<? extends Iterable> collectionClass = (Class<? extends Iterable>) type.getRawType();
+                Mapper<Request, Object> parametersMapper = createParametersMapper(name, def, createCollection(collectionClass), subtype);
+                if (parametersMapper != null)
+                    return parametersMapper;
+
+                return request -> {
+                    if (request.data() != null && Header.VALUE_APPLICATION_JSON.value.equalsIgnoreCase(request.header(Header.KEY_CONTENT_TYPE)))
+                        return JsonTools.parse(request.data(), collectionClass, subtype);
+
+                    throw new IllegalArgumentException("Can't parse " + collectionClass.getSimpleName() + "<" + subtype.getSimpleName() + "> for parameter '" + name + "'");
+                };
             }
         }
 
@@ -116,7 +126,7 @@ public class ParametersHelper {
             return new CollectionConstructor<>(name, def, collectionSupplier, s -> (Object) Enum.valueOf((Class<? extends Enum>) subtype, s));
 
 
-        throw new IllegalArgumentException("Can't create collection mapper for parameter '" + name + "' with subtype '" + subtype + "'");
+        return null;
     }
 
     public static Mapper<Request, Object> createParametersMapper(String name, String def, Class type) {
