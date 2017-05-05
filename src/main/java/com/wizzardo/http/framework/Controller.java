@@ -107,7 +107,12 @@ public abstract class Controller {
         String controllerName = clazz.getSimpleName();
         if (controllerName.endsWith("Controller"))
             controllerName = controllerName.substring(0, controllerName.length() - "Controller".length());
-        controllerName = controllerName.substring(0, 1).toLowerCase() + controllerName.substring(1);
+        int i = 0;
+        while (i < controllerName.length() && controllerName.charAt(i) >= 'A' && controllerName.charAt(i) <= 'Z') {
+            i++;
+        }
+
+        controllerName = controllerName.substring(0, i).toLowerCase() + controllerName.substring(i);
         return controllerName;
     }
 
