@@ -10,9 +10,7 @@ import com.wizzardo.tools.misc.With;
 import com.wizzardo.tools.xml.GspParser;
 import com.wizzardo.tools.xml.Node;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -42,16 +40,9 @@ public class ViewRenderingService implements Service, PostConstruct {
 
         RenderableList l = new RenderableList();
         Node html = new GspParser().parse(template);
-        List<String> imports = null;
+        Set<String> imports = new HashSet<>();
 
-        Node page = html.get("%@");
-        if (page != null && page.hasAttr("page")) {
-            html.children().remove(page);
-
-            if (page.hasAttr("import")) {
-                imports = Arrays.asList(page.attr("import").split("; *"));
-            }
-        }
+        readImports(html, imports);
 
         Node layoutTag = html.get("html/head/meta[@name=layout]");
         if (layoutTag != null) {
@@ -62,6 +53,7 @@ public class ViewRenderingService implements Service, PostConstruct {
                 throw new IllegalArgumentException("Layout '" + layoutTag.attr("content") + "' not found");
 
             Node layout = new GspParser().parse(layoutContent);
+            readImports(layout, imports);
             for (Decorator decorator : DependencyFactory.get(DecoratorLib.class).list()) {
                 decorator.decorate(html, layout);
             }
@@ -72,11 +64,22 @@ public class ViewRenderingService implements Service, PostConstruct {
         return l;
     }
 
+    protected void readImports(Node html, Set<String> imports) {
+        Node page = html.get("%@");
+        if (page != null && page.hasAttr("page")) {
+            html.children().remove(page);
+
+            if (page.hasAttr("import")) {
+                imports.addAll(Arrays.asList(page.attr("import").split("; *")));
+            }
+        }
+    }
+
     public void prepare(String s, RenderableList l) {
         prepare(s, l, null);
     }
 
-    public static void prepare(String s, RenderableList l, List<String> imports) {
+    public static void prepare(String s, RenderableList l, Set<String> imports) {
         if (s.contains("$")) {
             Matcher m = p.matcher(s);
             int last = 0;
@@ -98,17 +101,17 @@ public class ViewRenderingService implements Service, PostConstruct {
         prepare(n, l, dir, offset, null);
     }
 
-    public void prepare(List<Node> n, RenderableList l, String dir, String offset, List<String> imports) {
+    public void prepare(List<Node> n, RenderableList l, String dir, String offset, Set<String> imports) {
         for (Node node : n) {
             prepare(node, l, dir, offset, imports);
         }
     }
 
-    public void prepare(Node n, RenderableList l, String dir, String offset, List<String> imports) {
+    public void prepare(Node n, RenderableList l, String dir, String offset, Set<String> imports) {
         prepare(n, l, dir, offset, true, imports);
     }
 
-    public void prepare(Node n, RenderableList l, String dir, String offset, boolean addNewLine, List<String> imports) {
+    public void prepare(Node n, RenderableList l, String dir, String offset, boolean addNewLine, Set<String> imports) {
         if (n.isComment() && n instanceof GspParser.GspComment)
             return;
 
@@ -159,7 +162,7 @@ public class ViewRenderingService implements Service, PostConstruct {
     }
 
 
-    public boolean checkTagLib(final Node n, RenderableList l, String dir, String offset, List<String> imports) {
+    public boolean checkTagLib(final Node n, RenderableList l, String dir, String offset, Set<String> imports) {
         if (n.name().equals("g:render")) {
             String model = n.attr("model");
             if (model == null)

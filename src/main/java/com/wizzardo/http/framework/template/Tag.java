@@ -2,13 +2,13 @@ package com.wizzardo.http.framework.template;
 
 import com.wizzardo.tools.xml.Node;
 
-import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Supplier;
 
 public abstract class Tag extends RenderableList {
 
-    protected List<String> imports;
+    protected Set<String> imports;
 
     public Tag init(Node node, String offset, String dir, ViewRenderingService viewRenderingService) {
         return init(node.attributes(), new Body(node, getBodyOffset(offset), dir, imports, viewRenderingService), offset);
@@ -76,7 +76,7 @@ public abstract class Tag extends RenderableList {
         return new ExpressionHolder<>(value, imports, template);
     }
 
-    public void setImports(List<String> imports) {
+    public void setImports(Set<String> imports) {
         this.imports = imports;
     }
 }
