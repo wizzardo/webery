@@ -7,10 +7,7 @@ import com.wizzardo.tools.evaluation.Variable;
 import com.wizzardo.tools.interfaces.Supplier;
 import com.wizzardo.tools.misc.Unchecked;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -31,7 +28,7 @@ public class ExpressionHolder<T> implements Renderable {
 
     public ExpressionHolder(String s, Set<String> imports, boolean stringTemplate) {
         string = s;
-        this.imports = new ArrayList<>(imports);
+        this.imports = imports != null ? new ArrayList<>(imports) : Collections.emptyList();
         this.stringTemplate = stringTemplate;
     }
 
