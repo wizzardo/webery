@@ -29,13 +29,18 @@ public abstract class Tag extends RenderableList {
     public abstract Tag init(Map<String, String> attrs, Body body, String offset);
 
     protected void prepareAttrs(Map<String, String> attrs) {
+        prepareAttrs(attrs, this);
+    }
+
+    protected RenderableList prepareAttrs(Map<String, String> attrs, RenderableList renderables) {
         for (Map.Entry<String, String> attr : attrs.entrySet()) {
-            append(" ");
-            ViewRenderingService.prepare(attr.getKey(), this, imports);
-            append("=\"");
-            ViewRenderingService.prepare(attr.getValue(), this, imports);
-            append("\"");
+            renderables.append(" ");
+            ViewRenderingService.prepare(attr.getKey(), renderables, imports);
+            renderables.append("=\"");
+            ViewRenderingService.prepare(attr.getValue(), renderables, imports);
+            renderables.append("\"");
         }
+        return renderables;
     }
 
     public void appendTo(RenderableList l) {

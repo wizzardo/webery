@@ -20,6 +20,8 @@ public class Resource extends Tag implements RenderableString {
     @Override
     public Tag init(Map<String, String> attrs, Body body, String offset) {
         ExpressionHolder absolute = asExpression(attrs, "absolute", false, false);
+        ExpressionHolder tag = asExpression(attrs, "tag", false, false);
+        ExpressionHolder urlAttr = asExpression(attrs, "url", false, false);
         ExpressionHolder dir = asExpression(attrs, "dir", true, false);
         ExpressionHolder file = asExpression(attrs, "file", true, true);
 
@@ -35,6 +37,17 @@ public class Resource extends Tag implements RenderableString {
                 append("<script type=\"text/javascript\" src=\"");
             else if (fileName.endsWith(".css"))
                 append("<link rel=\"stylesheet\" href=\"");
+            else if (tag != null && urlAttr != null) {
+                append("<");
+                append(tag.toString());
+                prepareAttrs(attrs);
+                append(" ");
+                append(urlAttr.toString());
+                append("=\"");
+            }
+
+        RenderableList preparedAttrs = new RenderableList();
+        prepareAttrs(attrs, preparedAttrs);
 
         append(model -> {
             String f = String.valueOf(file.raw(model));
@@ -43,7 +56,7 @@ public class Resource extends Tag implements RenderableString {
                 path.append('/').append(f);
             else {
                 String d = String.valueOf(dir.raw(model));
-                if(!d.startsWith("/"))
+                if (!d.startsWith("/"))
                     path.append('/');
 
                 if (d.endsWith("/"))
@@ -66,14 +79,33 @@ public class Resource extends Tag implements RenderableString {
                 return new RenderResult()
                         .append("<script type=\"text/javascript\" src=\"")
                         .append(url)
-                        .append("\"></script>");
+                        .append("\"")
+                        .append(preparedAttrs.get(model))
+                        .append("></script>");
             else if (f.endsWith(".css"))
                 return new RenderResult()
                         .append("<link rel=\"stylesheet\" href=\"")
                         .append(url)
-                        .append("\">");
-
-            return new RenderResult();
+                        .append("\"")
+                        .append(preparedAttrs.get(model))
+                        .append(">");
+            else if (tag != null && urlAttr != null) {
+                RenderResult renderResult = new RenderResult();
+                renderResult
+                        .append("<")
+                        .append(tag.toString())
+                        .append(preparedAttrs.get(model))
+                        .append(" ")
+                        .append(urlAttr.toString())
+                        .append("=\"")
+                        .append(url)
+                        .append("\"></")
+                        .append(tag.toString())
+                        .append(">")
+                ;
+                return renderResult;
+            } else
+                return new RenderResult();
         });
 
         if (isStatic)
@@ -81,6 +113,11 @@ public class Resource extends Tag implements RenderableString {
                 append("\"></script>");
             else if (fileName.endsWith(".css"))
                 append("\">");
+            else if (tag != null && urlAttr != null) {
+                append("\"></");
+                append(tag.toString());
+                append(">");
+            }
 
         append("\n");
 
