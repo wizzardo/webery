@@ -38,6 +38,16 @@ public class ResourceTest extends WebApplicationTest implements TagTest {
     }
 
     @Test
+    public void test_static_custom_tag() {
+        Assert.assertEquals("" +
+                "<div>\n" +
+                "    <script type=\"riot/tag\" src=\"/static/js/test.v73CF.tag\"></script>\n" +
+                "</div>\n", prepare("<div><g:resource dir=\"js\" file=\"test.tag\" tag=\"script\" url=\"src\" type=\"riot/tag\"/></div>")
+                .get(new Model()).toString());
+    }
+
+
+    @Test
     public void test_static_img() {
         Assert.assertEquals("" +
                 "<div>\n" +
@@ -80,6 +90,15 @@ public class ResourceTest extends WebApplicationTest implements TagTest {
                 "    <link rel=\"stylesheet\" href=\"/static/css/test.vEA6A.css\">\n" +
                 "</div>\n", prepare("<div><g:resource dir=\"/css/\" file=\"${css}\"/></div>")
                 .get(new Model().append("css", "test.css")).toString());
+    }
+
+    @Test
+    public void test_dynamic_custom_tag() {
+        Assert.assertEquals("" +
+                "<div>\n" +
+                "    <script type=\"riot/tag\" src=\"/static/js/test.v73CF.tag\"></script>\n" +
+                "</div>\n", prepare("<div><g:resource dir=\"js\" file=\"${tag}\" tag=\"script\" url=\"src\" type=\"riot/tag\"/></div>")
+                .get(new Model().append("tag", "test.tag")).toString());
     }
 
     @Test
