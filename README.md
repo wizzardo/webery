@@ -358,7 +358,7 @@ src/main/resources/views/app/index.gsp
  - set
  - textArea
  - textField
- - while
+ - [while](#while)
 
 ---
 
@@ -689,3 +689,26 @@ test message: one
 - default (optional) - The default message to output if the error or code cannot be found in messages.properties.
 - args (optional) - A list of argument values to apply to the message when code is used.
 - locale (optional) Override Locale to use instead of the one detected
+
+---
+<a name="while"/>
+
+##### while [↑](#taglib)
+Executes a condition in a loop until the condition returns false.
+
+###### Template:
+```html
+<g:while test="${i < 3}">
+    <p>Current i = ${i++}</p>
+</g:while>
+```
+
+###### Result:
+```html
+    <p>Current i = 0</p>
+    <p>Current i = 1</p>
+    <p>Current i = 2</p>
+```
+
+###### Attributes:
+- test - The conditional expression
