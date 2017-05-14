@@ -353,7 +353,7 @@ src/main/resources/views/app/index.gsp
  - [link](#link)
  - [message](#message)
  - passwordField
- - radio
+ - [radio](#radio)
  - resource
  - [set](#set)
  - textArea
@@ -689,6 +689,29 @@ test message: one
 - default (optional) - The default message to output if the error or code cannot be found in messages.properties.
 - args (optional) - A list of argument values to apply to the message when code is used.
 - locale (optional) Override Locale to use instead of the one detected
+
+---
+<a name="radio"/>
+
+##### radio [↑](#taglib)
+Generates a radio button
+
+###### Template:
+```html
+<g:radio name="myGroup" value="1"/>
+<g:radio name="myGroup" value="2" checked="true"/>
+```
+
+###### Result:
+```html
+<input type="radio" name="myGroup" value="1" />
+<input type="radio" name="myGroup" checked="checked" value="2" />
+```
+
+###### Attributes:
+- value - The value of the radio button
+- name - The name of the radio button
+- checked - boolean to indicate that the radio button should be checked
 
 ---
 <a name="set"/>
