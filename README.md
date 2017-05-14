@@ -355,7 +355,7 @@ src/main/resources/views/app/index.gsp
  - passwordField
  - radio
  - resource
- - set
+ - [set](#set)
  - textArea
  - textField
  - [while](#while)
@@ -689,6 +689,32 @@ test message: one
 - default (optional) - The default message to output if the error or code cannot be found in messages.properties.
 - args (optional) - A list of argument values to apply to the message when code is used.
 - locale (optional) Override Locale to use instead of the one detected
+
+---
+<a name="set"/>
+
+##### set [↑](#taglib)
+Sets the value of a variable accessible with the GSP page.
+
+###### Template:
+```html
+<g:set var="counter" value="${0}" />
+<g:while test="${counter < 3}">
+    <p>Current i = ${i}</p>
+    <g:set var="counter" value="${counter + 1}" />
+</g:while>
+```
+
+###### Result:
+```html
+    <p>Current i = 0</p>
+    <p>Current i = 1</p>
+    <p>Current i = 2</p>
+```
+
+###### Attributes:
+- var - The name of the variable
+- value - The initial value
 
 ---
 <a name="while"/>
