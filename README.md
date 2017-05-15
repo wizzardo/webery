@@ -348,7 +348,7 @@ src/main/resources/views/app/index.gsp
  - [if](#if)
  - [join](#join)
  - [layoutBody](#layoutBody)
- - layoutHead
+ - [layoutHead](#layoutHead)
  - layoutTitle
  - [link](#link)
  - [message](#message)
@@ -653,6 +653,44 @@ Hello, World!
 
 ##### layoutBody [↑](#taglib)
 Used in layouts to output the contents of the body tag of the decorated page.
+
+###### Decorated page template:
+```html
+<html>
+   <head>
+        <meta name="layout" content="myLayout" />
+        <script src="myscript.js" />
+   </head>
+   <body>Page to be decorated</body>
+</html>
+```
+###### Layout template `views/layouts/myLayout.gsp`:
+```html
+<html>
+   <head>
+        <script src="global.js" />
+        <g:layoutHead />
+   </head>
+   <body><g:layoutBody /></body>
+</html>
+```
+
+###### Result:
+```html
+<html>
+   <head>
+        <script src="global.js" />
+        <script src="myscript.js" />
+   </head>
+   <body>Page to be decorated</body>
+</html>
+```
+
+---
+<a name="layoutHead"/>
+
+##### layoutHead [↑](#taglib)
+Used in layouts to render the contents of the head tag of the decorated page
 
 ###### Decorated page template:
 ```html
