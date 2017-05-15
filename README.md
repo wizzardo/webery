@@ -349,7 +349,7 @@ src/main/resources/views/app/index.gsp
  - [join](#join)
  - [layoutBody](#layoutBody)
  - [layoutHead](#layoutHead)
- - layoutTitle
+ - [layoutTitle](#layoutTitle)
  - [link](#link)
  - [message](#message)
  - passwordField
@@ -717,6 +717,47 @@ Used in layouts to render the contents of the head tag of the decorated page
 ```html
 <html>
    <head>
+        <script src="global.js" />
+        <script src="myscript.js" />
+   </head>
+   <body>Page to be decorated</body>
+</html>
+```
+
+---
+<a name="layoutTitle"/>
+
+##### layoutTitle [↑](#taglib)
+Used in layouts to render the contents of the title tag of the decorated page
+
+###### Decorated page template:
+```html
+<html>
+   <head>
+        <meta name="layout" content="myLayout" />
+        <title>Hello World!</title>
+        <script src="myscript.js" />
+   </head>
+   <body>Page to be decorated</body>
+</html>
+```
+###### Layout template `views/layouts/myLayout.gsp`:
+```html
+<html>
+   <head>
+		<title><g:layoutTitle default="Some Title" /></title>
+        <script src="global.js" />
+        <g:layoutHead />
+   </head>
+   <body><g:layoutBody /></body>
+</html>
+```
+
+###### Result:
+```html
+<html>
+   <head>
+        <title>Hello World!</title>
         <script src="global.js" />
         <script src="myscript.js" />
    </head>
