@@ -356,7 +356,7 @@ src/main/resources/views/app/index.gsp
  - [radio](#radio)
  - resource
  - [set](#set)
- - textArea
+ - [textArea](#textArea)
  - [textField](#textField)
  - [while](#while)
 
@@ -875,6 +875,28 @@ Sets the value of a variable accessible with the GSP page.
 ###### Attributes:
 - var - The name of the variable
 - value - The initial value
+
+---
+<a name="textArea"/>
+
+##### textArea [↑](#taglib)
+Creates a HTML text area element. An implicit "id" attribute is given the same value as name unless you explicitly specify one.
+
+###### Template:
+```html
+<g:textArea name="myField" value="myValue" rows="5" cols="40"/>
+```
+
+###### Result:
+```html
+<textarea name="myField" id="myField" rows="5" cols="40" >
+myValue
+</textarea>>
+```
+
+###### Attributes:
+- name - The name of the text area
+- value - The initial text to display in the text area. By default the text area will be empty.
 
 ---
 <a name="textField"/>
