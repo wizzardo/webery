@@ -352,7 +352,7 @@ src/main/resources/views/app/index.gsp
  - [layoutTitle](#layoutTitle)
  - [link](#link)
  - [message](#message)
- - passwordField
+ - [passwordField](#passwordField)
  - [radio](#radio)
  - resource
  - [set](#set)
@@ -806,6 +806,26 @@ test message: one
 - default (optional) - The default message to output if the error or code cannot be found in messages.properties.
 - args (optional) - A list of argument values to apply to the message when code is used.
 - locale (optional) Override Locale to use instead of the one detected
+
+---
+<a name="passwordField"/>
+
+##### passwordField [↑](#taglib)
+Creates a input of type 'password' (a password field). An implicit "id" attribute is given the same value as name unless you explicitly specify one.
+
+###### Template:
+```html
+<g:passwordField name="myPasswordField" value="${'myPassword'}" />
+```
+
+###### Result:
+```html
+<input type="password" name="myPasswordField" id="myPasswordField" value="myPassword" />
+```
+
+###### Attributes:
+- name - The name of the password field
+- value - The value of the password field
 
 ---
 <a name="radio"/>
