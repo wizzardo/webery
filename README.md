@@ -357,7 +357,7 @@ src/main/resources/views/app/index.gsp
  - resource
  - [set](#set)
  - textArea
- - textField
+ - [textField](#textField)
  - [while](#while)
 
 ---
@@ -855,6 +855,26 @@ Sets the value of a variable accessible with the GSP page.
 ###### Attributes:
 - var - The name of the variable
 - value - The initial value
+
+---
+<a name="textField"/>
+
+##### textField [↑](#taglib)
+Creates a input of type 'text' (a text field). An implicit "id" attribute is given the same value as the name unless you explicitly specify one.
+
+###### Template:
+```html
+<g:textField name="myField" value="${'input'}" />
+```
+
+###### Result:
+```html
+<input type="text" name="myField" id="myField" value="input" />
+```
+
+###### Attributes:
+- name - The name of the text field
+- value - The initial text to display in the text field. By default the text field will be empty.
 
 ---
 <a name="while"/>
