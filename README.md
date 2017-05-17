@@ -354,7 +354,7 @@ src/main/resources/views/app/index.gsp
  - [message](#message)
  - [passwordField](#passwordField)
  - [radio](#radio)
- - resource
+ - [resource](#resource)
  - [set](#set)
  - [textArea](#textArea)
  - [textField](#textField)
@@ -849,6 +849,37 @@ Generates a radio button
 - value - The value of the radio button
 - name - The name of the radio button
 - checked - boolean to indicate that the radio button should be checked
+
+---
+<a name="resource"/>
+
+##### resource [↑](#taglib)
+Generates a link (URI) string for static resources. Can be used in an href, JavaScript, Ajax call, etc.
+
+###### Template:
+```html
+<g:resource dir="css" file="main.css" />
+<g:resource dir="css" file="main.css" absolute="true" />
+<g:resource dir="js" file="test.js"/>
+<img src="${resource(dir:'img', file:'logo.jpg')}">
+<g:resource dir="js" file="test.tag" tag="script" url="src" type="riot/tag"/>
+```
+
+###### Result:
+```html
+<link rel="stylesheet" href="/static/css/main.vEA6A.css">
+<link rel="stylesheet" href="http://localhost:8080/static/css/main.vEA6A.css">
+<script type="text/javascript" src="/static/js/test.v207A.js"></script>
+<img src="/static/img/logo.v53B0.jpg"/>
+<script type="riot/tag" src="/static/js/test.v73CF.tag"></script>
+```
+
+###### Attributes:
+- dir - the name of the directory containing the resource
+- file - the name of the resource file
+- tag - the name of the html tag
+- url - the name of the attribute for the url
+- absolute - If true will prefix the link target address with the value of the `host` property from Config.groovy.
 
 ---
 <a name="set"/>
