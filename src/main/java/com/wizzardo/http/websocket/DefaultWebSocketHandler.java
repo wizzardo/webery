@@ -3,6 +3,7 @@ package com.wizzardo.http.websocket;
 import com.wizzardo.http.framework.di.Injectable;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -34,7 +35,7 @@ public class DefaultWebSocketHandler<T extends WebSocketHandler.WebSocketListene
 
     public void broadcast(byte[] bytes, int offset, int length) {
         Message message = new Message(bytes, offset, length);
-        for (T listener : listeners) {
+        for (T listener : getListeners()) {
             try {
                 listener.sendMessage(message);
             } catch (Exception e) {
@@ -42,5 +43,9 @@ public class DefaultWebSocketHandler<T extends WebSocketHandler.WebSocketListene
                 onDisconnect(listener);
             }
         }
+    }
+
+    protected Collection<T> getListeners() {
+        return listeners;
     }
 }
