@@ -14,8 +14,8 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 
 /**
- * Handles commands in format %<b>CommandNameLength</b>%%<b>CommandName</b>%%<b>Command</b>%,<br/>
- * for example '13SimpleCommand{}' <br/> <br/>
+ * Handles commands in format %<b>CommandNameLength</b>%%<b>CommandName</b>%%<b>Command</b>%,<br></br>
+ * for example '13SimpleCommand{}' <br></br> <br></br>
  * <b>CommandNameLength</b> is optional
  */
 public class SimpleWebSocketCommandHandler<T extends SimpleWebSocketCommandHandler.CountedWebSocketListener> extends DefaultWebSocketHandler<T> {
