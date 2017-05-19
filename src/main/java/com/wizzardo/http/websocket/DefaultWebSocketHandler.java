@@ -34,7 +34,10 @@ public class DefaultWebSocketHandler<T extends WebSocketHandler.WebSocketListene
     }
 
     public void broadcast(byte[] bytes, int offset, int length) {
-        Message message = new Message(bytes, offset, length);
+        broadcast(new Message(bytes, offset, length));
+    }
+
+    public void broadcast(Message message) {
         for (T listener : getListeners()) {
             try {
                 listener.sendMessage(message);
