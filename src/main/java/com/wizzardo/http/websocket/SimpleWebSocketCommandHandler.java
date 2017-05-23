@@ -29,6 +29,13 @@ public class SimpleWebSocketCommandHandler<T extends SimpleWebSocketCommandHandl
         simpleCommandHandler.addHandler(commandClass, handler);
     }
 
+    public void broadcast(CommandPojo command) {
+        broadcast(new Message()
+                .append(command.getClass().getSimpleName())
+                .append(JsonTools.serializeToBytes(command))
+        );
+    }
+
     @Override
     public void onMessage(T listener, Message message) {
         simpleCommandHandler.onMessage(listener, message);
