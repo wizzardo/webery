@@ -10,6 +10,8 @@ import com.wizzardo.http.request.Header;
 import com.wizzardo.http.request.Request;
 import com.wizzardo.http.response.Response;
 import com.wizzardo.http.response.Status;
+import com.wizzardo.tools.misc.pool.Pool;
+import com.wizzardo.tools.misc.pool.PoolBuilder;
 import com.wizzardo.tools.security.Base64;
 import com.wizzardo.tools.security.SHA1;
 
@@ -20,6 +22,22 @@ import java.io.IOException;
  * Date: 30.09.14
  */
 public class WebSocketHandler<T extends WebSocketHandler.WebSocketListener> implements Handler {
+    protected Pool<ByteArrayHolder> byteArrayHolderPool = new PoolBuilder<ByteArrayHolder>()
+            .supplier(ByteArrayHolder::new)
+            .queue(PoolBuilder.createThreadLocalQueueSupplier())
+            .build();
+
+    static class ByteArrayHolder implements ByteArraySupplier {
+        byte[] buffer = new byte[10240];
+
+        @Override
+        public byte[] supply(int minLength) {
+            if (buffer.length < minLength)
+                buffer = new byte[minLength];
+
+            return buffer;
+        }
+    }
 
     @Override
     public Response handle(Request request, Response response) {
@@ -87,6 +105,7 @@ public class WebSocketHandler<T extends WebSocketHandler.WebSocketListener> impl
                                 continue outer;
 
                             tempFrame = new Frame(connection.getServer().getWebsocketFrameLengthLimit());
+                            tempFrame.setByteArraySupplier((ByteArraySupplier) webSocketHandler.byteArrayHolderPool.get());
                         }
 
                         int k = tempFrame.read(buffer, 0, read);
@@ -116,6 +135,7 @@ public class WebSocketHandler<T extends WebSocketHandler.WebSocketListener> impl
 
                         if (tempMessage != null && tempMessage.isComplete()) {
                             webSocketHandler.onMessage(this, tempMessage);
+                            releaseByteBuffers(tempMessage);
                             tempMessage = null;
                         }
                     }
@@ -123,7 +143,15 @@ public class WebSocketHandler<T extends WebSocketHandler.WebSocketListener> impl
 
             } catch (Exception e) {
                 onError(e);
+                releaseByteBuffers(tempMessage);
             }
+        }
+
+        protected void releaseByteBuffers(Message message) {
+            if (message != null)
+                for (Frame frame : message.getFrames()) {
+                    webSocketHandler.byteArrayHolderPool.release(frame.getByteArraySupplier());
+                }
         }
 
         protected void onError(Exception e) {
@@ -150,6 +178,7 @@ public class WebSocketHandler<T extends WebSocketHandler.WebSocketListener> impl
                 sendFrame(tempFrame);
                 connection.setCloseOnFinishWriting(true);
                 tempFrame = null;
+                releaseByteBuffers(tempMessage);
                 return true;
             }
             return false;
@@ -175,6 +204,7 @@ public class WebSocketHandler<T extends WebSocketHandler.WebSocketListener> impl
                 sendFrame(new Frame(Frame.OPCODE_CONNECTION_CLOSE));
 
             webSocketHandler.onDisconnect(this);
+            releaseByteBuffers(tempMessage);
         }
 
         protected ReadableData convertFrameToReadableData(Frame frame) {
