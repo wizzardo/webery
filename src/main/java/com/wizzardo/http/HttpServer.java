@@ -159,7 +159,9 @@ public class HttpServer<T extends HttpConnection> extends AbstractHttpServer<T> 
 
         response = handle(request, response);
 
-        filtersMapping.after(request, response);
+        if (!response.isAsync())
+            filtersMapping.after(request, response);
+
         if (debug) {
             System.out.println("response: ");
             System.out.println(response);
