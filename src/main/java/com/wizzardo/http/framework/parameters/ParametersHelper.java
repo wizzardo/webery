@@ -322,6 +322,9 @@ public class ParametersHelper {
         Fields<FieldInfo> fields = Fields.getFields(type);
         List<Pair<FieldInfo, Mapper<Request, Object>>> mappers = new ArrayList<>(fields.size());
         for (FieldInfo field : fields) {
+            if (field.field.getType().equals(type))
+                continue; // doesn't support recursion in simple form data
+
             Parameter annotation = field.field.getAnnotation(Parameter.class);
             String name = field.field.getName();
             String def = null;
@@ -331,7 +334,10 @@ public class ParametersHelper {
                 if (!annotation.def().isEmpty())
                     def = annotation.def();
             }
-            mappers.add(new Pair<>(field, createParametersMapper(name, def, field.field.getGenericType())));
+            try {
+                mappers.add(new Pair<>(field, createParametersMapper(name, def, field.field.getGenericType())));
+            } catch (IllegalArgumentException ignored) {
+            }
         }
         return request -> {
             if (request.data() != null && Header.VALUE_APPLICATION_JSON.value.equalsIgnoreCase(request.header(Header.KEY_CONTENT_TYPE)))
