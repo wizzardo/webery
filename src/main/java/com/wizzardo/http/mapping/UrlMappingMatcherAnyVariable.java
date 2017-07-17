@@ -1,7 +1,8 @@
 package com.wizzardo.http.mapping;
 
 import com.wizzardo.http.Named;
-import com.wizzardo.http.request.Request;
+
+import java.util.function.BiConsumer;
 
 /**
 * Created by wizzardo on 27.03.15.
@@ -20,16 +21,13 @@ class UrlMappingMatcherAnyVariable<T extends Named> extends UrlMappingWithVariab
     }
 
     @Override
-    protected void prepare(Request request) {
-        if (request == null)
-            return;
-
+    protected void prepare(BiConsumer<String, String> parameterConsumer, Path path) {
         if (parent != null)
-            parent.prepare(request);
+            parent.prepare(parameterConsumer, path);
 
-        String part = request.path().getPart(partNumber);
+        String part = path.getPart(partNumber);
 
         if (part != null)
-            request.param(variable, part);
+            parameterConsumer.accept(variable, part);
     }
 }

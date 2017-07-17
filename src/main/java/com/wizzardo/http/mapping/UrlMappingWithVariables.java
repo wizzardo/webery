@@ -1,10 +1,10 @@
 package com.wizzardo.http.mapping;
 
 import com.wizzardo.http.Named;
-import com.wizzardo.http.request.Request;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.BiConsumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -31,18 +31,17 @@ class UrlMappingWithVariables<T extends Named> extends UrlMappingMatcher<T> {
     }
 
     @Override
-    protected void prepare(Request request) {
-        super.prepare(request);
-        if (request == null)
-            return;
+    protected void prepare(BiConsumer<String, String> parameterConsumer, Path path) {
+        super.prepare(parameterConsumer, path);
 
-        String part = request.path().getPart(partNumber);
+        String part = path.getPart(partNumber);
         if (part == null)
             return;
+
         Matcher matcher = pattern.matcher(part);
         if (matcher.find()) {
             for (int i = 1; i <= variables.length; i++) {
-                request.param(variables[i - 1], matcher.group(i));
+                parameterConsumer.accept(variables[i - 1], matcher.group(i));
             }
         }
     }

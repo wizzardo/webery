@@ -5,6 +5,8 @@ import com.wizzardo.http.request.ByteTree;
 import com.wizzardo.http.request.Request;
 
 import java.util.*;
+import java.util.function.BiConsumer;
+import java.util.function.Function;
 import java.util.regex.Pattern;
 
 /**
@@ -46,9 +48,9 @@ public class UrlMapping<T extends Named> {
         return true;
     }
 
-    protected void prepare(Request request) {
-        if (parent != null && request != null)
-            parent.prepare(request);
+    protected void prepare(BiConsumer<String, String> parameterConsumer, Path path) {
+        if (parent != null)
+            parent.prepare(parameterConsumer, path);
     }
 
     public TemplatesHolder<String> getTemplatesHolder() {
@@ -72,18 +74,46 @@ public class UrlMapping<T extends Named> {
     }
 
     public T get(Request request, Path path) {
+        if (request != null)
+            return get((BiConsumer<String, String>) request::param, path);
+        else
+            return get((BiConsumer<String, String>) null, path);
+    }
+
+    public T get(BiConsumer<String, String> parameterConsumer, Path path) {
+        path = adjustPath(path);
+        if (path == null)
+            return null;
+
+        UrlMapping<T> last = find(path);
+        T result = last == null ? null : last.value;
+        if (result != null && parameterConsumer != null)
+            last.prepare(parameterConsumer, path);
+
+        return result;
+    }
+
+    public T get(Function<T, BiConsumer<String, String>> resultToParameterConsumer, Path path) {
+        path = adjustPath(path);
+        if (path == null)
+            return null;
+
+        UrlMapping<T> last = find(path);
+        T result = last == null ? null : last.value;
+        if (result != null && resultToParameterConsumer != null)
+            last.prepare(resultToParameterConsumer.apply(result), path);
+
+        return result;
+    }
+
+    protected Path adjustPath(Path path) {
         if (context != null) {
             if (path.length() == 0 || !path.getPart(0).equals(context))
                 return null;
 
-            path = path.subPath(1);
+            return path.subPath(1);
         }
-
-        UrlMapping<T> last = find(path);
-        if (last != null && last.value != null)
-            last.prepare(request);
-
-        return last == null ? null : last.value;
+        return path;
     }
 
     protected UrlMapping<T> find(Path path) {

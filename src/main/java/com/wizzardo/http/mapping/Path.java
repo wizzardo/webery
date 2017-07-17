@@ -15,9 +15,17 @@ public class Path {
 
     protected static final StringBuilderThreadLocalHolder stringBuilder = new StringBuilderThreadLocalHolder();
 
-    private List<String> parts = new ArrayList<>(10);
-    private String path;
-    private boolean endsWithSlash;
+    protected List<String> parts;
+    protected String path;
+    protected boolean endsWithSlash;
+
+    public Path() {
+        this(10);
+    }
+
+    public Path(int size) {
+        parts = new ArrayList<>(size);
+    }
 
     public String getPart(int i) {
         if (parts.size() <= i)
@@ -63,6 +71,11 @@ public class Path {
     public Path add(String part) {
         Path path = new Path();
         path.parts = new ArrayList<>(parts);
+        add(path, part);
+        return path;
+    }
+
+    protected void add(Path path, String part) {
         if (part.isEmpty())
             path.endsWithSlash = true;
         else {
@@ -75,7 +88,6 @@ public class Path {
             if (part.endsWith("/"))
                 path.endsWithSlash = true;
         }
-        return path;
     }
 
     private String build() {
@@ -171,11 +183,11 @@ public class Path {
         return path;
     }
 
-    private static ByteTree.Node getByteTreeRoot(ByteTree byteTree) {
+    protected static ByteTree.Node getByteTreeRoot(ByteTree byteTree) {
         return byteTree != null ? byteTree.getRoot() : null;
     }
 
-    private static boolean append(String part, Path path) {
+    protected static boolean append(String part, Path path) {
         if (part.equals("..")) {
             if (path.parts.isEmpty())
                 return false;
