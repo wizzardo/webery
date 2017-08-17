@@ -4,6 +4,8 @@
 Java HTTP-server
 =========
 
+[![Join the chat at https://gitter.im/wizzardo-http/Lobby](https://badges.gitter.im/wizzardo-http/Lobby.svg)](https://gitter.im/wizzardo-http/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 server based on my [epoll](https://github.com/wizzardo/epoll)
 
 ```java
