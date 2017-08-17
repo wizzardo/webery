@@ -1,10 +1,9 @@
 [![Build Status](https://travis-ci.org/wizzardo/http.svg?branch=master)](https://travis-ci.org/wizzardo/http)
 [![codecov](https://codecov.io/gh/wizzardo/http/branch/master/graph/badge.svg)](https://codecov.io/gh/wizzardo/http)
+[![Join the chat at https://gitter.im/wizzardo-http/Lobby](https://badges.gitter.im/wizzardo-http/Lobby.svg)](https://gitter.im/wizzardo-http/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 Java HTTP-server
 =========
-
-[![Join the chat at https://gitter.im/wizzardo-http/Lobby](https://badges.gitter.im/wizzardo-http/Lobby.svg)](https://gitter.im/wizzardo-http/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 server based on my [epoll](https://github.com/wizzardo/epoll)
 
