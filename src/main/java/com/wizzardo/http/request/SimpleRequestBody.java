@@ -12,14 +12,19 @@ public class SimpleRequestBody {
         bytes = new byte[size];
     }
 
-    public boolean read(byte[] bytes, int offset, int length) {
-        System.arraycopy(bytes, offset, this.bytes, position, length);
-        position += length;
-        return remains() == 0;
+    public int read(byte[] bytes, int offset, int length) {
+        int l = Math.min(length, remains());
+        System.arraycopy(bytes, offset, this.bytes, position, l);
+        position += l;
+        return l;
     }
 
     public int remains() {
         return bytes.length - position;
+    }
+
+    public boolean isReady() {
+        return remains() == 0;
     }
 
     public byte[] bytes() {

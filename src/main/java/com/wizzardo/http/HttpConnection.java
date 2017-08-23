@@ -33,7 +33,7 @@ public class HttpConnection<H extends AbstractHttpServer, Q extends Request, S e
     private volatile boolean closeOnFinishWriting = false;
     private boolean ready = false;
     private boolean keepAlive = false;
-    private RequestReader requestReader;
+    private RequestReader requestReader = new RequestReader(new LinkedHashMap<>(16));
     protected S response;
     protected Q request;
     protected H server;
@@ -135,10 +135,6 @@ public class HttpConnection<H extends AbstractHttpServer, Q extends Request, S e
 
     private boolean handleHeaders(ByteBuffer bb) {
         RequestReader requestReader = this.requestReader;
-        if (requestReader == null) {
-            requestReader = new RequestReader(new LinkedHashMap<>(20));
-            this.requestReader = requestReader;
-        }
 
         int limit;
         byte[] buffer = this.buffer;
@@ -153,10 +149,10 @@ public class HttpConnection<H extends AbstractHttpServer, Q extends Request, S e
 
     private boolean handleHeaders(byte[] bytes, int offset, int length) {
         int i = requestReader.read(bytes, offset, length);
-        if (i == -1)
+        if (i == -1 && !requestReader.complete)
             return false;
 
-        position = i;
+        position = i >= 0 ? i : length + offset;
         r = length + offset;
         request = createRequest();
         response = createResponse();
@@ -200,7 +196,8 @@ public class HttpConnection<H extends AbstractHttpServer, Q extends Request, S e
 //                getInputStream();
                 return true;
             }
-            ready = request.getBody().read(buffer, position, r - position);
+            request.getBody().read(buffer, position, r - position);
+            ready = request.getBody().isReady();
             state = State.READING_BODY;
             r = 0;
             position = 0;
@@ -213,7 +210,8 @@ public class HttpConnection<H extends AbstractHttpServer, Q extends Request, S e
         int limit;
         while (bb.hasRemaining()) {
             limit = readFromByteBuffer(bb);
-            ready = request.getBody().read(buffer, 0, limit);
+            request.getBody().read(buffer, 0, limit);
+            ready = request.getBody().isReady();
         }
         return ready;
     }
