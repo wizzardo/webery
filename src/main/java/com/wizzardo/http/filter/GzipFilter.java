@@ -34,7 +34,7 @@ public class GzipFilter implements Filter {
 
     @Override
     public boolean filter(Request request, Response response) {
-        if ("gzip".equals(response.header(Header.KEY_CONTENT_ENCODING)))
+        if (response.header(Header.KEY_CONTENT_ENCODING) != null)
             return true;
         if (response.header(Header.KV_CONTENT_ENCODING_GZIP) != null)
             return true;
