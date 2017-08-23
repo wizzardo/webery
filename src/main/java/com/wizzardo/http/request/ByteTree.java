@@ -115,9 +115,10 @@ public class ByteTree {
         public ArrayNode() {
         }
 
-        public ArrayNode(byte b, Node node, byte b2, Node node2) {
+        public ArrayNode(byte b, Node node, byte b2, Node node2, String value) {
             int i1 = b & 0xff;
             int i2 = b2 & 0xff;
+            this.value = value;
 
             shift = Math.min(i1, i2);
             increase(Math.max(i1, i2) - shift + 1);
@@ -202,7 +203,7 @@ public class ByteTree {
         @Override
         public Node append(byte b) {
             if (next != null && this.b != b) {
-                return new ArrayNode(this.b, next, b, new SingleNode());
+                return new ArrayNode(this.b, next, b, new SingleNode(), value);
             } else if (this.b == b)
                 return this;
             else {
@@ -215,7 +216,7 @@ public class ByteTree {
         @Override
         public Node set(byte b, Node n) {
             if (next != null && this.b != b) {
-                return new ArrayNode(this.b, next, b, n);
+                return new ArrayNode(this.b, next, b, n, value);
             } else if (this.b == b) {
                 next = n;
                 return this;
