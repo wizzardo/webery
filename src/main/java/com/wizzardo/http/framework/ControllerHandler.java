@@ -189,6 +189,8 @@ public class ControllerHandler<T extends Controller> implements Handler {
         if ((Model.class.isAssignableFrom(method.getReturnType()) || method.getReturnType() == Void.TYPE) && viewRenderingService.hasView(controllerName, actionName)) {
             return (it, args) -> Unchecked.call(() -> {
                 method.invoke(it, args);
+                if (it.response.isAsync())
+                    return null;
                 return it.renderView(actionName);
             });
         }
