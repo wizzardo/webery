@@ -7,6 +7,8 @@ import com.wizzardo.http.response.Status;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
+import static com.wizzardo.http.request.Request.Method.*;
+
 /**
  * Created by wizzardo on 16.04.15.
  */
@@ -37,18 +39,19 @@ public class RestHandler implements Handler {
 
     @Override
     public Response handle(Request request, Response response) throws IOException {
-        switch (request.method()) {
-            case HEAD:
-            case GET:
-                return handle(request, response, get);
-            case PUT:
-                return handle(request, response, put);
-            case POST:
-                return handle(request, response, post);
-            case DELETE:
-                return handle(request, response, delete);
-            case OPTIONS:
-                return handle(request, response, options);
+        Request.Method i = request.method();
+        if (i == GET) {
+            return handle(request, response, get);
+        } else if (i == POST) {
+            return handle(request, response, post);
+        } else if (i == OPTIONS) {
+            return handle(request, response, options);
+        } else if (i == PUT) {
+            return handle(request, response, put);
+        } else if (i == HEAD) {
+            return handle(request, response, get);
+        } else if (i == DELETE) {
+            return handle(request, response, delete);
         }
         return response.setStatus(Status._405);
     }
