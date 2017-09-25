@@ -6,7 +6,9 @@ import com.wizzardo.http.request.Request;
 
 import java.util.*;
 import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.regex.Pattern;
 
 /**
@@ -93,6 +95,19 @@ public class UrlMapping<T extends Named> {
         return result;
     }
 
+    public void each(BiConsumer<String, String> parameterConsumer, Path path, Consumer<T> consumer) {
+        path = adjustPath(path);
+        if (path == null)
+            return ;
+
+        Path finalPath = path;
+        findRecursive(path.parts(), 0, mapping -> {
+            mapping.prepare(parameterConsumer, finalPath);
+            consumer.accept(mapping.value);
+            return true;
+        });
+    }
+
     public T get(Function<T, BiConsumer<String, String>> resultToParameterConsumer, Path path) {
         path = adjustPath(path);
         if (path == null)
@@ -104,6 +119,19 @@ public class UrlMapping<T extends Named> {
             last.prepare(resultToParameterConsumer.apply(result), path);
 
         return result;
+    }
+
+    public void each(Function<T, BiConsumer<String, String>> resultToParameterConsumer, Path path, Consumer<T> consumer) {
+        path = adjustPath(path);
+        if (path == null)
+            return;
+
+        Path finalPath = path;
+        findRecursive(path.parts(), 0, mapping -> {
+            mapping.prepare(resultToParameterConsumer.apply(mapping.value), finalPath);
+            consumer.accept(mapping.value);
+            return true;
+        });
     }
 
     protected Path adjustPath(Path path) {
@@ -164,6 +192,55 @@ public class UrlMapping<T extends Named> {
         }
 
         return null;
+    }
+
+    protected boolean findRecursive(List<String> parts, int index, Predicate<UrlMapping<T>> consumer) {
+        if (index == parts.size() && value != null) {
+            return consumer.test(this);
+        }
+
+        String part = parts.get(index);
+        if (part.isEmpty())
+            findRecursive(parts, index + 1, consumer);
+
+        UrlMapping<T> tree = findStatic(part);
+        if (tree != null) {
+            if (!tree.checkNextPart()) {
+                if(!consumer.test(tree))
+                    return false;
+            } else {
+                tree = tree.findRecursive(parts, index + 1);
+                if (tree != null && !consumer.test(tree))
+                        return false;
+            }
+        }
+
+        for (Map.Entry<String, UrlMappingMatcher<T>> entry : regexpMapping.entrySet()) {
+            if (entry.getValue().matches(part)) {
+                tree = entry.getValue();
+                if (!tree.checkNextPart()) {
+                    if(!consumer.test(tree))
+                        return false;
+                } else {
+                    tree = tree.findRecursive(parts, index + 1);
+                    if (tree != null && !consumer.test(tree))
+                        return false;
+                }
+            }
+        }
+
+        tree = findEndsWith(parts);
+        if (tree != null) {
+            if (!tree.checkNextPart()) {
+                if(!consumer.test(tree))
+                    return false;
+            } else {
+                tree = tree.findRecursive(parts, index + 1);
+                if (tree != null && !consumer.test(tree))
+                    return false;
+            }
+        }
+        return true;
     }
 
     protected UrlMapping<T> find(String part, List<String> parts) {
