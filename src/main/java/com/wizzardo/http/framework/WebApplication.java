@@ -187,6 +187,10 @@ public class WebApplication extends HttpServer<HttpConnection> {
         if (TextTools.isBlank(resources.mapping))
             throw new IllegalArgumentException("server.resources.mapping cannot be null or empty");
 
+        createStaticResourcesHandler(resources);
+    }
+
+    protected void createStaticResourcesHandler(ServerConfiguration.Resources resources) {
         String resourcesPath = resources.path;
         File staticResources = resourcesTools.getResourceFile(resourcesPath);
         if (staticResources != null && staticResources.exists()) {

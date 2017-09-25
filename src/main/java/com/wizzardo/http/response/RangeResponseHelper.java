@@ -51,43 +51,60 @@ public class RangeResponseHelper {
     }
 
     protected MemoryLimitedCache<String, FileHolder> createFileHolderCache(long cacheMemoryLimit, long cacheTTL, boolean gzip) {
-        return new MemoryLimitedCache<>("resources", cacheMemoryLimit, cacheTTL, path -> {
-            byte[] bytes = FileTools.bytes(path);
-            if (gzip) {
-                ByteArrayOutputStream out = new ByteArrayOutputStream(bytes.length);
-                GZIPOutputStream gout = new GZIPOutputStream(out);
-                gout.write(bytes);
-                gout.close();
-                bytes = out.toByteArray();
-            }
+        return new MemoryLimitedCache<>("resources", cacheMemoryLimit, cacheTTL, path -> createFileHolder(path, gzip));
+    }
 
-            ByteBuffer buffer = ByteBuffer.allocateDirect(bytes.length);
-            buffer.put(bytes);
+    protected FileHolder createFileHolder(String path, boolean gzip) throws IOException {
+        byte[] bytes = FileTools.bytes(path);
+        ReadableByteBuffer gzipped = null;
+        if (gzip) {
+            ByteArrayOutputStream out = new ByteArrayOutputStream(bytes.length);
+            GZIPOutputStream gout = new GZIPOutputStream(out);
+            gout.write(bytes);
+            gout.close();
+
+            byte[] byteArray = out.toByteArray();
+            ByteBuffer buffer = ByteBuffer.allocateDirect(byteArray.length);
+            buffer.put(byteArray);
             buffer.flip();
+            gzipped = new ReadableByteBuffer(buffer);
+        }
 
-            String lastModified = HttpDateFormatterHolder.get().format(new Date(new File(path).lastModified()));
-            String md5 = MD5.create().update(bytes).asString().toUpperCase();
+        ByteBuffer buffer = ByteBuffer.allocateDirect(bytes.length);
+        buffer.put(bytes);
+        buffer.flip();
 
-            return new FileHolder(new ReadableByteBuffer(buffer), md5, lastModified, gzip);
-        });
+        String lastModified = HttpDateFormatterHolder.get().format(new Date(new File(path).lastModified()));
+        String md5 = MD5.create().update(bytes).asString().toUpperCase();
+
+        return new FileHolder(new ReadableByteBuffer(buffer), md5, lastModified, gzipped);
     }
 
     public static class FileHolder implements MemoryLimitedCache.SizeProvider {
         public final ReadableByteBuffer buffer;
         public final String md5;
         public final String lastModified;
-        public final boolean gzip;
+        public final ReadableByteBuffer gzipped;
 
-        public FileHolder(ReadableByteBuffer buffer, String md5, String lastModified, boolean gzip) {
+        public FileHolder(ReadableByteBuffer buffer, String md5, String lastModified, ReadableByteBuffer gzipped) {
             this.buffer = buffer;
             this.md5 = md5;
             this.lastModified = lastModified;
-            this.gzip = gzip;
+            this.gzipped = gzipped;
         }
 
         @Override
         public long size() {
-            return buffer.length();
+            return buffer.length() + (gzipped != null ? gzipped.length() : 0);
+        }
+
+        public ReadableByteBuffer getBuffer(Request request, Response response) {
+            if (gzipped != null && request.header(Header.KEY_ACCEPT_ENCODING, "").contains("gzip")) {
+                response.appendHeader(Header.KV_CONTENT_ENCODING_GZIP);
+                return gzipped;
+            }
+
+            return buffer;
         }
     }
 
@@ -101,6 +118,7 @@ public class RangeResponseHelper {
         Range range;
         String rangeHeader = request.header(Header.KEY_RANGE);
         FileHolder fileHolder = getFileHolder(file);
+        ReadableByteBuffer buffer = null;
 
         if (rangeHeader != null) {
             long length = fileHolder == null ? file.length() : fileHolder.size();
@@ -122,14 +140,13 @@ public class RangeResponseHelper {
                 if (fileHolder.md5.equals(request.header(Header.KEY_IF_NONE_MATCH)))
                     return response.status(Status._304);
 
-                if (fileHolder.gzip)
-                    response.appendHeader(Header.KV_CONTENT_ENCODING_GZIP);
+                buffer = fileHolder.getBuffer(request, response);
 
                 response.appendHeader(Header.KEY_ETAG, fileHolder.md5);
                 response.appendHeader(Header.KEY_LAST_MODIFIED, fileHolder.lastModified);
                 response.appendHeader(Header.KEY_CACHE_CONTROL, MAX_AGE_1_YEAR);
-                response.appendHeader(Header.KEY_CONTENT_LENGTH, String.valueOf(fileHolder.buffer.length()));
-                range = new Range(0, fileHolder.buffer.length() - 1, fileHolder.buffer.length());
+                response.appendHeader(Header.KEY_CONTENT_LENGTH, String.valueOf(buffer.length()));
+                range = new Range(0, buffer.length() - 1, buffer.length());
             } else {
                 response.appendHeader(Header.KEY_CONTENT_LENGTH, String.valueOf(file.length()));
                 response.appendHeader(Header.KEY_LAST_MODIFIED, HttpDateFormatterHolder.get().format(new Date(file.lastModified())));
@@ -141,8 +158,8 @@ public class RangeResponseHelper {
         request.connection().getServer().getMimeProvider().provideContentType(response, file);
 
         try {
-            if (fileHolder != null)
-                response.setBody(fileHolder.buffer.subBuffer((int) range.from, (int) range.length()));
+            if (buffer != null)
+                response.setBody(buffer.subBuffer((int) range.from, (int) range.length()));
             else
                 response.setBody(new ReadableFile(file, range.from, range.length()));
         } catch (IOException e) {
