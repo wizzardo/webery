@@ -14,7 +14,7 @@ public class ResourceTest extends WebApplicationTest implements TagTest {
     public void test_static_js() {
         Assert.assertEquals("" +
                 "<div>\n" +
-                "    <script type=\"text/javascript\" src=\"/static/js/test.v207A.js\"></script>\n" +
+                "    <script type=\"text/javascript\" src=\"/static/js/test.v324E.js\"></script>\n" +
                 "</div>\n", prepare("<div><g:resource dir=\"js\" file=\"test.js\"/></div>")
                 .get(new Model()).toString());
     }
@@ -23,7 +23,7 @@ public class ResourceTest extends WebApplicationTest implements TagTest {
     public void test_static_css() {
         Assert.assertEquals("" +
                 "<div>\n" +
-                "    <link rel=\"stylesheet\" href=\"/static/css/test.vEA6A.css\">\n" +
+                "    <link rel=\"stylesheet\" href=\"/static/css/test.v1413.css\">\n" +
                 "</div>\n", prepare("<div><g:resource dir=\"css\" file=\"test.css\"/></div>")
                 .get(new Model()).toString());
     }
@@ -32,7 +32,7 @@ public class ResourceTest extends WebApplicationTest implements TagTest {
     public void test_static_css2() {
         Assert.assertEquals("" +
                 "<div>\n" +
-                "    <link rel=\"stylesheet\" href=\"http://localhost:" + port + "/static/css/test.vEA6A.css\">\n" +
+                "    <link rel=\"stylesheet\" href=\"http://localhost:" + port + "/static/css/test.v1413.css\">\n" +
                 "</div>\n", prepare("<div><g:resource dir=\"css\" file=\"test.css\" absolute=\"true\"/></div>")
                 .get(new Model()).toString());
     }
@@ -41,7 +41,7 @@ public class ResourceTest extends WebApplicationTest implements TagTest {
     public void test_static_custom_tag() {
         Assert.assertEquals("" +
                 "<div>\n" +
-                "    <script type=\"riot/tag\" src=\"/static/js/test.v73CF.tag\"></script>\n" +
+                "    <script type=\"riot/tag\" src=\"/static/js/test.v2E13.tag\"></script>\n" +
                 "</div>\n", prepare("<div><g:resource dir=\"js\" file=\"test.tag\" tag=\"script\" url=\"src\" type=\"riot/tag\"/></div>")
                 .get(new Model()).toString());
     }
@@ -78,7 +78,7 @@ public class ResourceTest extends WebApplicationTest implements TagTest {
     public void test_dynamic_js() {
         Assert.assertEquals("" +
                 "<div>\n" +
-                "    <script type=\"text/javascript\" src=\"/static/js/test.v207A.js\"></script>\n" +
+                "    <script type=\"text/javascript\" src=\"/static/js/test.v324E.js\"></script>\n" +
                 "</div>\n", prepare("<div><g:resource dir=\"js\" file=\"${js}\"/></div>")
                 .get(new Model().append("js", "test.js")).toString());
     }
@@ -87,7 +87,7 @@ public class ResourceTest extends WebApplicationTest implements TagTest {
     public void test_dynamic_css() {
         Assert.assertEquals("" +
                 "<div>\n" +
-                "    <link rel=\"stylesheet\" href=\"/static/css/test.vEA6A.css\">\n" +
+                "    <link rel=\"stylesheet\" href=\"/static/css/test.v1413.css\">\n" +
                 "</div>\n", prepare("<div><g:resource dir=\"/css/\" file=\"${css}\"/></div>")
                 .get(new Model().append("css", "test.css")).toString());
     }
@@ -96,7 +96,7 @@ public class ResourceTest extends WebApplicationTest implements TagTest {
     public void test_dynamic_custom_tag() {
         Assert.assertEquals("" +
                 "<div>\n" +
-                "    <script type=\"riot/tag\" src=\"/static/js/test.v73CF.tag\"></script>\n" +
+                "    <script type=\"riot/tag\" src=\"/static/js/test.v2E13.tag\"></script>\n" +
                 "</div>\n", prepare("<div><g:resource dir=\"js\" file=\"${tag}\" tag=\"script\" url=\"src\" type=\"riot/tag\"/></div>")
                 .get(new Model().append("tag", "test.tag")).toString());
     }
