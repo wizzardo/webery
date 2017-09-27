@@ -81,13 +81,13 @@ public class PathTest {
         Path path;
 
         path = parse("/foo/../bar");
-        Assert.assertEquals("/foo/../bar", path.toString());
+        Assert.assertEquals("/bar", path.toString());
         Assert.assertEquals(1, path.length());
         Assert.assertEquals("bar", path.getPart(0));
         Assert.assertEquals(false, path.isEndsWithSlash());
 
         path = parse("/foo/foo/../../bar");
-        Assert.assertEquals("/foo/foo/../../bar", path.toString());
+        Assert.assertEquals("/bar", path.toString());
         Assert.assertEquals(1, path.length());
         Assert.assertEquals("bar", path.getPart(0));
         Assert.assertEquals(false, path.isEndsWithSlash());

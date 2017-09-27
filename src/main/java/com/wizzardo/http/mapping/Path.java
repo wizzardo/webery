@@ -1,11 +1,13 @@
 package com.wizzardo.http.mapping;
 
 import com.wizzardo.http.request.ByteTree;
+import com.wizzardo.http.utils.AsciiReader;
 import com.wizzardo.http.utils.StringBuilderThreadLocalHolder;
 import com.wizzardo.tools.misc.ExceptionDrivenStringBuilder;
 import com.wizzardo.tools.reflection.StringReflection;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -25,6 +27,14 @@ public class Path {
 
     public Path(int size) {
         parts = new ArrayList<>(size);
+    }
+
+    public Path(List<String> parts) {
+        this.parts = new ArrayList<>(parts);
+    }
+
+    public Path(String... parts) {
+        this.parts = new ArrayList<>(Arrays.asList(parts));
     }
 
     public String getPart(int i) {
@@ -69,8 +79,7 @@ public class Path {
     }
 
     public Path add(String part) {
-        Path path = new Path();
-        path.parts = new ArrayList<>(parts);
+        Path path = new Path(parts);
         add(path, part);
         return path;
     }
@@ -117,36 +126,28 @@ public class Path {
     }
 
     public static Path parse(byte[] bytes, int offset, int limit, ByteTree byteTree) {
+        return parse(bytes, offset, limit, byteTree, new Path());
+    }
+
+    public static Path parse(byte[] bytes, int offset, int limit, ByteTree byteTree, Path path) {
         if (bytes[offset] != '/')
             throw new IllegalStateException("path must starts with '/'");
 
         int length = limit - offset;
-
-        int h = '/';
-        int k;
-
         int partStart = offset + 1;
         int partHash = 0;
         ByteTree.Node node = getByteTreeRoot(byteTree);
 
-        Path path = new Path();
-
         byte b;
-        char[] data = new char[length];
-        data[0] = '/';
         for (int i = 1; i < length; i++) {
             b = bytes[offset + i];
-            data[i] = (char) (k = (b & 0xff));
-            h = 31 * h + k;
-            if (k == '/') {
+            if (b == '/') {
                 String value = null;
                 if (node != null)
                     value = node.getValue();
 
                 if (value == null) {
-                    char[] part = new char[i - partStart];
-                    System.arraycopy(data, partStart, part, 0, i - partStart);
-                    value = StringReflection.createString(part, partHash);
+                    value = AsciiReader.read(bytes, partStart, i - partStart, partHash);
                 }
 
                 if (!append(value, path))
@@ -156,7 +157,7 @@ public class Path {
                 partHash = 0;
                 node = getByteTreeRoot(byteTree);
             } else {
-                partHash = 31 * partHash + k;
+                partHash = 31 * partHash + (b & 0xff);
                 if (node != null)
                     node = node.next(b);
             }
@@ -167,9 +168,7 @@ public class Path {
                 value = node.getValue();
             }
             if (value == null) {
-                char[] part = new char[limit - partStart];
-                System.arraycopy(data, partStart, part, 0, limit - partStart);
-                value = StringReflection.createString(part, partHash);
+                value = AsciiReader.read(bytes, partStart, limit - partStart, partHash);
             }
 
             if (!append(value, path))
@@ -177,8 +176,6 @@ public class Path {
 
         } else
             path.endsWithSlash = true;
-
-        path.path = StringReflection.createString(data, h);
 
         return path;
     }
@@ -195,5 +192,11 @@ public class Path {
         } else
             path.parts.add(part);
         return true;
+    }
+
+    public void clear() {
+        parts.clear();
+        path = null;
+        endsWithSlash = false;
     }
 }
