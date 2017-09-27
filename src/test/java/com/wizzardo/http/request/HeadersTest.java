@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
+import java.nio.charset.StandardCharsets;
 import java.util.Random;
 
 /**
@@ -42,7 +43,7 @@ public class HeadersTest {
                 "\r\nololo data foo bar";
         checker = (hhr, end) -> {
             Assert.assertEquals("GET", hhr.method);
-            Assert.assertEquals("/http/", hhr.path.toString());
+            Assert.assertEquals("/http/", hhr.pathHolder.path.toString());
             Assert.assertEquals("HTTP/1.1", hhr.protocol);
             Assert.assertEquals("foo=bar", hhr.queryString);
             Assert.assertEquals(true, hhr.isComplete());
@@ -67,7 +68,7 @@ public class HeadersTest {
                 "\r\n";
         checker = (hhr, end) -> {
             Assert.assertEquals("GET", hhr.method);
-            Assert.assertEquals("/http/", hhr.path.toString());
+            Assert.assertEquals("/http/", hhr.pathHolder.path.toString());
             Assert.assertEquals("HTTP/1.1", hhr.protocol);
             Assert.assertEquals("", hhr.queryString);
             Assert.assertEquals(true, hhr.isComplete());
@@ -82,7 +83,7 @@ public class HeadersTest {
                 "\r\n";
         checker = (hhr, end) -> {
             Assert.assertEquals("GET", hhr.method);
-            Assert.assertEquals("/http/", hhr.path.toString());
+            Assert.assertEquals("/http/", hhr.pathHolder.path.toString());
             Assert.assertEquals("HTTP/1.1", hhr.protocol);
             Assert.assertEquals(null, hhr.queryString);
             Assert.assertEquals(true, hhr.isComplete());
@@ -153,7 +154,7 @@ public class HeadersTest {
         complexTest(new String(request), (reader, end) -> {
                     Assert.assertEquals(44, end);
                     Assert.assertEquals("GET", reader.method);
-                    Assert.assertEquals("/http", reader.path.toString());
+                    Assert.assertEquals("/http", reader.pathHolder.path.toString());
                     Assert.assertEquals("HTTP/1.1", reader.protocol);
                     Assert.assertEquals(null, reader.queryString);
                     Assert.assertEquals(true, reader.isComplete());
@@ -251,7 +252,7 @@ public class HeadersTest {
 
         Assert.assertEquals(true, reader.isComplete());
         Assert.assertEquals("GET", reader.method);
-        Assert.assertEquals("/http/", reader.path.toString());
+        Assert.assertEquals("/http/", reader.pathHolder.path.toString());
         Assert.assertEquals("HTTP/1.1", reader.protocol);
 
         Assert.assertEquals("example.com", reader.getHeaders().get("Host").getValue());

@@ -165,6 +165,18 @@ public class Request<C extends HttpConnection> {
         return params;
     }
 
+    public void reset() {
+        params = null;
+        bodyParsed = false;
+        body = null;
+        contentLength = NOT_INITIALISED;
+        multiPartDataPrepared = false;
+        multiPartEntryMap = null;
+        cookies = null;
+        multipart = null;
+        sessionId = null;
+    }
+
     public Response response() {
         return connection.getResponse();
     }

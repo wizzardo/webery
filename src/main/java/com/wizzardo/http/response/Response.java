@@ -33,12 +33,22 @@ public class Response {
     protected ReadableData body;
     protected ReadableData staticResponse;
 
-    private byte[][] headers = new byte[20][];
+    private byte[][] headers = new byte[8][];
     private int headersCount = 0;
     private boolean hasBody = true;
 
     protected static final StringBuilderThreadLocalHolder stringBuilder = new StringBuilderThreadLocalHolder();
     protected boolean async;
+
+    public void reset() {
+        hasBody = true;
+        async = false;
+        headersCount = 0;
+        body = null;
+        staticResponse = null;
+        committed = false;
+        status = Status._200;
+    }
 
     public Response body(String s) {
         return body(s.getBytes());

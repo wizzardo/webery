@@ -7,9 +7,11 @@ import com.wizzardo.http.mapping.Path;
 import com.wizzardo.http.mapping.UrlMapping;
 import com.wizzardo.http.response.Status;
 import com.wizzardo.http.utils.AsciiReader;
+import com.wizzardo.http.utils.PercentEncoding;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
 /**
@@ -20,7 +22,7 @@ public class RequestReader extends HttpHeadersReader {
 
     protected Parameters params;
     protected String method;
-    protected Path path;
+    protected PathHolder pathHolder = new PathHolder();
     protected String queryString;
     protected String protocol;
 
@@ -29,7 +31,7 @@ public class RequestReader extends HttpHeadersReader {
     }
 
     public String getPath() {
-        return path.toString();
+        return pathHolder.path.toString();
     }
 
     public String getProtocol() {
@@ -52,13 +54,25 @@ public class RequestReader extends HttpHeadersReader {
         this.params = params;
     }
 
+    static class PathHolder {
+        Path path = new Path(8);
+        boolean parsed = false;
+
+        public void clear() {
+            parsed = false;
+            path.clear();
+        }
+    }
+
     public void clear() {
         super.clear();
-        params = new Parameters();
+        if (!params.isEmpty())
+            params = new Parameters();
+
         method = null;
         queryString = null;
         protocol = null;
-        path = null;
+        pathHolder.clear();
     }
 
     public Request fillRequest(Request request) {
@@ -69,7 +83,7 @@ public class RequestReader extends HttpHeadersReader {
         } catch (IllegalArgumentException | NullPointerException e) {
             throw new HttpException(e, Status._501);
         }
-        request.path = path;
+        request.path = pathHolder.path;
         request.queryString = queryString;
         request.protocol = protocol;
 
@@ -85,7 +99,9 @@ public class RequestReader extends HttpHeadersReader {
         chars = getCharsValue(chars, offset, length);
         if (chars.length == 0)
             return;
-        path = Path.parse(chars, 0, chars.length, UrlMapping.SEGMENT_CACHE);
+
+        pathHolder.parsed = true;
+        Path.parse(chars, 0, chars.length, UrlMapping.SEGMENT_CACHE, pathHolder.path);
     }
 
     protected void parseQueryString(byte[] chars, int offset, int length) {
@@ -111,17 +127,17 @@ public class RequestReader extends HttpHeadersReader {
         for (int i = from; i < to; i++) {
             if (isKey) {
                 if (chars[i] == '=') {
-                    key = decodeParameter(AsciiReader.read(chars, from, i - from));
+                    key = decode(chars, from, i);
                     from = i + 1;
                     isKey = false;
                 }
                 if (chars[i] == '&' && from != i - 1) {
-                    key = decodeParameter(AsciiReader.read(chars, from, i - from));
+                    key = decode(chars, from, i);
                     from = i + 1;
                 }
             } else {
                 if (chars[i] == '&') {
-                    String value = decodeParameter(AsciiReader.read(chars, from, i - from));
+                    String value = decode(chars, from, i);
                     from = i + 1;
                     isKey = true;
 
@@ -131,21 +147,20 @@ public class RequestReader extends HttpHeadersReader {
             }
         }
         if (key != null) {
-            String value = decodeParameter(getValue(chars, from, to - from));
+            String value = decode(chars, from, to);
             putParameter(key, value);
         } else if (from < to) {
-            key = decodeParameter(getValue(chars, from, to - from));
+            key = decode(chars, from, to);
             putParameter(key, "");
         }
     }
 
+    private String decode(byte[] chars, int from, int i) {
+        return new String(chars, from, PercentEncoding.decode(chars, from, i), StandardCharsets.UTF_8);
+    }
+
     protected void putParameter(String key, String value) {
-        MultiValue mv = new MultiValue();
-        MultiValue old = params.putIfAbsent(key, mv);
-        if (old != null)
-            old.append(value);
-        else
-            mv.append(value);
+        params.computeIfAbsent(key, s -> new MultiValue()).append(value);
     }
 
     protected String decodeParameter(String s) {
@@ -172,7 +187,7 @@ public class RequestReader extends HttpHeadersReader {
 
                     i++;
                     return parseFirstLine(chars, i, length - (i - offset));
-                } else if (path == null) {
+                } else if (!pathHolder.parsed) {
                     parsePath(chars, offset, i - offset);
                     i++;
                     return parseFirstLine(chars, i, length - (i - offset));

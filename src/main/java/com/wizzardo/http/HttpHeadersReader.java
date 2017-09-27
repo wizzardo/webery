@@ -8,6 +8,8 @@ import com.wizzardo.http.utils.AsciiReader;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import static com.wizzardo.http.mapping.UrlMapping.SEGMENT_CACHE;
+
 /**
  * Created by wizzardo on 12.06.15.
  */
@@ -21,18 +23,23 @@ public abstract class HttpHeadersReader {
     protected Map<String, MultiValue> headers;
 
     protected boolean complete = false;
+    protected boolean onlyAllowedHeaders = false;
 
     static {
         for (Header header : Header.values()) {
             headersTree.appendIgnoreCase(header.value);
         }
         for (Request.Method method : Request.Method.values()) {
-            headersTree.appendIgnoreCase(method.name());
+            headersTree.append(method.name());
         }
         headersTree.appendIgnoreCase("gzip,deflate,sdch");
         headersTree.appendIgnoreCase("en-US,en;q=0.8,ru;q=0.6");
         headersTree.append(HttpConnection.HTTP_1_0);
         headersTree.append(HttpConnection.HTTP_1_1);
+
+        for (int i = 0; i < 512; i++) {
+            headersTree.append(String.valueOf(i));
+        }
     }
 
     public HttpHeadersReader(Map<String, MultiValue> headers) {
@@ -47,7 +54,8 @@ public abstract class HttpHeadersReader {
     }
 
     public void clear() {
-        headers = new LinkedHashMap<>(16);
+        if (!headers.isEmpty())
+            headers = new LinkedHashMap<>(16);
         tempKey = null;
         complete = false;
         waitForNewLine = false;
@@ -226,6 +234,7 @@ public abstract class HttpHeadersReader {
                 length = 0;
 
             int bo = 0;
+            byte[] buffer = this.buffer;
             while (bo < buffer.length && buffer[bo] <= ' ') {
                 bo++;
             }
@@ -239,8 +248,17 @@ public abstract class HttpHeadersReader {
                     if (value != null) {
                         r = 0;
                         return value;
+                    } else if (onlyAllowedHeaders) {
+                        r = 0;
+                        return null;
                     }
+                } else if (onlyAllowedHeaders) {
+                    r = 0;
+                    return null;
                 }
+            } else if (onlyAllowedHeaders) {
+                r = 0;
+                return null;
             }
 
             byte[] b = new byte[length + r];
@@ -263,7 +281,7 @@ public abstract class HttpHeadersReader {
 
         if (byteTree != null) {
             String value = byteTree.get(chars, offset, length);
-            if (value != null)
+            if (value != null || onlyAllowedHeaders)
                 return value;
         }
         return AsciiReader.read(chars, offset, length);

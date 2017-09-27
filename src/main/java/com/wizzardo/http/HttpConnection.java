@@ -10,6 +10,7 @@ import com.wizzardo.tools.io.IOTools;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -34,8 +35,8 @@ public class HttpConnection<H extends AbstractHttpServer, Q extends Request, S e
     private boolean ready = false;
     private boolean keepAlive = false;
     private RequestReader requestReader = new RequestReader(new LinkedHashMap<>(16));
-    protected S response;
-    protected Q request;
+    protected S response = createResponse();
+    protected Q request = createRequest();
     protected H server;
 
     volatile AtomicReference<Thread> processingBy = new AtomicReference<>();
@@ -49,6 +50,17 @@ public class HttpConnection<H extends AbstractHttpServer, Q extends Request, S e
     public HttpConnection(int fd, int ip, int port, H server) {
         super(fd, ip, port);
         this.server = server;
+    }
+
+    public void init(int fd, int ip, int port) {
+        this.fd = fd;
+        this.ip = ip;
+        this.port = port;
+        resetBuffer();
+    }
+
+    public void setKeepAlive(boolean keepAlive) {
+        this.keepAlive = keepAlive;
     }
 
     @Override
@@ -113,7 +125,7 @@ public class HttpConnection<H extends AbstractHttpServer, Q extends Request, S e
         this.outputListener = listener;
     }
 
-    boolean processInputListener() {
+    protected boolean processInputListener() {
         if (inputListener == null)
             return false;
 
@@ -121,7 +133,7 @@ public class HttpConnection<H extends AbstractHttpServer, Q extends Request, S e
         return true;
     }
 
-    boolean processOutputListener() {
+    protected boolean processOutputListener() {
         if (outputListener == null)
             return false;
 
@@ -154,10 +166,9 @@ public class HttpConnection<H extends AbstractHttpServer, Q extends Request, S e
 
         position = i >= 0 ? i : length + offset;
         r = length + offset;
-        request = createRequest();
-        response = createResponse();
+        request.reset();
+        response.reset();
         requestReader.fillRequest(request);
-        requestReader.clear();
         if (request.method() == Request.Method.HEAD)
             response.setHasBody(false);
         keepAlive = prepareKeepAlive();
@@ -225,7 +236,7 @@ public class HttpConnection<H extends AbstractHttpServer, Q extends Request, S e
             inputListener.onReady(this);
             return false;
         }
-        if (response.status().code > 300) {
+        if (!keepAlive || response.status().code > 300) {
             resetBuffer();
             setCloseOnFinishWriting(true);
             return false;
@@ -236,6 +247,7 @@ public class HttpConnection<H extends AbstractHttpServer, Q extends Request, S e
         outputStream = null;
         inputListener = null;
         outputListener = null;
+        requestReader.clear();
         state = State.READING_HEADERS;
         if (r - position > 0) {
             handleHeaders(buffer, position, r - position);
