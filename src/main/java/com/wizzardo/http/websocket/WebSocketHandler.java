@@ -10,6 +10,7 @@ import com.wizzardo.http.request.Header;
 import com.wizzardo.http.request.Request;
 import com.wizzardo.http.response.Response;
 import com.wizzardo.http.response.Status;
+import com.wizzardo.tools.interfaces.Supplier;
 import com.wizzardo.tools.misc.pool.Pool;
 import com.wizzardo.tools.misc.pool.PoolBuilder;
 import com.wizzardo.tools.security.Base64;
@@ -23,19 +24,36 @@ import java.io.IOException;
  */
 public class WebSocketHandler<T extends WebSocketHandler.WebSocketListener> implements Handler {
     protected Pool<ByteArrayHolder> byteArrayHolderPool = new PoolBuilder<ByteArrayHolder>()
-            .supplier(ByteArrayHolder::new)
+            .supplier(createByteArraySupplier())
             .queue(PoolBuilder.createThreadLocalQueueSupplier())
             .build();
 
-    static class ByteArrayHolder implements ByteArraySupplier {
+    protected Supplier<ByteArrayHolder> createByteArraySupplier() {
+        return ByteArrayHolder::new;
+    }
+
+    protected static class ByteArrayHolder implements ByteArraySupplier {
         byte[] buffer = new byte[10240];
+        boolean used = false;
 
         @Override
         public byte[] supply(int minLength) {
             if (buffer.length < minLength)
-                buffer = new byte[minLength];
+                createArray(minLength);
 
             return buffer;
+        }
+
+        protected void createArray(int minLength) {
+            buffer = new byte[minLength];
+        }
+
+        public void release(Pool<ByteArraySupplier> pool) {
+            if (!used)
+                return;
+
+            pool.release(this);
+            used = false;
         }
     }
 
@@ -105,7 +123,9 @@ public class WebSocketHandler<T extends WebSocketHandler.WebSocketListener> impl
                                 continue outer;
 
                             tempFrame = new Frame(connection.getServer().getWebsocketFrameLengthLimit());
-                            tempFrame.setByteArraySupplier((ByteArraySupplier) webSocketHandler.byteArrayHolderPool.get());
+                            ByteArrayHolder byteArraySupplier = (ByteArrayHolder) webSocketHandler.byteArrayHolderPool.get();
+                            byteArraySupplier.used = true;
+                            tempFrame.setByteArraySupplier(byteArraySupplier);
                         }
 
                         int k = tempFrame.read(buffer, 0, read);
@@ -137,6 +157,7 @@ public class WebSocketHandler<T extends WebSocketHandler.WebSocketListener> impl
                             webSocketHandler.onMessage(this, tempMessage);
                             releaseByteBuffers(tempMessage);
                             tempMessage = null;
+                            tempFrame = null;
                         }
                     }
                 }
@@ -150,7 +171,7 @@ public class WebSocketHandler<T extends WebSocketHandler.WebSocketListener> impl
         protected void releaseByteBuffers(Message message) {
             if (message != null)
                 for (Frame frame : message.getFrames()) {
-                    webSocketHandler.byteArrayHolderPool.release(frame.getByteArraySupplier());
+                    ((ByteArrayHolder) frame.getByteArraySupplier()).release(webSocketHandler.byteArrayHolderPool);
                 }
         }
 
@@ -178,7 +199,6 @@ public class WebSocketHandler<T extends WebSocketHandler.WebSocketListener> impl
                 sendFrame(tempFrame);
                 connection.setCloseOnFinishWriting(true);
                 tempFrame = null;
-                releaseByteBuffers(tempMessage);
                 return true;
             }
             return false;
@@ -203,8 +223,8 @@ public class WebSocketHandler<T extends WebSocketHandler.WebSocketListener> impl
             if (connection.isAlive())
                 sendFrame(new Frame(Frame.OPCODE_CONNECTION_CLOSE));
 
-            webSocketHandler.onDisconnect(this);
             releaseByteBuffers(tempMessage);
+            webSocketHandler.onDisconnect(this);
         }
 
         protected ReadableData convertFrameToReadableData(Frame frame) {
