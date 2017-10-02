@@ -95,7 +95,7 @@ public class WebSocketHandler<T extends WebSocketHandler.WebSocketListener> impl
     public static class WebSocketListener implements InputListener<HttpConnection> {
         protected final HttpConnection connection;
         protected final WebSocketHandler webSocketHandler;
-        private Message tempMessage;
+        private Message tempMessage = new Message();
         private Frame tempFrame;
         private int read = 0;
 
@@ -110,6 +110,7 @@ public class WebSocketHandler<T extends WebSocketHandler.WebSocketListener> impl
 
         @Override
         public void onReadyToRead(HttpConnection connection) {
+            Message message = this.tempMessage;
             try {
                 byte[] buffer = connection.getBuffer();
                 int r;
@@ -118,17 +119,22 @@ public class WebSocketHandler<T extends WebSocketHandler.WebSocketListener> impl
                 while ((r = connection.read(buffer, read, buffer.length - read, (ByteBufferProvider) Thread.currentThread())) > 0) {
                     read += r;
                     while (read > 0) {
-                        if (tempFrame == null) {
+                        Frame frame = this.tempFrame;
+                        if (frame == null) {
                             if (!Frame.hasHeaders(buffer, 0, read))
                                 continue outer;
 
-                            tempFrame = new Frame(connection.getServer().getWebsocketFrameLengthLimit());
+                            frame = this.tempFrame = new Frame(connection.getServer().getWebsocketFrameLengthLimit());
                             ByteArrayHolder byteArraySupplier = (ByteArrayHolder) webSocketHandler.byteArrayHolderPool.get();
                             byteArraySupplier.used = true;
-                            tempFrame.setByteArraySupplier(byteArraySupplier);
+                            frame.setByteArraySupplier(byteArraySupplier);
+                        } else if (frame.getByteArraySupplier() == null) {
+                            ByteArrayHolder byteArraySupplier = (ByteArrayHolder) webSocketHandler.byteArrayHolderPool.get();
+                            byteArraySupplier.used = true;
+                            frame.setByteArraySupplier(byteArraySupplier);
                         }
 
-                        int k = tempFrame.read(buffer, 0, read);
+                        int k = frame.read(buffer, 0, read);
                         if (k == 0)
                             break;
 
@@ -136,9 +142,9 @@ public class WebSocketHandler<T extends WebSocketHandler.WebSocketListener> impl
                         if (read != 0)
                             System.arraycopy(buffer, k, buffer, 0, read);
 
-                        if (tempFrame.isComplete()) {
-                            if (tempFrame.isMasked())
-                                tempFrame.unmask();
+                        if (frame.isComplete()) {
+                            if (frame.isMasked())
+                                frame.unmask();
 
                             if (handlePing())
                                 continue;
@@ -146,33 +152,28 @@ public class WebSocketHandler<T extends WebSocketHandler.WebSocketListener> impl
                             if (handleClose())
                                 continue;
 
-                            if (tempMessage == null)
-                                tempMessage = new Message();
-
-                            tempMessage.add(tempFrame);
-                            tempFrame = null;
+                            message.add(frame);
+                            this.tempFrame = null;
                         }
 
-                        if (tempMessage != null && tempMessage.isComplete()) {
-                            webSocketHandler.onMessage(this, tempMessage);
-                            releaseByteBuffers(tempMessage);
-                            tempMessage = null;
-                            tempFrame = null;
+                        if (message.isComplete()) {
+                            webSocketHandler.onMessage(this, message);
+                            releaseByteBuffers(message);
+                            message.clear();
                         }
                     }
                 }
 
             } catch (Exception e) {
                 onError(e);
-                releaseByteBuffers(tempMessage);
+                releaseByteBuffers(message);
             }
         }
 
         protected void releaseByteBuffers(Message message) {
-            if (message != null)
-                for (Frame frame : message.getFrames()) {
-                    ((ByteArrayHolder) frame.getByteArraySupplier()).release(webSocketHandler.byteArrayHolderPool);
-                }
+            for (Frame frame : message.getFrames()) {
+                ((ByteArrayHolder) frame.getByteArraySupplier()).release(webSocketHandler.byteArrayHolderPool);
+            }
         }
 
         protected void onError(Exception e) {
