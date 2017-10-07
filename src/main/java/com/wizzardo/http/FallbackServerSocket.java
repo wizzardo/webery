@@ -3,6 +3,8 @@ package com.wizzardo.http;
 import com.wizzardo.epoll.*;
 import com.wizzardo.epoll.readable.ReadableByteArray;
 import com.wizzardo.epoll.readable.ReadableData;
+import com.wizzardo.http.framework.RequestContext;
+import com.wizzardo.http.framework.RequestHolder;
 import com.wizzardo.tools.io.IOTools;
 import com.wizzardo.tools.misc.Unchecked;
 
@@ -15,10 +17,15 @@ import java.util.Iterator;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-public class FallbackServerSocket<T extends HttpConnection> extends EpollServer<T> {
+public class FallbackServerSocket<T extends HttpConnection> extends EpollServer<T> implements RequestContext {
     protected ServerSocketChannel server;
     protected Selector selector = null;
     protected ByteBufferWrapper byteBufferWrapper = new ByteBufferWrapper(ByteBuffer.allocateDirect(16 * 1024));
+
+    protected RequestHolder requestHolder;
+    protected String controller;
+    protected String action;
+    protected String handler;
 
     public FallbackServerSocket() {
         this(null, 8080);
@@ -41,6 +48,53 @@ public class FallbackServerSocket<T extends HttpConnection> extends EpollServer<
     @Override
     public boolean isStarted() {
         return started;
+    }
+
+    @Override
+    public RequestHolder getRequestHolder() {
+        return requestHolder;
+    }
+
+    @Override
+    public String controller() {
+        return controller;
+    }
+
+    @Override
+    public String action() {
+        return action;
+    }
+
+    @Override
+    public void setRequestHolder(RequestHolder requestHolder) {
+        this.requestHolder = requestHolder;
+    }
+
+    @Override
+    public void setController(String controller) {
+        this.controller = controller;
+    }
+
+    @Override
+    public void setAction(String action) {
+        this.action = action;
+    }
+
+    @Override
+    public void reset() {
+        action = null;
+        controller = null;
+        requestHolder = null;
+    }
+
+    @Override
+    public void handler(String name) {
+        this.handler = name;
+    }
+
+    @Override
+    public String handler() {
+        return handler;
     }
 
     public class SelectorConnectionWrapper extends HttpConnection {
