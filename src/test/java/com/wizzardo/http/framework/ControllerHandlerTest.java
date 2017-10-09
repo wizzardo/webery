@@ -1127,7 +1127,7 @@ public class ControllerHandlerTest extends WebApplicationTest {
         Assert.assertEquals("foo", makeRequest("/bytes").get().asString());
         Assert.assertEquals("foo", makeRequest("/renderable").get().asString());
         Assert.assertEquals("foo", makeRequest("/view").get().asString().trim());
-        Assert.assertEquals("foo", makeRequest("/nothing").get().asString().trim());
+        Assert.assertEquals("", makeRequest("/nothing").get().asString().trim());
         Assert.assertEquals("{\"foo\":\"bar\"}", makeRequest("/json").get().asString());
 
         checkException(() -> server.getUrlMapping().append("/integer", CustomTypesController.class, "integer"), IllegalStateException.class, "Cannot create renderer for int");
