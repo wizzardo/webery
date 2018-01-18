@@ -67,9 +67,7 @@ public class RestHandler implements Handler {
     protected Response provideAllowHeader(Request request, Response response) {
         response.appendHeader("Access-Control-Allow-Credentials", "true");
         response.appendHeader("Access-Control-Allow-Headers", "*");
-
-        String origin = request.header(Header.KEY_ORIGIN);
-        response.appendHeader("Access-Control-Allow-Origin", origin != null ? origin : "*");
+        response.appendHeader("Access-Control-Allow-Origin", request.header(Header.KEY_ORIGIN, "*"));
         response.appendHeader("Access-Control-Max-Age", "1800");
         return response.appendHeader(allow);
     }
