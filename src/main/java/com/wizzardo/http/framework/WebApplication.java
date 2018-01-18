@@ -130,8 +130,10 @@ public class WebApplication extends HttpServer<HttpConnection> {
     protected void onStart() {
         resourcesTools = createResourceTools();
         List<Class> classes = resourcesTools.getClasses();
-        classes.addAll(getBasicTags());
-        classes.addAll(getBasicDecorators());
+        if (!classes.contains(getBasicDecorators().get(0))) {
+            classes.addAll(getBasicTags());
+            classes.addAll(getBasicDecorators());
+        }
 
         DependencyFactory.get().setClasses(classes);
 
