@@ -1,5 +1,6 @@
 package com.wizzardo.http;
 
+import com.wizzardo.http.request.Header;
 import com.wizzardo.http.request.Request;
 import com.wizzardo.http.response.Response;
 import com.wizzardo.http.response.Status;
@@ -19,7 +20,7 @@ public class RestHandler implements Handler {
     protected Handler post;
     protected Handler put;
     protected Handler delete;
-    protected final Handler options = (request, response) -> provideAllowHeader(response);
+    protected final Handler options = this::provideAllowHeader;
 
     private byte[] allow;
 
@@ -58,12 +59,16 @@ public class RestHandler implements Handler {
 
     protected Response handle(Request request, Response response, Handler handler) throws IOException {
         if (handler == null)
-            return provideAllowHeader(response).setStatus(Status._405);
+            return provideAllowHeader(request, response).setStatus(Status._405);
         else
             return handler.handle(request, response);
     }
 
-    protected Response provideAllowHeader(Response response) {
+    protected Response provideAllowHeader(Request request, Response response) {
+        response.appendHeader("Access-Control-Allow-Credentials", "true");
+        response.appendHeader("Access-Control-Allow-Headers", "*");
+        response.appendHeader("Access-Control-Allow-Origin", request.header(Header.KEY_ORIGIN));
+        response.appendHeader("Access-Control-Max-Age", "1800");
         return response.appendHeader(allow);
     }
 
