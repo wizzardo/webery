@@ -11,6 +11,10 @@ import com.wizzardo.http.framework.di.SingletonDependency;
 import com.wizzardo.http.framework.message.MessageBundle;
 import com.wizzardo.http.framework.message.MessageSource;
 import com.wizzardo.http.framework.template.*;
+import com.wizzardo.http.framework.template.decorator.LayoutBody;
+import com.wizzardo.http.framework.template.decorator.LayoutHead;
+import com.wizzardo.http.framework.template.decorator.LayoutTitle;
+import com.wizzardo.http.framework.template.taglib.g.*;
 import com.wizzardo.http.mapping.UrlMapping;
 import com.wizzardo.http.request.Request;
 import com.wizzardo.http.response.RangeResponseHelper;
@@ -26,6 +30,7 @@ import com.wizzardo.tools.misc.Unchecked;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
+import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 import java.util.jar.Manifest;
 
@@ -89,9 +94,45 @@ public class WebApplication extends HttpServer<HttpConnection> {
         return this;
     }
 
+    protected List<Class<? extends Tag>> getBasicTags() {
+        ArrayList<Class<? extends Tag>> list = new ArrayList<>();
+        list.add(CheckBox.class);
+        list.add(Collect.class);
+        list.add(CreateLink.class);
+        list.add(Each.class);
+        list.add(Else.class);
+        list.add(Elseif.class);
+        list.add(Form.class);
+        list.add(FormatBoolean.class);
+        list.add(HiddenField.class);
+        list.add(If.class);
+        list.add(Join.class);
+        list.add(Link.class);
+        list.add(Message.class);
+        list.add(PasswordField.class);
+        list.add(Radio.class);
+        list.add(Resource.class);
+        list.add(com.wizzardo.http.framework.template.taglib.g.Set.class);
+        list.add(TextArea.class);
+        list.add(TextField.class);
+        list.add(While.class);
+        return list;
+    }
+
+    protected List<Class<? extends Decorator>> getBasicDecorators() {
+        ArrayList<Class<? extends Decorator>> list = new ArrayList<>();
+        list.add(LayoutBody.class);
+        list.add(LayoutHead.class);
+        list.add(LayoutTitle.class);
+        return list;
+    }
+
     protected void onStart() {
         resourcesTools = createResourceTools();
         List<Class> classes = resourcesTools.getClasses();
+        classes.addAll(getBasicTags());
+        classes.addAll(getBasicDecorators());
+
         DependencyFactory.get().setClasses(classes);
 
         DependencyFactory.get().register(ResourceTools.class, new SingletonDependency<>(resourcesTools));

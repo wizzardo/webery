@@ -34,10 +34,11 @@ public class LocalResourcesTools implements ResourceTools {
 
     {
         ClassLoader cl = ClassLoader.getSystemClassLoader();
-
-        URL[] urls = ((URLClassLoader) cl).getURLs();
-        for (URL url : urls) {
-            classpath.add(url.getFile());
+        if (cl instanceof URLClassLoader) {
+            URL[] urls = ((URLClassLoader) cl).getURLs();
+            for (URL url : urls) {
+                classpath.add(url.getFile());
+            }
         }
 
         File src = new File("src");
