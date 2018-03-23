@@ -5,7 +5,7 @@ import com.wizzardo.http.request.Header;
 import com.wizzardo.http.request.MultiPartEntry;
 import com.wizzardo.http.request.MultiPartFileEntry;
 import com.wizzardo.http.request.Request;
-import com.wizzardo.tools.collections.Pair;
+import com.wizzardo.tools.misc.Pair;
 import com.wizzardo.tools.interfaces.Mapper;
 import com.wizzardo.tools.interfaces.Supplier;
 import com.wizzardo.tools.json.JsonTools;

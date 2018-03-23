@@ -5,7 +5,7 @@ import com.wizzardo.http.framework.di.DependencyFactory;
 import com.wizzardo.http.framework.di.PostConstruct;
 import com.wizzardo.http.framework.di.Service;
 import com.wizzardo.tools.cache.Cache;
-import com.wizzardo.tools.collections.Pair;
+import com.wizzardo.tools.misc.Pair;
 import com.wizzardo.tools.misc.With;
 import com.wizzardo.tools.xml.GspParser;
 import com.wizzardo.tools.xml.Node;
