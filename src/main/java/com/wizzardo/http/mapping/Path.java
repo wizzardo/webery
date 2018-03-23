@@ -147,13 +147,13 @@ public class Path {
                     value = node.getValue();
 
                 if (value == null) {
-                    value = AsciiReader.read(bytes, partStart, i - partStart, partHash);
+                    value = AsciiReader.read(bytes, partStart, i - partStart + offset, partHash);
                 }
 
                 if (!append(value, path))
                     throw new IllegalStateException("can't parse: " + new String(bytes, offset, length));
 
-                partStart = i + 1;
+                partStart = i + 1 + offset;
                 partHash = 0;
                 node = getByteTreeRoot(byteTree);
             } else {

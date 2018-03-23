@@ -40,6 +40,9 @@ public class FiltersMapping {
     }
 
     public boolean filter(Request request, Response response, ChainUrlMapping<Filter> mapping) {
+        if (mapping.isEmpty())
+            return true;
+
         ChainUrlMapping.Chain<Filter> filters = mapping.get(request);
         if (filters != null)
             if (!filter(filters, request, response))

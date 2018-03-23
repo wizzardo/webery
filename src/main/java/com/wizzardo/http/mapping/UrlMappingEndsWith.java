@@ -6,8 +6,8 @@ import com.wizzardo.tools.misc.CharTree;
 import java.util.List;
 
 /**
-* Created by wizzardo on 27.03.15.
-*/
+ * Created by wizzardo on 27.03.15.
+ */
 class UrlMappingEndsWith<T extends Named> extends UrlMapping<T> {
     protected CharTree<UrlMapping<T>> endsWith = new CharTree<>();
 
@@ -29,5 +29,10 @@ class UrlMappingEndsWith<T extends Named> extends UrlMapping<T> {
     @Override
     protected UrlMapping<T> find(String part, String[] parts) {
         return endsWith.findEnds(parts[parts.length - 1]);
+    }
+
+    @Override
+    public int size() {
+        return endsWith.size();
     }
 }

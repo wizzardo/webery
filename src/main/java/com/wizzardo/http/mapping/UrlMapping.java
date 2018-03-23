@@ -98,7 +98,7 @@ public class UrlMapping<T extends Named> {
     public void each(BiConsumer<String, String> parameterConsumer, Path path, Consumer<T> consumer) {
         path = adjustPath(path);
         if (path == null)
-            return ;
+            return;
 
         Path finalPath = path;
         findRecursive(path.parts(), 0, mapping -> {
@@ -194,6 +194,14 @@ public class UrlMapping<T extends Named> {
         return null;
     }
 
+    public int size() {
+        return mapping.size() + regexpMapping.size() + (endsWithMapping != null ? endsWithMapping.size() : 0);
+    }
+
+    public boolean isEmpty() {
+        return size() == 0;
+    }
+
     protected boolean findRecursive(List<String> parts, int index, Predicate<UrlMapping<T>> consumer) {
         if (index == parts.size() && value != null) {
             return consumer.test(this);
@@ -206,12 +214,12 @@ public class UrlMapping<T extends Named> {
         UrlMapping<T> tree = findStatic(part);
         if (tree != null) {
             if (!tree.checkNextPart()) {
-                if(!consumer.test(tree))
+                if (!consumer.test(tree))
                     return false;
             } else {
                 tree = tree.findRecursive(parts, index + 1);
                 if (tree != null && !consumer.test(tree))
-                        return false;
+                    return false;
             }
         }
 
@@ -219,7 +227,7 @@ public class UrlMapping<T extends Named> {
             if (entry.getValue().matches(part)) {
                 tree = entry.getValue();
                 if (!tree.checkNextPart()) {
-                    if(!consumer.test(tree))
+                    if (!consumer.test(tree))
                         return false;
                 } else {
                     tree = tree.findRecursive(parts, index + 1);
@@ -232,7 +240,7 @@ public class UrlMapping<T extends Named> {
         tree = findEndsWith(parts);
         if (tree != null) {
             if (!tree.checkNextPart()) {
-                if(!consumer.test(tree))
+                if (!consumer.test(tree))
                     return false;
             } else {
                 tree = tree.findRecursive(parts, index + 1);

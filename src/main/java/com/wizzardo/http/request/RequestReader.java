@@ -96,12 +96,15 @@ public class RequestReader extends HttpHeadersReader {
 
 
     protected void parsePath(byte[] chars, int offset, int length) {
-        chars = getCharsValue(chars, offset, length);
-        if (chars.length == 0)
-            return;
-
+        if (r != 0) {
+            chars = getCharsValue(chars, offset, length);
+            Path.parse(chars, 0, chars.length, UrlMapping.SEGMENT_CACHE, pathHolder.path);
+        } else {
+            if (length == 0)
+                return;
+            Path.parse(chars, offset, length + offset, UrlMapping.SEGMENT_CACHE, pathHolder.path);
+        }
         pathHolder.parsed = true;
-        Path.parse(chars, 0, chars.length, UrlMapping.SEGMENT_CACHE, pathHolder.path);
     }
 
     protected void parseQueryString(byte[] chars, int offset, int length) {
