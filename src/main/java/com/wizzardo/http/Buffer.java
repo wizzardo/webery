@@ -20,4 +20,10 @@ public interface Buffer {
     }
 
     int capacity();
+
+    boolean hasRemaining();
+
+    int remains();
+
+    void clear();
 }

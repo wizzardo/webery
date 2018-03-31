@@ -51,4 +51,20 @@ public class HttpIOThread<T extends HttpConnection> extends IOThread<T> implemen
     public int capacity() {
         return buffer.length;
     }
+
+    @Override
+    public boolean hasRemaining() {
+        return position < limit;
+    }
+
+    @Override
+    public int remains() {
+        return limit - position;
+    }
+
+    @Override
+    public void clear() {
+        limit = 0;
+        position = 0;
+    }
 }

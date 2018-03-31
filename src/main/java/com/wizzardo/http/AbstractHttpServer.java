@@ -169,7 +169,8 @@ public abstract class AbstractHttpServer<T extends HttpConnection> {
         Buffer buffer = Buffer.current();
         try {
             while ((b = connection.read(bufferProvider.getBuffer().capacity(), bufferProvider)).limit() > 0) {
-                if (connection.check(b, buffer))
+                connection.readFromByteBuffer(b, buffer);
+                if (connection.check(buffer))
                     break;
             }
             if (!connection.isRequestReady())
@@ -216,7 +217,7 @@ public abstract class AbstractHttpServer<T extends HttpConnection> {
             if (handleAsync(connection))
                 return false;
         } catch (Exception t) {
-            safeOnError(connection,t);
+            safeOnError(connection, t);
         }
         try {
             return finishHandling(connection);
