@@ -166,9 +166,10 @@ public abstract class AbstractHttpServer<T extends HttpConnection> {
             return false;
 
         ByteBuffer b;
+        Buffer buffer = Buffer.current();
         try {
-            while ((b = connection.read(connection.getBufferSize(), bufferProvider)).limit() > 0) {
-                if (connection.check(b))
+            while ((b = connection.read(bufferProvider.getBuffer().capacity(), bufferProvider)).limit() > 0) {
+                if (connection.check(b, buffer))
                     break;
             }
             if (!connection.isRequestReady())

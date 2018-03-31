@@ -3,6 +3,7 @@ package com.wizzardo.http.websocket;
 import com.wizzardo.epoll.ByteBufferProvider;
 import com.wizzardo.epoll.readable.ReadableByteArray;
 import com.wizzardo.epoll.readable.ReadableData;
+import com.wizzardo.http.Buffer;
 import com.wizzardo.http.Handler;
 import com.wizzardo.http.HttpConnection;
 import com.wizzardo.http.InputListener;
@@ -112,7 +113,7 @@ public class WebSocketHandler<T extends WebSocketHandler.WebSocketListener> impl
         public void onReadyToRead(HttpConnection connection) {
             Message message = this.tempMessage;
             try {
-                byte[] buffer = connection.getBuffer();
+                byte[] buffer = Buffer.current().bytes();
                 int r;
 
                 outer:

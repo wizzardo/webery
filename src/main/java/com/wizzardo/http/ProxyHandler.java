@@ -42,14 +42,54 @@ public class ProxyHandler implements Handler {
 
         @Override
         protected IOThread<ProxyConnection> createIOThread(int number, int divider) {
-            return new IOThread<ProxyConnection>(number, divider) {
-                @Override
-                public void onRead(ProxyConnection connection) {
-                    connection.read(this);
-                }
-            };
+            return new ProxyWorker(number, divider);
         }
     };
+
+    static class ProxyWorker extends IOThread<ProxyConnection> implements Buffer {
+        protected byte[] buffer = new byte[getBuffer().capacity()];
+        protected int position;
+        protected int limit;
+
+        public ProxyWorker(int number, int divider) {
+            super(number, divider);
+        }
+
+        @Override
+        public void onRead(ProxyConnection connection) {
+            connection.read(this);
+        }
+
+        @Override
+        public byte[] bytes() {
+            return buffer;
+        }
+
+        @Override
+        public int position() {
+            return position;
+        }
+
+        @Override
+        public void position(int position) {
+            this.position = position;
+        }
+
+        @Override
+        public int limit() {
+            return limit;
+        }
+
+        @Override
+        public void limit(int limit) {
+            this.limit = limit;
+        }
+
+        @Override
+        public int capacity() {
+            return buffer.length;
+        }
+    }
 
     {
         epoll.start();

@@ -10,7 +10,6 @@ import com.wizzardo.tools.io.IOTools;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -23,9 +22,9 @@ public class HttpConnection<H extends AbstractHttpServer, Q extends Request, S e
     public static final String HTTP_1_0 = "HTTP/1.0";
     public static final String HTTP_1_1 = "HTTP/1.1";
 
-    private volatile byte[] buffer = new byte[1024];
-    private volatile int r = 0;
-    private volatile int position = 0;
+    //    private volatile byte[] buffer = new byte[1024];
+//    private volatile int r = 0;
+//    private volatile int position = 0;
     private I inputStream;
     private O outputStream;
     private volatile State state = State.READING_HEADERS;
@@ -56,7 +55,7 @@ public class HttpConnection<H extends AbstractHttpServer, Q extends Request, S e
         this.fd = fd;
         this.ip = ip;
         this.port = port;
-        resetBuffer();
+//        resetBuffer();
     }
 
     public void setKeepAlive(boolean keepAlive) {
@@ -72,34 +71,34 @@ public class HttpConnection<H extends AbstractHttpServer, Q extends Request, S e
         }
     }
 
-    int getBufferSize() {
-        return buffer.length - position;
-    }
-
-    int getBufferPosition() {
-        return position;
-    }
-
-    void resetBuffer() {
-        position = 0;
-        r = 0;
-    }
-
-    int getBufferLimit() {
-        return r;
-    }
+//    int getBufferSize() {
+//        return buffer.length - position;
+//    }
+//
+//    int getBufferPosition() {
+//        return position;
+//    }
+//
+//    void resetBuffer() {
+//        position = 0;
+//        r = 0;
+//    }
+//
+//    int getBufferLimit() {
+//        return r;
+//    }
 
     public State getState() {
         return state;
     }
 
-    public boolean check(ByteBuffer bb) {
+    public boolean check(ByteBuffer bb, Buffer buffer) {
         switch (state) {
             case READING_HEADERS:
-                return handleHeaders(bb);
+                return handleHeaders(bb, buffer);
 
             case READING_BODY:
-                return handleData(bb);
+                return handleData(bb, buffer);
         }
         return false;
     }
@@ -145,27 +144,23 @@ public class HttpConnection<H extends AbstractHttpServer, Q extends Request, S e
         return sending != null && !sending.isEmpty();
     }
 
-    private boolean handleHeaders(ByteBuffer bb) {
-        RequestReader requestReader = this.requestReader;
-
-        int limit;
-        byte[] buffer = this.buffer;
+    protected boolean handleHeaders(ByteBuffer bb, Buffer buffer) {
         do {
-            limit = readFromByteBuffer(bb);
-            if (handleHeaders(buffer, 0, limit))
+            readFromByteBuffer(bb, buffer);
+            if (handleHeaders(buffer))
                 break;
         } while (bb.hasRemaining());
 
-        return ready && checkData(bb);
+        return ready && checkData(bb, buffer);
     }
 
-    private boolean handleHeaders(byte[] bytes, int offset, int length) {
-        int i = requestReader.read(bytes, offset, length);
+    protected boolean handleHeaders(Buffer buffer) {
+        int i = requestReader.read(buffer.bytes(), buffer.position(), buffer.limit() - buffer.position());
         if (i == -1 && !requestReader.complete)
             return false;
 
-        position = i >= 0 ? i : length + offset;
-        r = length + offset;
+        buffer.position(i >= 0 ? i : buffer.limit());
+//        r = length + offset;
         request.reset();
         response.reset();
         requestReader.fillRequest(request);
@@ -193,35 +188,33 @@ public class HttpConnection<H extends AbstractHttpServer, Q extends Request, S e
         return (S) new Response();
     }
 
-    private int readFromByteBuffer(ByteBuffer bb) {
-        int limit;
-        limit = bb.remaining();
-        limit = Math.min(limit, buffer.length);
-        bb.get(buffer, 0, limit);
-        return limit;
+    protected void readFromByteBuffer(ByteBuffer bb, Buffer buffer) {
+        int limit = Math.min(bb.remaining(), buffer.capacity());
+        bb.get(buffer.bytes(), 0, limit);
+        buffer.position(0);
+        buffer.limit(limit);
     }
 
-    private boolean checkData(ByteBuffer bb) {
+    protected boolean checkData(ByteBuffer bb, Buffer buffer) {
         if (request.contentLength() > 0) {
             if (request.getBody() == null || request.isMultipart()) {
 //                getInputStream();
                 return true;
             }
-            request.getBody().read(buffer, position, r - position);
+            request.getBody().read(buffer.bytes(), buffer.position(), buffer.limit() - buffer.position());
             ready = request.getBody().isReady();
             state = State.READING_BODY;
-            r = 0;
-            position = 0;
-            return handleData(bb);
+            buffer.position(0);
+            buffer.limit(0);
+            return handleData(bb, buffer);
         }
         return true;
     }
 
-    private boolean handleData(ByteBuffer bb) {
-        int limit;
+    protected boolean handleData(ByteBuffer bb, Buffer buffer) {
         while (bb.hasRemaining()) {
-            limit = readFromByteBuffer(bb);
-            request.getBody().read(buffer, 0, limit);
+            readFromByteBuffer(bb, buffer);
+            request.getBody().read(buffer.bytes(), 0, buffer.limit());
             ready = request.getBody().isReady();
         }
         return ready;
@@ -236,8 +229,11 @@ public class HttpConnection<H extends AbstractHttpServer, Q extends Request, S e
             inputListener.onReady(this);
             return false;
         }
+        Buffer buffer = Buffer.current();
         if (!keepAlive || response.status().code > 300) {
-            resetBuffer();
+//            resetBuffer();
+            buffer.limit(0);
+            buffer.position(0);
             setCloseOnFinishWriting(true);
             return false;
         }
@@ -249,11 +245,11 @@ public class HttpConnection<H extends AbstractHttpServer, Q extends Request, S e
         outputListener = null;
         requestReader.clear();
         state = State.READING_HEADERS;
-        if (r - position > 0) {
-            handleHeaders(buffer, position, r - position);
+        if (buffer.limit() - buffer.position() > 0) {
+            handleHeaders(buffer);
         } else {
-            position = 0;
-            r = 0;
+            buffer.limit(0);
+            buffer.position(0);
         }
         return true;
     }
@@ -297,12 +293,16 @@ public class HttpConnection<H extends AbstractHttpServer, Q extends Request, S e
                 byte[] bytes = request.data();
                 inputStream = createInputStream(bytes, 0, bytes.length, bytes.length);
             } else {
-                inputStream = createInputStream(buffer, position, r, request.contentLength());
-                if (r - position > request.contentLength())
-                    position += request.contentLength();
+                Buffer buffer = Buffer.current();
+                inputStream = createInputStream(buffer.bytes(), buffer.position(), buffer.limit(), request.contentLength());
+                if (buffer.limit() - buffer.position() > request.contentLength())
+//                    position += request.contentLength();
+                    buffer.position((int) (buffer.position() + request.contentLength()));
                 else {
-                    r = 0;
-                    position = 0;
+                    buffer.position(0);
+                    buffer.limit(0);
+//                    r = 0;
+//                    position = 0;
                 }
             }
             setInputListener(connection -> inputStream.wakeUp());
@@ -333,9 +333,9 @@ public class HttpConnection<H extends AbstractHttpServer, Q extends Request, S e
         return (O) new EpollOutputStream(this);
     }
 
-    public byte[] getBuffer() {
-        return buffer;
-    }
+//    public byte[] getBuffer() {
+//        return buffer;
+//    }
 
     public void setCloseOnFinishWriting(boolean closeOnFinishWriting) {
         this.closeOnFinishWriting = closeOnFinishWriting;

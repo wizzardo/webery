@@ -10,9 +10,12 @@ import java.util.concurrent.BlockingQueue;
  * @author: moxa
  * Date: 4/13/13
  */
-public abstract class Worker<T> extends Thread implements ByteBufferProvider {
+public abstract class Worker<T> extends Thread implements ByteBufferProvider, Buffer {
     protected BlockingQueue<T> queue;
     protected ByteBufferWrapper byteBufferWrapper = new ByteBufferWrapper(1024 * 50);
+    protected byte[] buffer = new byte[byteBufferWrapper.capacity()];
+    protected int position;
+    protected int limit;
 
     public Worker(ThreadGroup group, BlockingQueue<T> queue) {
         this(group, queue, "Worker");
@@ -47,4 +50,34 @@ public abstract class Worker<T> extends Thread implements ByteBufferProvider {
     }
 
     protected abstract void process(T item);
+
+    @Override
+    public byte[] bytes() {
+        return buffer;
+    }
+
+    @Override
+    public int position() {
+        return position;
+    }
+
+    @Override
+    public void position(int position) {
+        this.position = position;
+    }
+
+    @Override
+    public int limit() {
+        return limit;
+    }
+
+    @Override
+    public void limit(int limit) {
+        this.limit = limit;
+    }
+
+    @Override
+    public int capacity() {
+        return buffer.length;
+    }
 }

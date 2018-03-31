@@ -92,7 +92,7 @@ public class MultipartHandler implements Handler {
             public void onReadyToRead(HttpConnection c) {
                 try {
                     if (read.get() != length) {
-                        byte[] buffer = c.getBuffer();
+                        byte[] buffer = Buffer.current().bytes();
                         int r;
                         ByteBufferProvider bufferProvider = (ByteBufferProvider) Thread.currentThread();
                         while ((r = c.read(buffer, bufferProvider)) > 0) {
@@ -111,10 +111,13 @@ public class MultipartHandler implements Handler {
 
             @Override
             public void onReady(HttpConnection c) {
-                byte[] buffer = c.getBuffer();
-                int r = c.getBufferLimit() - c.getBufferPosition();
-                br.process(buffer, c.getBufferPosition(), r);
-                c.resetBuffer();
+                Buffer buffer = Buffer.current();
+//                byte[] buffer = c.getBuffer();
+//                int r = c.getBufferLimit() - c.getBufferPosition();
+                int r = buffer.limit() - buffer.position();
+                br.process(buffer.bytes(), buffer.position(), r);
+                buffer.position(0);
+                buffer.limit(0);
                 if (!checkLimit(read.addAndGet(r), c))
                     return;
 
