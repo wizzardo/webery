@@ -34,6 +34,7 @@ public class AsyncTest extends ServerTest {
                         }
                         response.setBody("ok");
                         response.commit(request.connection());
+                        request.connection().flush();
                         request.connection().onFinishingHandling();
                     });
                     return response;

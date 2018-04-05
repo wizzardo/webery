@@ -14,6 +14,8 @@ import org.junit.Rule;
 import org.junit.rules.TestName;
 
 import java.io.IOException;
+import java.io.OutputStream;
+import java.net.Socket;
 
 /**
  * @author: moxa
@@ -52,7 +54,7 @@ public class ServerTest<S extends HttpServer> {
                         return super.addAfter(url, new FilterWrapper(url, handler));
                     }
                 };
-
+                debug = true;
             }
 
             @Override
@@ -118,6 +120,22 @@ public class ServerTest<S extends HttpServer> {
         }
     }
 
+    protected String rawRequest(String path) throws IOException {
+        StringBuilder sb = new StringBuilder();
+        sb.append("GET ").append(path).append(" HTTP/1.1").append("\r\n");
+        sb.append("Host: localhost:").append(port).append("\r\n");
+        sb.append("testMethod: ").append(name.getMethodName()).append("\r\n");
+        sb.append("Connection: Close\r\n");
+        sb.append("\r\n");
+        Socket socket = new Socket("localhost", port);
+        OutputStream out = socket.getOutputStream();
+        out.write(sb.toString().getBytes());
+        out.flush();
+        byte[] bytes = IOTools.bytes(socket.getInputStream());
+        socket.close();
+        return new String(bytes);
+    }
+
     protected com.wizzardo.tools.http.Request makeRequest(String path) {
         return makeRequest(path, port);
     }
@@ -181,5 +199,18 @@ public class ServerTest<S extends HttpServer> {
             Assert.assertEquals(status, response.getResponseCode());
             Assert.assertEquals(message, response.asString());
         });
+    }
+
+    public static int indexOf(byte[] src, byte[] search) {
+        int result = -1;
+        outer:
+        for (int i = 0; i < src.length - search.length; i++) {
+            for (int j = 0; j < search.length; j++) {
+                if (src[i + j] != search[j])
+                    continue outer;
+            }
+            return i;
+        }
+        return result;
     }
 }

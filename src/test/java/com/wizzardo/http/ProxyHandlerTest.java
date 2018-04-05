@@ -58,6 +58,7 @@ public class ProxyHandlerTest extends ServerTest {
 
         try {
             Thread.sleep(25);
+            Assert.assertArrayEquals(data, makeRequest("/").header("Connection", "Close").get().asBytes());
             writeSocket(data, 0);
             writeSocket(data, 10);
         } catch (Exception e) {
@@ -69,10 +70,10 @@ public class ProxyHandlerTest extends ServerTest {
     }
 
     protected int writeSocket(byte[] data, int pause) throws IOException, InterruptedException {
-        int offset = 120 + String.valueOf(data.length).length();
-        byte[] bytes = new byte[data.length + offset];
+        byte[] bytes = new byte[data.length + 512];
         int r, total = 0;
         Socket s = new Socket("localhost", port + 1);
+        int offset = -1;
         try {
             OutputStream out = s.getOutputStream();
             InputStream in = s.getInputStream();
@@ -83,17 +84,20 @@ public class ProxyHandlerTest extends ServerTest {
             if (pause > 0)
                 Thread.sleep(pause);
 
-            while (bytes.length - total > 0 && (r = in.read(bytes, total, Math.min(bytes.length - total, 128 * 1024))) != -1) {
+            while (data.length + offset - total > 0 && (r = in.read(bytes, total, Math.min(bytes.length - total, 128 * 1024))) != -1) {
                 total += r;
 //                System.out.println("read:" + total+"\t remains:"+(bytes.length - total));
                 if (pause > 0)
                     Thread.sleep(pause);
+                if (offset == -1 && total >= 512) {
+                    offset = indexOf(bytes, new byte[]{'\r', '\n', '\r', '\n'}) + 4;
+                }
             }
         } finally {
             s.close();
         }
 
-        Assert.assertEquals(MD5.create().update(data).asString(), MD5.create().update(bytes, offset, bytes.length - offset).asString());
+        Assert.assertEquals(MD5.create().update(data).asString(), MD5.create().update(bytes, offset, total - offset).asString());
         return pauses.getAndSet(0);
     }
 

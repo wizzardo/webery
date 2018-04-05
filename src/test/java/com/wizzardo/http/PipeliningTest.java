@@ -4,6 +4,7 @@ import com.wizzardo.http.request.Header;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -59,16 +60,18 @@ public class PipeliningTest extends ServerTest {
             InputStream in = socket.getInputStream();
             OutputStream out = socket.getOutputStream();
 
-            byte[] response = new byte[limit];
+            ByteArrayOutputStream response = new ByteArrayOutputStream(limit);
             AtomicBoolean wait = new AtomicBoolean(true);
             new Thread(() -> {
-                int r = 0;
+                int r;
                 int total = 0;
+                byte[] bytes = new byte[1024];
                 try {
-                    while (total < limit && (r = in.read(response, total, limit - total)) != -1) {
+                    while (total < limit && (r = in.read(bytes)) != -1) {
                         total += r;
+                        response.write(bytes, 0, r);
                     }
-                } catch (IOException e) {
+                } catch (Exception e) {
                     e.printStackTrace();
                     assert false;
                 }
@@ -87,7 +90,7 @@ public class PipeliningTest extends ServerTest {
                         e.printStackTrace();
                     }
             }
-            return new String(response);
+            return new String(response.toByteArray());
         } catch (IOException e) {
             e.printStackTrace();
             return null;
