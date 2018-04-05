@@ -1,5 +1,8 @@
 package com.wizzardo.http.request;
 
+import com.wizzardo.epoll.ByteBufferWrapper;
+import com.wizzardo.http.ReadableDirectByteBuffer;
+
 /**
  * @author: moxa
  * Date: 12/2/13
@@ -60,12 +63,14 @@ public enum Header {
     KV_CONTENT_TYPE_APPLICATION_JSON("Content-Type: application/json\r\n", true),
     KV_CONTENT_TYPE_APPLICATION_OCTET_STREAM("Content-Type: application/octet-stream\r\n", true),
     KV_CONTENT_TYPE_HTML_UTF8("Content-Type: text/html;charset=UTF-8\r\n", true),
-    KV_CONTENT_TYPE_TEXT_PLAIN("Content-Type: text/plain;charset=UTF-8\r\n", true),
+    KV_CONTENT_TYPE_TEXT_PLAIN("Content-Type: text/plain\r\n", true),
+    KV_CONTENT_TYPE_TEXT_PLAIN_UTF8("Content-Type: text/plain;charset=UTF-8\r\n", true),
     KV_CONTENT_TYPE_TEXT_XML("Content-Type: text/xml\r\n", true);
 
     public final String value;
     public final byte[] bytes;
     public final boolean complete;
+    public final ReadableDirectByteBuffer buffer;
 
     Header(String value) {
         this(value, false);
@@ -75,5 +80,6 @@ public enum Header {
         this.value = value;
         this.complete = complete;
         bytes = value.getBytes();
+        buffer = new ReadableDirectByteBuffer(new ByteBufferWrapper(bytes));
     }
 }

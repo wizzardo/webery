@@ -1,5 +1,8 @@
 package com.wizzardo.http.response;
 
+import com.wizzardo.epoll.ByteBufferWrapper;
+import com.wizzardo.http.ReadableDirectByteBuffer;
+
 /**
  * @author: wizzardo
  * Date: 3/31/14
@@ -234,6 +237,7 @@ public enum Status {
     public final byte[] bytes;
     public final int code;
     public final String message;
+    public final ReadableDirectByteBuffer buffer;
 
     static {
         //self check
@@ -249,6 +253,7 @@ public enum Status {
         this.code = code;
         this.message = message;
         this.bytes = ("HTTP/1.1 " + code + " " + message + "\r\n").getBytes();
+        buffer = new ReadableDirectByteBuffer(new ByteBufferWrapper(bytes));
     }
 
     public static Status valueOf(int status) {

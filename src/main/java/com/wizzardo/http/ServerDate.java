@@ -1,5 +1,7 @@
 package com.wizzardo.http;
 
+import com.wizzardo.epoll.ByteBufferWrapper;
+
 import java.util.Date;
 
 /**
@@ -17,16 +19,20 @@ public class ServerDate {
         return getValidHolder().bytes;
     }
 
+    public ReadableDirectByteBuffer getDateAsBuffer() {
+        return getValidHolder().buffer;
+    }
+
     private DateHolder getValidHolder() {
         DateHolder dateHolder = holder;
         long time = System.currentTimeMillis();
         if (time >= dateHolder.validUntil) {
-            if (time - dateHolder.validUntil < 1000) {
+            do {
                 dateHolder = dateHolder.next;
                 if (dateHolder == null)
                     dateHolder = new DateHolder(time);
-            } else
-                dateHolder = new DateHolder(time);
+            } while (time >= dateHolder.validUntil);
+
             holder = dateHolder;
         }
         return dateHolder;
@@ -35,6 +41,7 @@ public class ServerDate {
     private static class DateHolder {
         final String text;
         final byte[] bytes;
+        final ReadableDirectByteBuffer buffer;
         final long validUntil;
         final DateHolder next;
 
@@ -45,6 +52,7 @@ public class ServerDate {
         public DateHolder(long time, int counter) {
             text = "Date: " + HttpDateFormatterHolder.get().format(new Date(time)) + "\r\n";
             bytes = text.getBytes();
+            buffer = new ReadableDirectByteBuffer(new ByteBufferWrapper(bytes));
             validUntil = (time / 1000 + 1) * 1000;
             if (counter < 100)
                 next = new DateHolder(time + 1000, counter + 1);
