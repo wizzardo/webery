@@ -1,6 +1,10 @@
 package com.wizzardo.http;
 
+import com.wizzardo.epoll.ByteBufferProvider;
+import com.wizzardo.epoll.ByteBufferWrapper;
 import com.wizzardo.epoll.Connection;
+import com.wizzardo.epoll.readable.ReadableBuilder;
+import com.wizzardo.epoll.readable.ReadableByteArray;
 import com.wizzardo.epoll.readable.ReadableData;
 import com.wizzardo.http.request.Header;
 import com.wizzardo.http.request.Request;
@@ -22,33 +26,22 @@ public class HttpConnection<H extends AbstractHttpServer, Q extends Request, S e
     public static final String HTTP_1_0 = "HTTP/1.0";
     public static final String HTTP_1_1 = "HTTP/1.1";
 
-    //    private volatile byte[] buffer = new byte[1024];
-//    private volatile int r = 0;
-//    private volatile int position = 0;
     private I inputStream;
     private O outputStream;
-    private volatile State state = State.READING_HEADERS;
     private volatile InputListener<HttpConnection> inputListener;
     private volatile OutputListener<HttpConnection> outputListener;
-    private volatile boolean closeOnFinishWriting = false;
-    private boolean ready = false;
+    private boolean closeOnFinishWriting = false;
     private boolean keepAlive = false;
     private RequestReader requestReader = new RequestReader(new LinkedHashMap<>(16));
-    protected S response = createResponse();
-    protected Q request = createRequest();
+    protected Q request = createRequest(createResponse());
     protected H server;
 
     volatile AtomicReference<Thread> processingBy = new AtomicReference<>();
 
-    static enum State {
-        READING_HEADERS,
-        READING_BODY,
-        UPGRADED
-    }
-
     public HttpConnection(int fd, int ip, int port, H server) {
         super(fd, ip, port);
         this.server = server;
+        sending = createSendingQueue();
     }
 
     public void init(int fd, int ip, int port) {
@@ -70,17 +63,16 @@ public class HttpConnection<H extends AbstractHttpServer, Q extends Request, S e
         }
     }
 
-    public State getState() {
-        return state;
+    public Request.State getState() {
+        return request.getState();
     }
 
     public boolean check(Buffer buffer) {
-        switch (state) {
-            case READING_HEADERS:
-                return handleHeaders(buffer);
-
-            case READING_BODY:
-                return handleData(buffer);
+        Request.State state = getState();
+        if (state == Request.State.READING_HEADERS) {
+            return handleHeaders(buffer);
+        } else if (state == Request.State.READING_BODY) {
+            return handleData(buffer);
         }
         return false;
     }
@@ -91,7 +83,7 @@ public class HttpConnection<H extends AbstractHttpServer, Q extends Request, S e
 
     public void upgrade(InputListener<HttpConnection> listener) {
         setInputListener(listener);
-        state = State.UPGRADED;
+        request.setState(Request.State.UPGRADED);
     }
 
     public void setInputListener(InputListener<HttpConnection> listener) {
@@ -132,27 +124,26 @@ public class HttpConnection<H extends AbstractHttpServer, Q extends Request, S e
             return false;
 
         buffer.position(i >= 0 ? i : buffer.limit());
-        request.reset();
-        response.reset();
         requestReader.fillRequest(request);
         if (request.method() == Request.Method.HEAD)
-            response.setHasBody(false);
+            request.response().setHasBody(false);
         keepAlive = prepareKeepAlive();
-        ready = true;
-        return checkData(buffer);
+        request.isReady(true);
+
+        return checkData(buffer); // todo: check that it's needed
     }
 
     protected boolean prepareKeepAlive() {
         String connection = request.header(Header.KEY_CONNECTION);
         boolean keepAlive = (request.protocol().equals(HttpConnection.HTTP_1_1) && connection == null) || Header.VALUE_KEEP_ALIVE.value.equalsIgnoreCase(connection);
         if (keepAlive && request.protocol().equals(HttpConnection.HTTP_1_0))
-            response.appendHeader(Header.KV_CONNECTION_KEEP_ALIVE);
+            request.response().appendHeader(Header.KV_CONNECTION_KEEP_ALIVE);
 
         return keepAlive;
     }
 
-    protected Q createRequest() {
-        return (Q) new Request(this);
+    protected Q createRequest(S response) {
+        return (Q) new Request(this, response);
     }
 
     protected S createResponse() {
@@ -173,8 +164,8 @@ public class HttpConnection<H extends AbstractHttpServer, Q extends Request, S e
                 return true;
             }
             request.getBody().read(buffer.bytes(), buffer.position(), buffer.remains());
-            state = State.READING_BODY;
-            return ready = request.getBody().isReady();
+            request.setState(Request.State.READING_BODY);
+            return request.isReady(request.getBody().isReady());
         }
         return true;
     }
@@ -182,40 +173,77 @@ public class HttpConnection<H extends AbstractHttpServer, Q extends Request, S e
     protected boolean handleData(Buffer buffer) {
         if (buffer.hasRemaining()) {
             request.getBody().read(buffer.bytes(), buffer.position(), buffer.remains());
-            ready = request.getBody().isReady();
         }
-        return ready;
+        return request.isReady(request.getBody().isReady());
     }
 
     public boolean isRequestReady() {
-        return ready;
+        return request.isReady();
     }
 
     public boolean onFinishingHandling() {
-        if (state == State.UPGRADED && inputListener != null) {
+        if (request.getState() == Request.State.UPGRADED && inputListener != null) {
             inputListener.onReady(this);
             return false;
         }
         Buffer buffer = Buffer.current();
-        if (!keepAlive || response.status().code > 300) {
+        if (!keepAlive || request.response().status().code > 300) {
             buffer.clear();
+            flush();
             setCloseOnFinishWriting(true);
             return false;
         }
 
-        ready = false;
         inputStream = null;
         outputStream = null;
         inputListener = null;
         outputListener = null;
+        request.reset();
         requestReader.clear();
-        state = State.READING_HEADERS;
         if (buffer.hasRemaining()) {
             handleHeaders(buffer);
         } else {
             buffer.clear();
         }
         return true;
+    }
+
+    public void flush() {
+        ByteBufferProvider provider = ByteBufferProvider.current();
+        ByteBufferWrapper buffer = provider.getBuffer();
+        if (buffer.position() == 0) {
+            if (!sending.isEmpty())
+                write(provider);
+            return;
+        }
+
+        try {
+            int w = write(buffer, 0, buffer.position());
+
+            ByteBuffer bb = buffer.buffer();
+            if (w != bb.position()) {
+                bb.flip();
+                bb.position(w);
+                byte[] bytes = new byte[bb.remaining()];
+                bb.get(bytes);
+                sending.addFirst(new ReadableByteArray(bytes));
+                buffer.clear();
+            } else {
+                buffer.clear();
+                if (!sending.isEmpty())
+                    write(provider);
+            }
+        } catch (IOException e) {
+            IOTools.close(this);
+        }
+    }
+
+    public void send(ReadableData readableData) {
+        ReadableData peek = sending.peek();
+        if (peek != null) {
+            ((ReadableBuilder) peek).append(readableData);
+        } else
+            sending.add(readableData);
     }
 
     public InputListener<HttpConnection> getInputListener() {
@@ -230,7 +258,7 @@ public class HttpConnection<H extends AbstractHttpServer, Q extends Request, S e
         if (processOutputListener())
             return;
 
-        if (!keepAlive && state != State.UPGRADED && !response.isAsync()) {
+        if (!keepAlive && request.getState() != Request.State.UPGRADED && !request.response().isAsync()) {
             IOTools.close(this);
             return;
         }
@@ -248,7 +276,7 @@ public class HttpConnection<H extends AbstractHttpServer, Q extends Request, S e
     }
 
     public S getResponse() {
-        return response;
+        return (S) request.response();
     }
 
     public I getInputStream() {

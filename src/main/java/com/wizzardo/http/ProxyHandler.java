@@ -161,6 +161,7 @@ public class ProxyHandler implements Handler {
                 int r;
                 byte[] buffer = this.buffer;
                 while ((r = read(buffer, byteBufferProvider)) > 0) {
+                    byteBufferProvider.getBuffer().clear();
                     int offset = 0;
                     if (!responseReader.isComplete()) {
                         int k = responseReader.read(buffer, 0, r);
@@ -184,6 +185,7 @@ public class ProxyHandler implements Handler {
                             srcResponse.setStatus(Status.valueOf(Integer.parseInt(responseReader.getStatus())));
 
                         srcResponse.commit(srcRequest.connection(), byteBufferProvider);
+                        srcRequest.connection().flush();
                         chunked = Header.VALUE_CHUNKED.value.equalsIgnoreCase(responseReader.getHeaders().getOrDefault(Header.KEY_TRANSFER_ENCODING.value, EMPTY_VALUE).getValue());
                         if (length == null && !chunked) {
                             processingBy.set(null);

@@ -60,8 +60,10 @@ public class MultipartHandler implements Handler {
             request.setMultiPartDataPrepared();
             handler.handle(request, response);
             response.commit(c);
-            if (!c.isKeepAlive())
+            if (!c.isKeepAlive()) {
+                c.flush();
                 c.setCloseOnFinishWriting(true);
+            }
             c.onFinishingHandling();
             clean(request);
         }, length, br));
@@ -94,11 +96,15 @@ public class MultipartHandler implements Handler {
                     if (read.get() != length) {
                         byte[] buffer = Buffer.current().bytes();
                         int r;
-                        ByteBufferProvider bufferProvider = (ByteBufferProvider) Thread.currentThread();
-                        while ((r = c.read(buffer, bufferProvider)) > 0) {
-                            br.process(buffer, 0, r);
-                            if (!checkLimit(read.addAndGet(r), c))
-                                return;
+                        ByteBufferProvider bufferProvider = ByteBufferProvider.current();
+                        try {
+                            while ((r = c.read(buffer, bufferProvider)) > 0) {
+                                br.process(buffer, 0, r);
+                                if (!checkLimit(read.addAndGet(r), c))
+                                    return;
+                            }
+                        } finally {
+                            bufferProvider.getBuffer().clear();
                         }
                         if (read.get() != length)
                             return;
@@ -124,7 +130,7 @@ public class MultipartHandler implements Handler {
             boolean checkLimit(long read, HttpConnection c) {
                 if (read > length) {
                     clean(c.request);
-                    c.response.setStatus(Status._413).commit(c);
+                    c.getResponse().setStatus(Status._413).commit(c);
                     c.setCloseOnFinishWriting(true);
                     return false;
                 }

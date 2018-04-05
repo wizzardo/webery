@@ -11,5 +11,5 @@ import java.io.IOException;
  */
 public interface Handler extends Named {
 
-    Response handle(Request<HttpConnection> request, Response response) throws IOException;
+    Response handle(Request<HttpConnection, Response> request, Response response) throws IOException;
 }

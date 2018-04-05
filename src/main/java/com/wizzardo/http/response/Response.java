@@ -35,15 +35,26 @@ public class Response {
 
     private byte[][] headers = new byte[8][];
     private int headersCount = 0;
+    private ReadableDirectByteBuffer[] headersStatic = new ReadableDirectByteBuffer[8];
+    private int headersStaticCount = 1;
     private boolean hasBody = true;
 
     protected static final StringBuilderThreadLocalHolder stringBuilder = new StringBuilderThreadLocalHolder();
     protected boolean async;
 
+    static ReadableDirectByteBuffer[] lengths = new ReadableDirectByteBuffer[1024];
+
+    static {
+        for (int i = 0; i < lengths.length; i++) {
+            lengths[i] = new ReadableDirectByteBuffer(new ByteBufferWrapper(("Content-Length: " + i + "\r\n").getBytes()));
+        }
+    }
+
     public void reset() {
         hasBody = true;
         async = false;
         headersCount = 0;
+        headersStaticCount = 1;
         body = null;
         staticResponse = null;
         committed = false;
@@ -81,7 +92,10 @@ public class Response {
     }
 
     public Response setBody(File file, String contentType) throws IOException {
-        appendHeader(Header.KEY_CONTENT_LENGTH, String.valueOf(file.length()));
+        if (file.length() < 1024)
+            appendHeader(lengths[(int) file.length()]);
+        else
+            appendHeader(Header.KEY_CONTENT_LENGTH, String.valueOf(file.length()));
         appendHeader(Header.KEY_LAST_MODIFIED, HttpDateFormatterHolder.get().format(new Date(file.lastModified())));
         if (contentType != null)
             appendHeader(Header.KEY_CONTENT_TYPE, contentType);
@@ -94,7 +108,10 @@ public class Response {
 
     public Response setBody(ReadableData body) {
         this.body = body;
-        setHeader(Header.KEY_CONTENT_LENGTH, String.valueOf(body.length()));
+        if (body.length() < 1024)
+            appendHeader(lengths[(int) body.length()]);
+        else
+            setHeader(Header.KEY_CONTENT_LENGTH, String.valueOf(body.length()));
         return this;
     }
 
@@ -202,6 +219,18 @@ public class Response {
         return this;
     }
 
+    public Response appendHeader(ReadableDirectByteBuffer value) {
+        if (headersStaticCount + 1 >= headersStatic.length) {
+            ReadableDirectByteBuffer[] temp = new ReadableDirectByteBuffer[headersStatic.length * 3 / 2];
+            System.arraycopy(headersStatic, 0, temp, 0, headersStatic.length);
+            headersStatic = temp;
+        }
+
+        headersStatic[headersStaticCount++] = value;
+
+        return this;
+    }
+
     /**
      * @param header must be a header string 'key: value\r\n'
      */
@@ -217,7 +246,7 @@ public class Response {
         if (!header.complete)
             throw new IllegalStateException("header must be one of KV_ values of Header");
 
-        appendHeader(header.bytes);
+        appendHeader(header.buffer);
         return this;
     }
 
@@ -226,7 +255,15 @@ public class Response {
     }
 
     public String header(Header key) {
-        return header(key.bytes);
+        String value = header(key.bytes);
+        if (value != null)
+            return value;
+
+        for (int i = 1; i < headersStaticCount; i++)
+            if (key.buffer.bufferEquals(headersStatic[i]))
+                return key.name();
+
+        return null;
     }
 
     public String header(byte[] key) {
@@ -262,6 +299,7 @@ public class Response {
 
     public void headersReset() {
         headersCount = 0;
+        headersStaticCount = 1;
     }
 
     public boolean containsHeader(String key) {
@@ -299,17 +337,85 @@ public class Response {
         return buildResponse();
     }
 
+    static class ReadableBuilderProxy extends ReadableBuilder {
+        final ByteBufferWrapper bb;
+
+        ReadableBuilderProxy(ByteBufferWrapper bb) {
+            this.bb = bb;
+        }
+
+        @Override
+        public ReadableBuilder append(byte[] bytes, int offset, int length) {
+            if (bb.buffer().remaining() > length) {
+                bb.put(bytes, offset, length);
+                return this;
+            } else
+                return super.append(bytes, offset, length);
+        }
+
+        @Override
+        public ReadableBuilder append(ReadableData readableData) {
+            if (bb.buffer().remaining() > readableData.length()) {
+                readableData.read(bb);
+                return this;
+            } else
+                return super.append(readableData);
+        }
+
+        public ReadableBuilder append(ReadableDirectByteBuffer readableData) {
+            if (bb.buffer().remaining() > readableData.length()) {
+                ReadableDirectByteBuffer.copy(bb, readableData);
+                return this;
+            } else
+                return super.append(readableData.copy());
+        }
+
+        public ReadableBuilderProxy append(ReadableDirectByteBuffer s1, ReadableDirectByteBuffer s2, ReadableDirectByteBuffer s3, ReadableDirectByteBuffer s4, ReadableDirectByteBuffer s5) {
+            if (bb.buffer().remaining() > s1.length() + s2.length() + s3.length() + s4.length() + s5.length()) {
+                ReadableDirectByteBuffer.read(bb, s1, s2, s3, s4, s5);
+                return this;
+            } else {
+                super.append(s1.copy());
+                super.append(s2.copy());
+                super.append(s3.copy());
+                super.append(s4.copy());
+            }
+            return this;
+        }
+    }
+
     protected ReadableBuilder buildResponse() {
-        ReadableBuilder builder = new ReadableBuilder(statusToBytes());
-        byte[][] headers = this.headers;
-        for (int i = 0; i < headersCount; i += 2) {
-            if (headers[i + 1] == EMPTY)
-                builder.append(headers[i]);
-            else
-                builder.append(headers[i])
-                        .append(HEADER_SEPARATOR)
-                        .append(headers[i + 1])
-                        .append(LINE_SEPARATOR);
+//        ReadableBuilder builder = new ReadableBuilder();
+        return buildResponse(new ReadableBuilderProxy(new ByteBufferWrapper(0)));
+    }
+
+    protected ReadableBuilder buildResponse(ReadableBuilderProxy builder) {
+//        builder.append(status.buffer());
+        {
+            ReadableDirectByteBuffer[] headersStatic = this.headersStatic;
+            headersStatic[0] = status.buffer;
+            int headersStaticCount = this.headersStaticCount;
+            int i = 0;
+            for (; i <= headersStaticCount - 5; i += 5) {
+                builder.append(headersStatic[i], headersStatic[i + 1], headersStatic[i + 2], headersStatic[i + 3], headersStatic[i + 4]);
+            }
+            for (; i < headersStaticCount; i++) {
+                builder.append(headersStatic[i]);
+            }
+        }
+
+        int headersCount = this.headersCount;
+        if (headersCount > 0) {
+            byte[][] headers = this.headers;
+            for (int i = 0; i < headersCount; i += 2) {
+                if (headers[i + 1] == EMPTY)
+                    builder.append(headers[i]);
+                else
+                    builder.append(headers[i])
+                            .append(HEADER_SEPARATOR)
+                            .append(headers[i + 1])
+                            .append(LINE_SEPARATOR);
+            }
         }
 
         builder.append(LINE_SEPARATOR);
@@ -338,6 +444,8 @@ public class Response {
         connection.getOutputStream();
         commit(connection);
 
+        connection.flush();
+
         return connection.getOutputStream();
     }
 
@@ -345,9 +453,23 @@ public class Response {
         commit(connection, (ByteBufferProvider) Thread.currentThread());
     }
 
+//    static int commits = 0;
+
     public void commit(HttpConnection connection, ByteBufferProvider byteBufferProvider) {
         if (!committed) {
-            connection.write(toReadableBytes(), byteBufferProvider);
+//            connection.write(toReadableBytes(), byteBufferProvider);
+//            byteBufferProvider.getBuffer().clear();
+            ByteBufferWrapper buffer = byteBufferProvider.getBuffer();
+            ReadableBuilderProxy builderProxy = new ReadableBuilderProxy(buffer);
+            buildResponse(builderProxy);
+//            System.out.println("commits: " + (++commits) + "\tdata:" + buffer.position());
+            if (builderProxy.length() > 0) {
+                connection.flush();
+                if (!connection.hasDataToWrite() && builderProxy.length() <= buffer.capacity()) {
+                    builderProxy.read(buffer);
+                } else
+                    connection.send(builderProxy);
+            }
             committed = true;
         }
     }
@@ -390,6 +512,9 @@ public class Response {
     public String toString() {
         StringBuilder sb = new StringBuilder(256);
         sb.append("status: ").append(status.code).append("\n");
+        for (int i = 1; i < headersStaticCount; i++) {
+            sb.append(this.headersStatic[i].toString());
+        }
         byte[][] headers = this.headers;
         for (int i = 0; i < headersCount; i += 2) {
             if (headers[i + 1] == EMPTY)

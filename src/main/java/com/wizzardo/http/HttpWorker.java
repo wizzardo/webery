@@ -19,9 +19,11 @@ public class HttpWorker<T extends HttpConnection> extends Worker<T> {
         if (!connection.processingBy.compareAndSet(null, this))
             return;
 
-        if (server.checkData(connection, this))
+        if (server.checkData(connection, this)) {
             while (server.processConnection(connection)) {
             }
+            connection.flush();
+        }
 
         connection.processingBy.set(null);
     }

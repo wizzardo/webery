@@ -165,11 +165,14 @@ public abstract class AbstractHttpServer<T extends HttpConnection> {
         if (connection.processInputListener())
             return false;
 
+        //todo: check if response for one request is already in the buffer, but second request started but not ready yet
+
         ByteBuffer b;
         Buffer buffer = Buffer.current();
         try {
             while ((b = connection.read(bufferProvider.getBuffer().capacity(), bufferProvider)).limit() > 0) {
                 connection.readFromByteBuffer(b, buffer);
+                b.clear();
                 if (connection.check(buffer))
                     break;
             }
@@ -208,6 +211,7 @@ public abstract class AbstractHttpServer<T extends HttpConnection> {
         } else if (checkData(connection, bufferProvider)) {
             while (processConnection(connection)) {
             }
+            connection.flush();
         }
     }
 
@@ -259,8 +263,11 @@ public abstract class AbstractHttpServer<T extends HttpConnection> {
 
         if (connection.isRequestReady())
             return true;
-        else if (connection.isReadyToRead() && checkData(connection, getBufferProvider()))
-            return true;
+        else {
+            connection.flush();
+            if (connection.isReadyToRead() && checkData(connection, getBufferProvider()))
+                return true;
+        }
         return false;
     }
 

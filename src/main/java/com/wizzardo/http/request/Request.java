@@ -17,10 +17,10 @@ import java.util.*;
  * @author: wizzardo
  * Date: 7/25/14
  */
-public class Request<C extends HttpConnection> {
+public class Request<C extends HttpConnection, R extends Response> {
     protected static final int NOT_INITIALISED = -2;
-
     protected C connection;
+    protected R response;
     protected Map<String, MultiValue> headers;
     protected Parameters params;
     protected Map<String, MultiPartEntry> multiPartEntryMap;
@@ -34,6 +34,8 @@ public class Request<C extends HttpConnection> {
     protected Boolean multipart;
     protected boolean multiPartDataPrepared = false;
     protected String sessionId;
+    protected boolean ready = false;
+    protected volatile State state = State.READING_HEADERS;
 
     protected SimpleRequestBody body;
 
@@ -41,8 +43,31 @@ public class Request<C extends HttpConnection> {
         GET, PUT, POST, DELETE, HEAD, TRACE, OPTIONS, CONNECT, PATCH
     }
 
-    public Request(C connection) {
+    public enum State {
+        READING_HEADERS,
+        READING_BODY,
+        UPGRADED
+    }
+
+    public Request(C connection, R response) {
         this.connection = connection;
+        this.response = response;
+    }
+
+    public boolean isReady() {
+        return ready;
+    }
+
+    public boolean isReady(boolean ready) {
+        return this.ready = ready;
+    }
+
+    public State getState() {
+        return state;
+    }
+
+    public void setState(State state) {
+        this.state = state;
     }
 
     public Path path() {
@@ -166,6 +191,7 @@ public class Request<C extends HttpConnection> {
     }
 
     public void reset() {
+        ready = false;
         params = null;
         bodyParsed = false;
         body = null;
@@ -175,10 +201,12 @@ public class Request<C extends HttpConnection> {
         cookies = null;
         multipart = null;
         sessionId = null;
+        state = State.READING_HEADERS;
+        response.reset();
     }
 
-    public Response response() {
-        return connection.getResponse();
+    public R response() {
+        return response;
     }
 
     public byte[] data() {

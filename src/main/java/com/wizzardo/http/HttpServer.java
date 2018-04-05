@@ -1,5 +1,6 @@
 package com.wizzardo.http;
 
+import com.wizzardo.epoll.ByteBufferWrapper;
 import com.wizzardo.epoll.SslConfig;
 import com.wizzardo.epoll.readable.ReadableByteBuffer;
 import com.wizzardo.http.mapping.UrlMapping;
@@ -22,7 +23,7 @@ public class HttpServer<T extends HttpConnection> extends AbstractHttpServer<T> 
             .setBody("It's alive!".getBytes())
             .buildStaticResponse();
 
-    private byte[] serverName = "Server: wizzardo-http/0.1\r\n".getBytes();
+    protected ReadableDirectByteBuffer serverName = new ReadableDirectByteBuffer(new ByteBufferWrapper("Server: wizzardo-http/0.1\r\n".getBytes()));
     protected FiltersMapping filtersMapping;
     protected UrlMapping<Handler> urlMapping;
     protected ServerDate serverDate = new ServerDate();
@@ -136,7 +137,7 @@ public class HttpServer<T extends HttpConnection> extends AbstractHttpServer<T> 
 
     @Override
     protected void onError(T connection, Exception e) throws Exception {
-        errorHandler.handle(connection.request, connection.response, e);
+        errorHandler.handle(connection.request, connection.getResponse(), e);
     }
 
     @Override
@@ -144,8 +145,8 @@ public class HttpServer<T extends HttpConnection> extends AbstractHttpServer<T> 
         Request request = connection.getRequest();
         Response response = connection.getResponse();
 
-        response.appendHeader(serverDate.getDateAsBytes());
         response.appendHeader(serverName);
+        response.appendHeader(serverDate.getDateAsBuffer());
 
         if (debug) {
             System.out.println("request: ");

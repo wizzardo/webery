@@ -83,11 +83,13 @@ public class EpollInputStream extends InputStream {
     }
 
     protected void fillBuffer() throws IOException {
+        ByteBufferProvider bufferProvider = ByteBufferProvider.current();
         if (contentLength > 0)
-            limit = connection.read(buffer, 0, Math.min(buffer.length, (int) (contentLength - read)), (ByteBufferProvider) Thread.currentThread());
+            limit = connection.read(buffer, 0, Math.min(buffer.length, (int) (contentLength - read)), bufferProvider);
         else
-            limit = connection.read(buffer, (ByteBufferProvider) Thread.currentThread());
+            limit = connection.read(buffer, bufferProvider);
         offset = 0;
+        bufferProvider.getBuffer().clear();
         waitForData();
     }
 
