@@ -54,9 +54,7 @@ public class FallbackServerSocketTest {
         FallbackServerSocket serverSocket = new FallbackServerSocket() {
             @Override
             protected SelectorConnectionWrapper createConnection(SocketChannel client) throws IOException {
-                SelectorConnectionWrapper connection = super.createConnection(client);
-                connection.response = new Response();
-                return connection;
+                return super.createConnection(client);
             }
 
             @Override
