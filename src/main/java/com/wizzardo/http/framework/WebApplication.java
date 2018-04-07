@@ -202,6 +202,7 @@ public class WebApplication extends HttpServer<HttpConnection> {
         super.setDebugOutput(server.debugOutput);
         super.setPostBodyLimit(server.postBodyLimit);
         super.setWebsocketFrameLengthLimit(server.websocketFrameLengthLimit);
+        super.setOnlyCachedHeaders(server.onlyCachedHeaders);
         super.setMaxRequestsInQueue(server.maxRequestsInQueue);
         super.setSessionTimeout(server.session.ttl);
         setContext(server.context);

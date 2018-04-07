@@ -1,21 +1,17 @@
 package com.wizzardo.http;
 
 import com.wizzardo.http.request.ByteTree;
-import com.wizzardo.http.request.Header;
-import com.wizzardo.http.request.Request;
 import com.wizzardo.http.utils.AsciiReader;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
-
-import static com.wizzardo.http.mapping.UrlMapping.SEGMENT_CACHE;
 
 /**
  * Created by wizzardo on 12.06.15.
  */
 public abstract class HttpHeadersReader {
 
-    protected static final ByteTree headersTree = new ByteTree();
+    protected ByteTree headersTree;
     protected byte[] buffer;
     protected int r;
     protected String tempKey;
@@ -23,34 +19,19 @@ public abstract class HttpHeadersReader {
     protected Map<String, MultiValue> headers;
 
     protected boolean complete = false;
-    protected boolean onlyAllowedHeaders = false;
+    protected boolean onlyCachedHeaders = false;
 
-    static {
-        for (Header header : Header.values()) {
-            headersTree.appendIgnoreCase(header.value);
-        }
-        for (Request.Method method : Request.Method.values()) {
-            headersTree.append(method.name());
-        }
-        headersTree.appendIgnoreCase("gzip,deflate,sdch");
-        headersTree.appendIgnoreCase("en-US,en;q=0.8,ru;q=0.6");
-        headersTree.append(HttpConnection.HTTP_1_0);
-        headersTree.append(HttpConnection.HTTP_1_1);
-
-        for (int i = 0; i < 512; i++) {
-            headersTree.append(String.valueOf(i));
-        }
+    public HttpHeadersReader() {
+        this(new LinkedHashMap<>(16));
     }
 
     public HttpHeadersReader(Map<String, MultiValue> headers) {
-        if (headers == null)
-            headers = new LinkedHashMap<>(16);
-
-        this.headers = headers;
+        this(headers, null);
     }
 
-    public HttpHeadersReader() {
-        headers = new LinkedHashMap<>(16);
+    public HttpHeadersReader(Map<String, MultiValue> headers, ByteTree headersTree) {
+        this.headers = headers != null ? headers : new LinkedHashMap<>(16);
+        this.headersTree = headersTree;
     }
 
     public void clear() {
@@ -60,6 +41,14 @@ public abstract class HttpHeadersReader {
         complete = false;
         waitForNewLine = false;
         r = 0;
+    }
+
+    public boolean isOnlyCachedHeaders() {
+        return onlyCachedHeaders;
+    }
+
+    public void setOnlyCachedHeaders(boolean onlyCachedHeaders) {
+        this.onlyCachedHeaders = onlyCachedHeaders;
     }
 
     public int read(byte[] bytes) {
@@ -227,7 +216,7 @@ public abstract class HttpHeadersReader {
     }
 
     protected String getValue(byte[] chars, int offset, int length) {
-        ByteTree.Node byteTree = headersTree.getRoot();
+        ByteTree.Node byteTree = headersTree != null ? headersTree.getRoot() : null;
 
         if (r > 0) {
             if (length < 0)
@@ -240,7 +229,8 @@ public abstract class HttpHeadersReader {
             }
             r -= bo;
 
-            byteTree = byteTree.getNode(buffer, bo, r);
+            if (byteTree != null)
+                byteTree = byteTree.getNode(buffer, bo, r);
             if (byteTree != null) {
                 byteTree = byteTree.getNode(chars, offset, length);
                 if (byteTree != null) {
@@ -248,15 +238,15 @@ public abstract class HttpHeadersReader {
                     if (value != null) {
                         r = 0;
                         return value;
-                    } else if (onlyAllowedHeaders) {
+                    } else if (onlyCachedHeaders) {
                         r = 0;
                         return null;
                     }
-                } else if (onlyAllowedHeaders) {
+                } else if (onlyCachedHeaders) {
                     r = 0;
                     return null;
                 }
-            } else if (onlyAllowedHeaders) {
+            } else if (onlyCachedHeaders) {
                 r = 0;
                 return null;
             }
@@ -281,7 +271,7 @@ public abstract class HttpHeadersReader {
 
         if (byteTree != null) {
             String value = byteTree.get(chars, offset, length);
-            if (value != null || onlyAllowedHeaders)
+            if (value != null || onlyCachedHeaders)
                 return value;
         }
         return AsciiReader.read(chars, offset, length);

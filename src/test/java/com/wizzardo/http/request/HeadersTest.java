@@ -50,7 +50,7 @@ public class HeadersTest {
             Assert.assertEquals(-1, hhr.read(new byte[0]));
 
             Assert.assertEquals("example.com", hhr.getHeaders().get("Host").getValue());
-            Assert.assertEquals("Keep-Alive", hhr.getHeaders().get("Connection").getValue());
+            Assert.assertEquals("keep-alive", hhr.getHeaders().get("Connection").getValue());
             Assert.assertEquals("no-cache", hhr.getHeaders().get("Cache-Control").getValue());
             Assert.assertEquals("text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8", hhr.getHeaders().get("Accept").getValue());
             Assert.assertEquals("no-cache", hhr.getHeaders().get("Pragma").getValue());

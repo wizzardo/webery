@@ -17,13 +17,14 @@ public class ServerConfiguration implements Configuration {
     public final int postBodyLimit;
     public final int websocketFrameLengthLimit;
     public final int maxRequestsInQueue;
+    public final boolean onlyCachedHeaders;
     public final SslConfig ssl;
     public final BasicAuth basicAuth;
     public final Resources resources;
     public final Multipart multipart;
     public final Renderer renderer;
 
-    public ServerConfiguration(String hostname, int port, String context, Session session, boolean debugOutput, int ioWorkersCount, int workersCount, long ttl, int postBodyLimit, int websocketFrameLengthLimit, int maxRequestsInQueue, SslConfig ssl, BasicAuth basicAuth, Resources resources, Multipart multipart, Renderer renderer) {
+    public ServerConfiguration(String hostname, int port, String context, Session session, boolean debugOutput, int ioWorkersCount, int workersCount, long ttl, int postBodyLimit, int websocketFrameLengthLimit, int maxRequestsInQueue, boolean onlyCachedHeaders, SslConfig ssl, BasicAuth basicAuth, Resources resources, Multipart multipart, Renderer renderer) {
         this.hostname = hostname;
         this.port = port;
         this.context = context;
@@ -35,6 +36,7 @@ public class ServerConfiguration implements Configuration {
         this.postBodyLimit = postBodyLimit;
         this.websocketFrameLengthLimit = websocketFrameLengthLimit;
         this.maxRequestsInQueue = maxRequestsInQueue;
+        this.onlyCachedHeaders = onlyCachedHeaders;
         this.ssl = ssl;
         this.basicAuth = basicAuth;
         this.resources = resources;
@@ -43,7 +45,7 @@ public class ServerConfiguration implements Configuration {
     }
 
     public ServerConfiguration() {
-        this(null, -1, null, null, false, -1, -1, -1, -1, -1, -1, null, null, null, null, null);
+        this(null, -1, null, null, false, -1, -1, -1, -1, -1, -1, false, null, null, null, null, null);
     }
 
     public static class Session {

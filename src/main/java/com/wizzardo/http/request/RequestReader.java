@@ -26,6 +26,11 @@ public class RequestReader extends HttpHeadersReader {
     protected String queryString;
     protected String protocol;
 
+    public RequestReader(Map<String, MultiValue> headers, ByteTree cacheTree, Parameters parameters) {
+        super(headers, cacheTree);
+        this.params = parameters != null ? parameters : new Parameters();
+    }
+
     public String getMethod() {
         return method;
     }
@@ -39,19 +44,15 @@ public class RequestReader extends HttpHeadersReader {
     }
 
     public RequestReader() {
-        this(null, null);
+        this(null, null, null);
     }
 
     public RequestReader(Map<String, MultiValue> headers) {
-        this(headers, null);
+        this(headers, null, null);
     }
 
     public RequestReader(Map<String, MultiValue> headers, Parameters params) {
-        super(headers);
-        if (params == null)
-            params = new Parameters();
-
-        this.params = params;
+        this(headers, null, params);
     }
 
     static class PathHolder {

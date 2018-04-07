@@ -18,8 +18,18 @@ public class FallbackServerSocketTest {
     @Test
     public void test_simple_read() throws IOException, InterruptedException {
         AtomicInteger counter = new AtomicInteger();
+        AbstractHttpServer<HttpConnection> serverMock = new AbstractHttpServer(null, 9999, 2, true) {
+            @Override
+            protected void handle(HttpConnection connection) throws Exception {
+            }
+        };
 
         FallbackServerSocket serverSocket = new FallbackServerSocket() {
+            @Override
+            protected SelectorConnectionWrapper createConnection(SocketChannel client) throws IOException {
+                return new SelectorConnectionWrapper(client, serverMock);
+            }
+
             @Override
             public void onRead(HttpConnection connection, ByteBufferProvider bufferProvider) {
                 byte[] bytes = new byte[1024];
@@ -51,10 +61,15 @@ public class FallbackServerSocketTest {
 
     @Test
     public void test_simple_write() throws IOException, InterruptedException {
+        AbstractHttpServer<HttpConnection> serverMock = new AbstractHttpServer(null, 9999, 2, true) {
+            @Override
+            protected void handle(HttpConnection connection) throws Exception {
+            }
+        };
         FallbackServerSocket serverSocket = new FallbackServerSocket() {
             @Override
             protected SelectorConnectionWrapper createConnection(SocketChannel client) throws IOException {
-                return super.createConnection(client);
+                return new SelectorConnectionWrapper(client, serverMock);
             }
 
             @Override

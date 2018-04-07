@@ -32,7 +32,8 @@ public class HttpConnection<H extends AbstractHttpServer, Q extends Request, S e
     private volatile OutputListener<HttpConnection> outputListener;
     private boolean closeOnFinishWriting = false;
     private boolean keepAlive = false;
-    private RequestReader requestReader = new RequestReader(new LinkedHashMap<>(16));
+    private RequestReader requestReader;
+
     protected Q request = createRequest(createResponse());
     protected H server;
 
@@ -42,6 +43,7 @@ public class HttpConnection<H extends AbstractHttpServer, Q extends Request, S e
         super(fd, ip, port);
         this.server = server;
         sending = createSendingQueue();
+        requestReader = server.createRequestReader();
     }
 
     public void init(int fd, int ip, int port) {

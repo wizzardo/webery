@@ -19,6 +19,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class FallbackServerSocket<T extends HttpConnection> extends EpollServer<T> implements RequestContext {
     protected ServerSocketChannel server;
+    protected AbstractHttpServer<T> httpServer;
     protected Selector selector = null;
     protected ByteBufferWrapper byteBufferWrapper = new ByteBufferWrapper(ByteBuffer.allocateDirect(16 * 1024));
 
@@ -28,7 +29,12 @@ public class FallbackServerSocket<T extends HttpConnection> extends EpollServer<
     protected String handler;
 
     public FallbackServerSocket() {
-        this(null, 8080);
+        this(null, 8080, null);
+    }
+
+    public FallbackServerSocket(String host, int port, AbstractHttpServer<T> httpServer) {
+        this(host, port);
+        this.httpServer = httpServer;
     }
 
     public FallbackServerSocket(String host, int port) {
@@ -104,7 +110,7 @@ public class FallbackServerSocket<T extends HttpConnection> extends EpollServer<
         Queue<ReadableData> sending = new ConcurrentLinkedQueue<ReadableData>();
         private boolean readyToRead;
 
-        public SelectorConnectionWrapper(SocketChannel channel, HttpServer server) throws IOException {
+        public SelectorConnectionWrapper(SocketChannel channel, AbstractHttpServer server) throws IOException {
             super(0, 0, 0, server);
             this.channel = channel;
             InetSocketAddress address = (InetSocketAddress) channel.socket().getRemoteSocketAddress();
@@ -331,7 +337,7 @@ public class FallbackServerSocket<T extends HttpConnection> extends EpollServer<
     }
 
     protected SelectorConnectionWrapper createConnection(SocketChannel client) throws IOException {
-        return new SelectorConnectionWrapper(client, null);
+        return new SelectorConnectionWrapper(client, httpServer);
     }
 
     public void onRead(T connection, ByteBufferProvider bufferProvider) {

@@ -1,12 +1,13 @@
 package com.wizzardo.http;
 
 import com.wizzardo.epoll.*;
-import com.wizzardo.http.request.Header;
+import com.wizzardo.http.request.*;
 import com.wizzardo.http.response.Status;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
+import java.util.LinkedHashMap;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
@@ -22,8 +23,10 @@ public abstract class AbstractHttpServer<T extends HttpConnection> {
     protected int postBodyLimit = 2 * 1024 * 1024;
     protected int websocketFrameLengthLimit = 64 * 1024;
     protected int maxRequestsInQueue = 1000;
+    protected boolean onlyCachedHeaders = false;
     protected String context;
     protected final EpollServer<T> server;
+    protected HttpStringsCache httpStringsCache = new HttpStringsCache();
 
     protected MimeProvider mimeProvider;
 
@@ -40,8 +43,11 @@ public abstract class AbstractHttpServer<T extends HttpConnection> {
     }
 
     public AbstractHttpServer(String host, int port, int workersCount) {
-        String disabled = System.getenv("EPOLL_DISABLED");
-        if (EpollCore.SUPPORTED && !Boolean.parseBoolean(disabled)) {
+        this(host, port, workersCount, Boolean.parseBoolean(System.getenv("EPOLL_DISABLED")));
+    }
+
+    public AbstractHttpServer(String host, int port, int workersCount, boolean epollDisabled) {
+        if (EpollCore.SUPPORTED && !epollDisabled) {
             server = new EpollServer<T>(host, port) {
                 @Override
                 protected T createConnection(int fd, int ip, int port) {
@@ -54,7 +60,7 @@ public abstract class AbstractHttpServer<T extends HttpConnection> {
                 }
             };
         } else {
-            server = new FallbackServerSocket<T>(host, port) {
+            server = new FallbackServerSocket<T>(host, port, this) {
                 @Override
                 public void onRead(T connection, ByteBufferProvider bufferProvider) {
                     process(connection, bufferProvider);
@@ -81,12 +87,38 @@ public abstract class AbstractHttpServer<T extends HttpConnection> {
 
     public void run() {
         Session.createSessionsHolder(sessionTimeoutSec);
+        initHttpPartsCache();
         System.out.println("worker count: " + workersCount);
         ThreadGroup group = new ThreadGroup("http-workers");
         for (int i = 0; i < workersCount; i++) {
             createWorker(group, queue, "worker_" + i).start();
         }
         server.start();
+    }
+
+    protected void initHttpPartsCache() {
+        ByteTree tree = httpStringsCache.getTree();
+        for (Header header : Header.values()) {
+            tree.appendIgnoreCase(header.value);
+        }
+        for (Request.Method method : Request.Method.values()) {
+            tree.append(method.name());
+        }
+        tree.append(HttpConnection.HTTP_1_0);
+        tree.append(HttpConnection.HTTP_1_1);
+        tree.appendIgnoreCase("localhost:" + getPort());
+        tree.appendIgnoreCase("gzip,deflate,sdch");
+        tree.appendIgnoreCase("en-US,en;q=0.8,ru;q=0.6");
+
+        for (int i = 0; i < 512; i++) {
+            tree.append(String.valueOf(i));
+        }
+    }
+
+    public RequestReader createRequestReader() {
+        RequestReader requestReader = new RequestReader(new LinkedHashMap<>(16), httpStringsCache.getTree(), new Parameters());
+        requestReader.setOnlyCachedHeaders(onlyCachedHeaders);
+        return requestReader;
     }
 
     public int getPort() {
@@ -143,6 +175,14 @@ public abstract class AbstractHttpServer<T extends HttpConnection> {
 
     public void setWebsocketFrameLengthLimit(int websocketFrameLengthLimit) {
         this.websocketFrameLengthLimit = websocketFrameLengthLimit;
+    }
+
+    public boolean isOnlyCachedHeaders() {
+        return onlyCachedHeaders;
+    }
+
+    public void setOnlyCachedHeaders(boolean onlyCachedHeaders) {
+        this.onlyCachedHeaders = onlyCachedHeaders;
     }
 
     public int getMaxRequestsInQueue() {
