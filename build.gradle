@@ -13,7 +13,7 @@ sourceCompatibility = 1.8
 targetCompatibility = 1.8
 
 group = 'com.wizzardo'
-version = '0.2-SNAPSHOT'
+version = '0.2'
 
 mainClassName = "com.wizzardo.http.HttpServer"
 
@@ -36,12 +36,9 @@ task codeCoverageReport(type: JacocoReport) {
 }
 
 dependencies {
-    compile 'com.wizzardo:epoll:0.3-SNAPSHOT'
-//    compile files('../epoll/build/libs/epoll-0.3-SNAPSHOT.jar')
-//    compile files('../tools/build/libs/tools-all-0.20-SNAPSHOT.jar')
-//    compile 'com.wizzardo.tools:tools:0.19'
-    compile 'com.wizzardo.tools:tools:0.20+'
-    compile 'com.wizzardo:simple-websocket-client:0.1-SNAPSHOT'
+    compile 'com.wizzardo:epoll:0.3'
+    compile 'com.wizzardo.tools:tools:0.20'
+    compile 'com.wizzardo:simple-websocket-client:0.1'
 
     testCompile 'junit:junit:4.12'
 }
