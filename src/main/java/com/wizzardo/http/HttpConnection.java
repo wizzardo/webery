@@ -57,7 +57,7 @@ public class HttpConnection<H extends AbstractHttpServer, Q extends Request, S e
     }
 
     @Override
-    public void close() throws IOException {
+    public void close() {
         try {
             super.close();
         } finally {

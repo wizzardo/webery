@@ -240,14 +240,8 @@ public class ProxyHandler implements Handler {
                         break;
                 }
             } catch (Exception e) {
-                try {
-                    close();
-                } catch (IOException ignored) {
-                }
-                try {
-                    srcRequest.connection().close();
-                } catch (IOException ignored) {
-                }
+                close();
+                srcRequest.connection().close();
                 e.printStackTrace();
             }
 //            System.out.println("wait "+srcRequest.connection().hasDataToWrite());
@@ -290,7 +284,7 @@ public class ProxyHandler implements Handler {
         }
 
         @Override
-        public void close() throws IOException {
+        public void close() {
             read(((ByteBufferProvider) Thread.currentThread()));
             super.close();
         }
