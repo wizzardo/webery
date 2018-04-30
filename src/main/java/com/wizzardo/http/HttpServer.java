@@ -106,7 +106,7 @@ public class HttpServer<T extends HttpConnection> extends AbstractHttpServer<T> 
     protected void init() {
         urlMapping = createUrlMapping();
         filtersMapping = new FiltersMapping();
-        urlMapping.append("/", (request, response) -> response.setStaticResponse(staticResponse.copy()));
+//        urlMapping.append("/", (request, response) -> response.setStaticResponse(staticResponse.copy()));
     }
 
     public FiltersMapping getFiltersMapping() {
