@@ -179,11 +179,7 @@ public class WebSocketHandler<T extends WebSocketHandler.WebSocketListener> impl
 
         protected void onError(Exception e) {
             e.printStackTrace();
-            try {
-                connection.close();
-            } catch (IOException e1) {
-                e1.printStackTrace();
-            }
+            connection.close();
         }
 
         private boolean handlePing() {
