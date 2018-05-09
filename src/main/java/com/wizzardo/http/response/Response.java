@@ -371,7 +371,7 @@ public class Response {
         }
 
         public ReadableBuilderProxy append(ReadableDirectByteBuffer s1, ReadableDirectByteBuffer s2, ReadableDirectByteBuffer s3, ReadableDirectByteBuffer s4, ReadableDirectByteBuffer s5) {
-            if (bb.buffer().remaining() > s1.length() + s2.length() + s3.length() + s4.length() + s5.length()) {
+            if (bb.buffer().remaining() >= s1.length() + s2.length() + s3.length() + s4.length() + s5.length()) {
                 ReadableDirectByteBuffer.read(bb, s1, s2, s3, s4, s5);
                 return this;
             } else {
@@ -379,6 +379,7 @@ public class Response {
                 super.append(s2.copy());
                 super.append(s3.copy());
                 super.append(s4.copy());
+                super.append(s5.copy());
             }
             return this;
         }
