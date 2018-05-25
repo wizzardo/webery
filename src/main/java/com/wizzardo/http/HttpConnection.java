@@ -211,7 +211,10 @@ public class HttpConnection<H extends AbstractHttpServer, Q extends Request, S e
     }
 
     public void flush() {
-        ByteBufferProvider provider = ByteBufferProvider.current();
+        flush(ByteBufferProvider.current());
+    }
+
+    public void flush(ByteBufferProvider provider) {
         ByteBufferWrapper buffer = provider.getBuffer();
         if (buffer.position() == 0) {
             if (!sending.isEmpty())
