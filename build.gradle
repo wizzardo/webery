@@ -13,7 +13,7 @@ sourceCompatibility = 1.8
 targetCompatibility = 1.8
 
 group = 'com.wizzardo'
-version = '0.2.2-SNAPSHOT'
+version = '0.2.2'
 
 mainClassName = "com.wizzardo.http.HttpServer"
 
