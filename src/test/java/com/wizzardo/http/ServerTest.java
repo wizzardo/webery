@@ -54,7 +54,7 @@ public class ServerTest<S extends HttpServer> {
                         return super.addAfter(url, new FilterWrapper(url, handler));
                     }
                 };
-                debug = true;
+                debug = false;
             }
 
             @Override
