@@ -1,0 +1,25 @@
+# Java Gradle CircleCI 2.0 configuration file
+#
+# Check https://circleci.com/docs/2.0/language-java/ for more details
+#
+version: 2
+jobs:
+  build:
+    docker:
+    - image: circleci/openjdk:8-jdk
+
+    working_directory: ~/repo
+
+    environment:
+      # Customize the JVM maximum heap limit
+      JVM_OPTS: -Xmx2048m
+      TERM: dumb
+
+    steps:
+    - checkout
+
+    - run: ./gradlew --refresh-dependencies check
+    - run: ./gradlew codeCoverageReport && bash <(curl -s https://codecov.io/bash)
+
+
+
