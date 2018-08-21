@@ -156,6 +156,7 @@ public class WebSocketTest extends ServerTest {
         } catch (SocketException e) {
             Assert.assertEquals("Connection reset", e.getMessage());
         }
+        Thread.sleep(10);
         Assert.assertEquals("closed", messageHolder.get());
 
         messageHolder.set(null);

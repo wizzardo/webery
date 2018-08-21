@@ -56,8 +56,8 @@ public class ProxyHandler implements Handler {
         }
 
         @Override
-        public void onRead(ProxyConnection connection) {
-            connection.read(this);
+        public void onRead(ProxyConnection connection) throws IOException {
+            connection.onRead(this);
         }
 
         @Override
@@ -140,7 +140,7 @@ public class ProxyHandler implements Handler {
             super(fd, ip, port);
         }
 
-        protected void read(ByteBufferProvider byteBufferProvider) {
+        public void onRead(ByteBufferProvider byteBufferProvider) throws IOException {
             if (recursive)
                 return;
 
@@ -274,7 +274,7 @@ public class ProxyHandler implements Handler {
             continueWrite = readable.isComplete();
         }
 
-        protected void end() {
+        protected void end() throws IOException {
             if (srcRequest.header(Header.KEY_CONNECTION).equalsIgnoreCase(Header.VALUE_CLOSE.value))
                 srcRequest.connection().setCloseOnFinishWriting(true);
 
@@ -285,7 +285,11 @@ public class ProxyHandler implements Handler {
 
         @Override
         public void close() {
-            read(((ByteBufferProvider) Thread.currentThread()));
+            try {
+                onRead(ByteBufferProvider.current());
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
             super.close();
         }
 
@@ -300,7 +304,7 @@ public class ProxyHandler implements Handler {
 
             @Override
             public void onComplete() {
-                Unchecked.run(() -> ProxyConnection.this.read((ByteBufferProvider) Thread.currentThread()));
+                Unchecked.run(() -> ProxyConnection.this.onRead((ByteBufferProvider) Thread.currentThread()));
             }
         }
     }

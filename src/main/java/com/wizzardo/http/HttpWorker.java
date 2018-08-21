@@ -1,5 +1,6 @@
 package com.wizzardo.http;
 
+import java.io.IOException;
 import java.util.concurrent.BlockingQueue;
 
 /**
@@ -15,15 +16,11 @@ public class HttpWorker<T extends HttpConnection> extends Worker<T> {
     }
 
     @Override
-    protected void process(T connection) {
+    protected void process(T connection) throws IOException {
         if (!connection.processingBy.compareAndSet(null, this))
             return;
 
-        if (server.checkData(connection, this)) {
-            while (server.processConnection(connection)) {
-            }
-            connection.flush();
-        }
+        connection.process(this);
 
         connection.processingBy.set(null);
     }

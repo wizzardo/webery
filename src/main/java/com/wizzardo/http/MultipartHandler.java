@@ -1,6 +1,8 @@
 package com.wizzardo.http;
 
 import com.wizzardo.epoll.ByteBufferProvider;
+import com.wizzardo.epoll.Connection;
+import com.wizzardo.epoll.ReadListener;
 import com.wizzardo.http.request.*;
 import com.wizzardo.http.response.Response;
 import com.wizzardo.http.response.Status;
@@ -56,7 +58,7 @@ public class MultipartHandler implements Handler {
             request.entry(entry.name(), entry);
         }));
 
-        request.connection().setInputListener(createListener((c) -> {
+        ReadListener listener = createListener((c) -> {
             request.setMultiPartDataPrepared();
             handler.handle(request, response);
             response.commit(c);
@@ -66,7 +68,8 @@ public class MultipartHandler implements Handler {
             }
             c.onFinishingHandling();
             clean(request);
-        }, length, br));
+        }, length, br);
+        request.connection().onRead(listener);
         response.async();
         return response;
     }
@@ -86,57 +89,49 @@ public class MultipartHandler implements Handler {
         }
     }
 
-    protected InputListener<HttpConnection> createListener(OnFinishProcessing onFinishProcessing, long length, BlockReader br) {
-        return new InputListener<HttpConnection>() {
-            final AtomicLong read = new AtomicLong();
-
-            @Override
-            public void onReadyToRead(HttpConnection c) {
-                try {
-                    if (read.get() != length) {
-                        byte[] buffer = Buffer.current().bytes();
-                        int r;
-                        ByteBufferProvider bufferProvider = ByteBufferProvider.current();
-                        try {
-                            while ((r = c.read(buffer, bufferProvider)) > 0) {
-                                br.process(buffer, 0, r);
-                                if (!checkLimit(read.addAndGet(r), c))
-                                    return;
-                            }
-                        } finally {
-                            bufferProvider.getBuffer().clear();
-                        }
-                        if (read.get() != length)
-                            return;
+    protected ReadListener createListener(OnFinishProcessing onFinishProcessing, long length, BlockReader br) {
+        final AtomicLong read = new AtomicLong();
+        return (ReadListener<HttpConnection>) (c, bufferProvider) -> {
+            try {
+                if (read.get() != length) {
+                    Buffer buffer = Buffer.current();
+                    int r = buffer.remains();
+                    if (r > 0) {
+                        br.process(buffer.bytes(), buffer.position(), r);
+                        buffer.clear();
                     }
-                    onFinishProcessing.onFinish(c);
-                } catch (IOException e) {
-                    throw Unchecked.rethrow(e);
+
+                    if (!checkLimit(read.addAndGet(r), c, length))
+                        return;
+
+                    byte[] b = buffer.bytes();
+                    try {
+                        while ((r = c.read(b, bufferProvider)) > 0) {
+                            br.process(b, 0, r);
+                            if (!checkLimit(read.addAndGet(r), c, length))
+                                return;
+                        }
+                    } finally {
+                        bufferProvider.getBuffer().clear();
+                    }
+                    if (read.get() != length)
+                        return;
                 }
-            }
-
-            @Override
-            public void onReady(HttpConnection c) {
-                Buffer buffer = Buffer.current();
-                int r = buffer.remains();
-                br.process(buffer.bytes(), buffer.position(), r);
-                buffer.clear();
-                if (!checkLimit(read.addAndGet(r), c))
-                    return;
-
-                onReadyToRead(c);
-            }
-
-            boolean checkLimit(long read, HttpConnection c) {
-                if (read > length) {
-                    clean(c.request);
-                    c.getResponse().setStatus(Status._413).commit(c);
-                    c.setCloseOnFinishWriting(true);
-                    return false;
-                }
-                return true;
+                onFinishProcessing.onFinish(c);
+            } catch (IOException e) {
+                throw Unchecked.rethrow(e);
             }
         };
+    }
+
+    boolean checkLimit(long read, HttpConnection c, long length) {
+        if (read > length) {
+            clean(c.request);
+            c.getResponse().setStatus(Status._413).commit(c);
+            c.setCloseOnFinishWriting(true);
+            return false;
+        }
+        return true;
     }
 
     protected static class MultipartConsumer implements BlockReader.BytesConsumer {

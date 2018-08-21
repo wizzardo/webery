@@ -1,12 +1,11 @@
 package com.wizzardo.http.websocket;
 
-import com.wizzardo.epoll.ByteBufferProvider;
+import com.wizzardo.epoll.*;
 import com.wizzardo.epoll.readable.ReadableByteArray;
 import com.wizzardo.epoll.readable.ReadableData;
 import com.wizzardo.http.Buffer;
 import com.wizzardo.http.Handler;
 import com.wizzardo.http.HttpConnection;
-import com.wizzardo.http.InputListener;
 import com.wizzardo.http.request.Header;
 import com.wizzardo.http.request.Request;
 import com.wizzardo.http.response.Response;
@@ -81,7 +80,11 @@ public class WebSocketHandler<T extends WebSocketHandler.WebSocketListener> impl
         key += "258EAFA5-E914-47DA-95CA-C5AB0DC85B11"; // websocket magic
         key = Base64.encodeToString(SHA1.create().update(key.getBytes()).asBytes());
 
-        request.connection().upgrade(createListener(request.connection(), this));
+        HttpConnection c = request.connection();
+        T listener = createListener(c, this);
+        c.onDisconnect(listener);
+        c.upgrade(listener);
+        listener.onConnect(c, ByteBufferProvider.current());
 
         return response.status(Status._101)
                 .header(Header.KEY_UPGRADE, Header.VALUE_WEBSOCKET)
@@ -93,7 +96,7 @@ public class WebSocketHandler<T extends WebSocketHandler.WebSocketListener> impl
         return (T) new WebSocketListener(connection, handler);
     }
 
-    public static class WebSocketListener implements InputListener<HttpConnection> {
+    public static class WebSocketListener implements ReadListener<HttpConnection>, ConnectListener<HttpConnection>, DisconnectListener<Connection> {
         protected final HttpConnection connection;
         protected final WebSocketHandler webSocketHandler;
         private Message tempMessage = new Message();
@@ -110,14 +113,14 @@ public class WebSocketHandler<T extends WebSocketHandler.WebSocketListener> impl
         }
 
         @Override
-        public void onReadyToRead(HttpConnection connection) {
+        public void onRead(HttpConnection connection, ByteBufferProvider byteBufferProvider) {
             Message message = this.tempMessage;
             try {
                 byte[] buffer = Buffer.current().bytes();
                 int r;
 
                 outer:
-                while ((r = connection.read(buffer, read, buffer.length - read, (ByteBufferProvider) Thread.currentThread())) > 0) {
+                while ((r = connection.read(buffer, read, buffer.length - read, byteBufferProvider)) > 0) {
                     read += r;
                     while (read > 0) {
                         Frame frame = this.tempFrame;
@@ -203,7 +206,7 @@ public class WebSocketHandler<T extends WebSocketHandler.WebSocketListener> impl
         }
 
         @Override
-        public void onReady(HttpConnection connection) {
+        public void onConnect(HttpConnection connection, ByteBufferProvider byteBufferProvider) {
             webSocketHandler.onConnect(this);
         }
 
@@ -218,15 +221,21 @@ public class WebSocketHandler<T extends WebSocketHandler.WebSocketListener> impl
         }
 
         public void close() {
-            if (connection.isAlive())
+            if (connection.isAlive()) {
                 sendFrame(new Frame(Frame.OPCODE_CONNECTION_CLOSE));
-
-            releaseByteBuffers(tempMessage);
-            webSocketHandler.onDisconnect(this);
+                connection.setCloseOnFinishWriting(true);
+            } else
+                connection.close();
         }
 
         protected ReadableData convertFrameToReadableData(Frame frame) {
             return new ReadableByteArray(frame.getFrameBytes(), frame.getFrameOffset(), frame.getFrameLength());
+        }
+
+        @Override
+        public void onDisconnect(Connection connection, ByteBufferProvider bufferProvider) throws IOException {
+            releaseByteBuffers(tempMessage);
+            webSocketHandler.onDisconnect(this);
         }
     }
 

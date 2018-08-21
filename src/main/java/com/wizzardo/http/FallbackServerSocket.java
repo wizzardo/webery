@@ -244,7 +244,6 @@ public class FallbackServerSocket<T extends HttpConnection> extends EpollServer<
                     IOTools.close(data);
 
             IOTools.close(channel);
-            IOTools.close(getInputListener());
         }
 
         @Override
@@ -340,7 +339,7 @@ public class FallbackServerSocket<T extends HttpConnection> extends EpollServer<
         return new SelectorConnectionWrapper(client, httpServer);
     }
 
-    public void onRead(T connection, ByteBufferProvider bufferProvider) {
+    public void onRead(T connection, ByteBufferProvider bufferProvider) throws IOException {
     }
 
     @Override

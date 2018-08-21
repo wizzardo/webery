@@ -18,11 +18,6 @@ public class HttpIOThread<T extends HttpConnection> extends IOThread<T> implemen
     }
 
     @Override
-    public void onRead(T connection) {
-        server.process(connection, this);
-    }
-
-    @Override
     public byte[] bytes() {
         return buffer;
     }

@@ -15,6 +15,7 @@ import com.wizzardo.tools.misc.Unchecked;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
@@ -441,11 +442,12 @@ public class Response {
         return committed;
     }
 
-    public <H extends AbstractHttpServer, Q extends Request, S extends Response, I extends EpollInputStream, O extends EpollOutputStream> O getOutputStream(HttpConnection<H, Q, S, I, O> connection) {
-        connection.getOutputStream();
-        commit(connection);
-
-        connection.flush();
+    public <H extends AbstractHttpServer, Q extends Request, S extends Response> OutputStream getOutputStream(HttpConnection<H, Q, S> connection) {
+//        connection.getOutputStream();
+        if(!committed) {
+            commit(connection);
+            connection.flush();
+        }
 
         return connection.getOutputStream();
     }

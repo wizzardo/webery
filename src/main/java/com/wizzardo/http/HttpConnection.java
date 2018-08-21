@@ -1,8 +1,7 @@
 package com.wizzardo.http;
 
-import com.wizzardo.epoll.ByteBufferProvider;
-import com.wizzardo.epoll.ByteBufferWrapper;
-import com.wizzardo.epoll.Connection;
+import com.wizzardo.epoll.*;
+import com.wizzardo.epoll.EpollInputStream;
 import com.wizzardo.epoll.readable.ReadableBuilder;
 import com.wizzardo.epoll.readable.ReadableByteArray;
 import com.wizzardo.epoll.readable.ReadableData;
@@ -10,9 +9,11 @@ import com.wizzardo.http.request.Header;
 import com.wizzardo.http.request.Request;
 import com.wizzardo.http.request.RequestReader;
 import com.wizzardo.http.response.Response;
+import com.wizzardo.http.response.Status;
 import com.wizzardo.tools.io.IOTools;
 
 import java.io.IOException;
+import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.util.LinkedHashMap;
 import java.util.concurrent.atomic.AtomicReference;
@@ -21,15 +22,11 @@ import java.util.concurrent.atomic.AtomicReference;
  * @author: wizzardo
  * Date: 3/14/14
  */
-public class HttpConnection<H extends AbstractHttpServer, Q extends Request, S extends Response, I extends EpollInputStream, O extends EpollOutputStream> extends Connection {
+public class HttpConnection<H extends AbstractHttpServer, Q extends Request, S extends Response> extends Connection {
 
     public static final String HTTP_1_0 = "HTTP/1.0";
     public static final String HTTP_1_1 = "HTTP/1.1";
 
-    private I inputStream;
-    private O outputStream;
-    private volatile InputListener<HttpConnection> inputListener;
-    private volatile OutputListener<HttpConnection> outputListener;
     private boolean closeOnFinishWriting = false;
     private boolean keepAlive = false;
     private RequestReader requestReader;
@@ -56,15 +53,6 @@ public class HttpConnection<H extends AbstractHttpServer, Q extends Request, S e
         this.keepAlive = keepAlive;
     }
 
-    @Override
-    public void close() {
-        try {
-            super.close();
-        } finally {
-            IOTools.close(inputListener);
-        }
-    }
-
     public Request.State getState() {
         return request.getState();
     }
@@ -83,36 +71,25 @@ public class HttpConnection<H extends AbstractHttpServer, Q extends Request, S e
         return server;
     }
 
-    public void upgrade(InputListener<HttpConnection> listener) {
-        setInputListener(listener);
+    public void upgrade(ReadListener<Connection> listener) {
+        onRead(listener);
         request.setState(Request.State.UPGRADED);
     }
 
-    public void setInputListener(InputListener<HttpConnection> listener) {
-        if (this.inputListener != null && listener != null)
-            throw new IllegalStateException("InputListener already was set");
-        this.inputListener = listener;
-    }
-
-    public void setOutputListener(OutputListener<HttpConnection> listener) {
-        if (this.outputListener != null && listener != null)
-            throw new IllegalStateException("OutputListener already was set");
-        this.outputListener = listener;
-    }
-
-    protected boolean processInputListener() {
-        if (inputListener == null)
+    protected boolean processInputListener() throws IOException {
+        if (readListener == null)
             return false;
 
-        inputListener.onReadyToRead(this);
+        //todo don't need anymore?
+        readListener.onRead(this, ByteBufferProvider.current());
         return true;
     }
 
-    protected boolean processOutputListener() {
-        if (outputListener == null)
+    protected boolean processOutputListener() throws IOException {
+        if (writeListener == null)
             return false;
 
-        outputListener.onReadyToWrite(this);
+        writeListener.onWrite(this, ByteBufferProvider.current());
         return true;
     }
 
@@ -183,9 +160,10 @@ public class HttpConnection<H extends AbstractHttpServer, Q extends Request, S e
         return request.isReady();
     }
 
-    public boolean onFinishingHandling() {
-        if (request.getState() == Request.State.UPGRADED && inputListener != null) {
-            inputListener.onReady(this);
+    public boolean onFinishingHandling() throws IOException {
+        if (request.getState() == Request.State.UPGRADED && readListener != null) {
+            request.connection().flush();
+            readListener.onRead(this, ByteBufferProvider.current());
             return false;
         }
         Buffer buffer = Buffer.current();
@@ -198,8 +176,8 @@ public class HttpConnection<H extends AbstractHttpServer, Q extends Request, S e
 
         inputStream = null;
         outputStream = null;
-        inputListener = null;
-        outputListener = null;
+        onRead((ReadListener<Connection>) null);
+        onWrite((WriteListener<Connection>) null);
         request.reset();
         requestReader.clear();
         if (buffer.hasRemaining()) {
@@ -251,12 +229,8 @@ public class HttpConnection<H extends AbstractHttpServer, Q extends Request, S e
             sending.add(readableData);
     }
 
-    public InputListener<HttpConnection> getInputListener() {
-        return inputListener;
-    }
-
     @Override
-    public void onWriteData(ReadableData readable, boolean hasMore) {
+    public void onWriteData(ReadableData readable, boolean hasMore) throws IOException {
         if (hasMore)
             return;
 
@@ -284,7 +258,7 @@ public class HttpConnection<H extends AbstractHttpServer, Q extends Request, S e
         return (S) request.response();
     }
 
-    public I getInputStream() {
+    public EpollInputStream getInputStream() {
         if (inputStream == null) {
             if (request.getBody() != null) {
                 byte[] bytes = request.data();
@@ -298,7 +272,7 @@ public class HttpConnection<H extends AbstractHttpServer, Q extends Request, S e
                     buffer.clear();
                 }
             }
-            setInputListener(connection -> inputStream.wakeUp());
+            onRead((connection, byteBufferProvider) -> inputStream.wakeUp());
         }
 
         return inputStream;
@@ -309,27 +283,62 @@ public class HttpConnection<H extends AbstractHttpServer, Q extends Request, S e
             outputStream.flush();
     }
 
-    public O getOutputStream() {
-        if (outputStream == null) {
-            outputStream = createOutputStream();
-            setOutputListener(connection -> outputStream.wakeUp());
-        }
-
-        return outputStream;
-    }
-
-    protected I createInputStream(byte[] buffer, int currentOffset, int currentLimit, long contentLength) {
-        return (I) new EpollInputStream(this, buffer, currentOffset, currentLimit, contentLength);
-    }
-
-    protected O createOutputStream() {
-        return (O) new EpollOutputStream(this);
-    }
-
     public void setCloseOnFinishWriting(boolean closeOnFinishWriting) {
         this.closeOnFinishWriting = closeOnFinishWriting;
         if (sending == null || sending.isEmpty()) {
             IOTools.close(this);
         }
+    }
+
+    @Override
+    public void onRead(ByteBufferProvider bufferProvider) throws IOException {
+        server.process(this, bufferProvider);
+    }
+
+    public void process(ByteBufferProvider bufferProvider) throws IOException {
+        if (checkData(bufferProvider)) {
+            while (server.processConnection(this)) {
+            }
+            this.flush();
+        }
+    }
+
+    protected boolean checkData(ByteBufferProvider bufferProvider) throws IOException {
+        if (processInputListener())
+            return false;
+
+        //todo: check if response for one request is already in the buffer, but second request started but not ready yet
+
+        ByteBuffer b;
+        Buffer buffer = Buffer.current();
+        try {
+            while ((b = read(bufferProvider.getBuffer().capacity(), bufferProvider)).limit() > 0) {
+                readFromByteBuffer(b, buffer);
+                b.clear();
+                if (check(buffer))
+                    break;
+            }
+            if (!isRequestReady())
+                return false;
+
+        } catch (HttpException e) {
+            closeConnection(e.status, bufferProvider);
+            e.printStackTrace();
+            return false;
+        } catch (Exception e) {
+            closeConnection(Status._400, bufferProvider);
+            e.printStackTrace();
+            return false;
+        }
+
+        return true;
+    }
+
+    protected void closeConnection(Status status, ByteBufferProvider bufferProvider) {
+        getResponse()
+                .status(status)
+                .appendHeader(Header.KV_CONNECTION_CLOSE)
+                .commit(this, bufferProvider);
+        setCloseOnFinishWriting(true);
     }
 }

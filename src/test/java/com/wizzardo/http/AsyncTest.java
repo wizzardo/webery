@@ -1,5 +1,6 @@
 package com.wizzardo.http;
 
+import com.wizzardo.tools.misc.Unchecked;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -35,7 +36,7 @@ public class AsyncTest extends ServerTest {
                         response.setBody("ok");
                         response.commit(request.connection());
                         request.connection().flush();
-                        request.connection().onFinishingHandling();
+                        Unchecked.run(() -> request.connection().onFinishingHandling());
                     });
                     return response;
                 })

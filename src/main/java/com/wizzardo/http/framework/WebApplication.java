@@ -449,7 +449,7 @@ public class WebApplication extends HttpServer<HttpConnection> {
     }
 
     @Override
-    protected IOThread<HttpConnection> createIOThread(int number, int divider) {
+    protected IOThread<? extends HttpConnection> createIOThread(int number, int divider) {
         return new WebIOThread<>(this, number, divider);
     }
 

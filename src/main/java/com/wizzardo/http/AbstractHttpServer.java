@@ -55,14 +55,14 @@ public abstract class AbstractHttpServer<T extends HttpConnection> {
                 }
 
                 @Override
-                protected IOThread<T> createIOThread(int number, int divider) {
+                protected IOThread<? extends T> createIOThread(int number, int divider) {
                     return AbstractHttpServer.this.createIOThread(number, divider);
                 }
             };
         } else {
             server = new FallbackServerSocket<T>(host, port, this) {
                 @Override
-                public void onRead(T connection, ByteBufferProvider bufferProvider) {
+                public void onRead(T connection, ByteBufferProvider bufferProvider) throws IOException {
                     process(connection, bufferProvider);
                 }
 
@@ -197,50 +197,11 @@ public abstract class AbstractHttpServer<T extends HttpConnection> {
         return (T) new HttpConnection(fd, ip, port, this);
     }
 
-    protected IOThread<T> createIOThread(int number, int divider) {
-        return new HttpIOThread(this, number, divider);
+    protected IOThread<? extends T> createIOThread(int number, int divider) {
+        return new HttpIOThread<>(this, number, divider);
     }
 
-    protected boolean checkData(T connection, ByteBufferProvider bufferProvider) {
-        if (connection.processInputListener())
-            return false;
-
-        //todo: check if response for one request is already in the buffer, but second request started but not ready yet
-
-        ByteBuffer b;
-        Buffer buffer = Buffer.current();
-        try {
-            while ((b = connection.read(bufferProvider.getBuffer().capacity(), bufferProvider)).limit() > 0) {
-                connection.readFromByteBuffer(b, buffer);
-                b.clear();
-                if (connection.check(buffer))
-                    break;
-            }
-            if (!connection.isRequestReady())
-                return false;
-
-        } catch (HttpException e) {
-            closeConnection(connection, e.status);
-            e.printStackTrace();
-            return false;
-        } catch (Exception e) {
-            closeConnection(connection, Status._400);
-            e.printStackTrace();
-            return false;
-        }
-
-        return true;
-    }
-
-    protected void closeConnection(T connection, Status status) {
-        connection.getResponse()
-                .status(status)
-                .appendHeader(Header.KV_CONNECTION_CLOSE)
-                .commit(connection, getBufferProvider());
-        connection.setCloseOnFinishWriting(true);
-    }
-
-    void process(T connection, ByteBufferProvider bufferProvider) {
+    protected void process(T connection, ByteBufferProvider byteBufferProvider) throws IOException {
         if (workersCount > 0) {
             if (queue.size() > maxRequestsInQueue) {
                 safeOnError(connection, new IllegalStateException("Too many requests"));
@@ -248,11 +209,8 @@ public abstract class AbstractHttpServer<T extends HttpConnection> {
             }
 
             queue.add(connection);
-        } else if (checkData(connection, bufferProvider)) {
-            while (processConnection(connection)) {
-            }
-            connection.flush();
-        }
+        } else
+            connection.process(byteBufferProvider);
     }
 
     protected boolean processConnection(T connection) {
@@ -287,9 +245,7 @@ public abstract class AbstractHttpServer<T extends HttpConnection> {
 
     protected boolean handleAsync(T connection) throws IOException {
         if (connection.getResponse().isAsync()) {
-            if (connection.getInputListener() != null)
-                connection.getInputListener().onReady(connection);
-
+            connection.processInputListener();
             return true;
         }
         return false;
@@ -305,7 +261,7 @@ public abstract class AbstractHttpServer<T extends HttpConnection> {
             return true;
         else {
             connection.flush();
-            if (connection.isReadyToRead() && checkData(connection, getBufferProvider()))
+            if (connection.isReadyToRead() && connection.checkData(getBufferProvider()))
                 return true;
         }
         return false;

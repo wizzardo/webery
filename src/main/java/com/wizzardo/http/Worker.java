@@ -4,6 +4,7 @@ package com.wizzardo.http;
 import com.wizzardo.epoll.ByteBufferProvider;
 import com.wizzardo.epoll.ByteBufferWrapper;
 
+import java.io.IOException;
 import java.util.concurrent.BlockingQueue;
 
 /**
@@ -49,7 +50,7 @@ public abstract class Worker<T> extends Thread implements ByteBufferProvider, Bu
         return byteBufferWrapper;
     }
 
-    protected abstract void process(T item);
+    protected abstract void process(T item) throws IOException;
 
     @Override
     public byte[] bytes() {
