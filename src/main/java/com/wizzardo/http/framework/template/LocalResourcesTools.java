@@ -16,7 +16,9 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -27,7 +29,7 @@ import java.util.zip.ZipInputStream;
 @Injectable
 public class LocalResourcesTools implements ResourceTools {
 
-    protected List<String> classpath = new ArrayList<>();
+    protected Set<String> classpath = new HashSet<>();
     protected List<File> resourcesDirs = new ArrayList<>();
     protected List<Filter<String>> classpathFilters = new ArrayList<>();
     protected File unzippedJar;
@@ -47,6 +49,7 @@ public class LocalResourcesTools implements ResourceTools {
         }
 
         File jarFile = new File(LocalResourcesTools.class.getProtectionDomain().getCodeSource().getLocation().getPath());
+//        classpath.add(jarFile.getAbsolutePath());
         if (jarFile.isFile()) {
 
             File outDir = new File(Unchecked.call(() -> File.createTempFile("---", null)).getParentFile(), jarFile.getName() + "_unzipped");
@@ -115,7 +118,8 @@ public class LocalResourcesTools implements ResourceTools {
         List<Class> l = new ArrayList<Class>();
         File dir;
 
-        System.out.println("classpath: " + classpath);
+        if (Holders.getEnvironment() != Environment.TEST)
+            System.out.println("classpath: " + classpath);
 
         for (String path : classpath) {
             dir = new File(path);
