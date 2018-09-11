@@ -339,10 +339,16 @@ public class Response {
     }
 
     static class ReadableBuilderProxy extends ReadableBuilder {
-        final ByteBufferWrapper bb;
+
+        final static ByteBufferWrapper EMPTY = new ByteBufferWrapper(0);
+        ByteBufferWrapper bb = EMPTY;
 
         ReadableBuilderProxy(ByteBufferWrapper bb) {
+            super(0);
             this.bb = bb;
+        }
+
+        ReadableBuilderProxy() {
         }
 
         @Override
@@ -358,6 +364,12 @@ public class Response {
         public ReadableBuilder append(ReadableData readableData) {
             if (bb.buffer().remaining() > readableData.length()) {
                 readableData.read(bb);
+
+                try {
+                    readableData.close();
+                } catch (IOException e) {
+                    throw Unchecked.rethrow(e);
+                }
                 return this;
             } else
                 return super.append(readableData);
@@ -388,7 +400,7 @@ public class Response {
 
     protected ReadableBuilder buildResponse() {
 //        ReadableBuilder builder = new ReadableBuilder();
-        return buildResponse(new ReadableBuilderProxy(new ByteBufferWrapper(0)));
+        return buildResponse(new ReadableBuilderProxy());
     }
 
     protected ReadableBuilder buildResponse(ReadableBuilderProxy builder) {
@@ -444,7 +456,7 @@ public class Response {
 
     public <H extends AbstractHttpServer, Q extends Request, S extends Response> OutputStream getOutputStream(HttpConnection<H, Q, S> connection) {
 //        connection.getOutputStream();
-        if(!committed) {
+        if (!committed) {
             commit(connection);
             connection.flush();
         }
