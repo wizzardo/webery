@@ -10,8 +10,6 @@ public interface RequestContext {
 
     String action();
 
-    void setRequestHolder(RequestHolder requestHolder);
-
     void setController(String controller);
 
     void setAction(String action);

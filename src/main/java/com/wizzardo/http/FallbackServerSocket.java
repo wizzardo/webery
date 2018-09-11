@@ -23,7 +23,7 @@ public class FallbackServerSocket<T extends HttpConnection> extends EpollServer<
     protected Selector selector = null;
     protected ByteBufferWrapper byteBufferWrapper = new ByteBufferWrapper(ByteBuffer.allocateDirect(16 * 1024));
 
-    protected RequestHolder requestHolder;
+    protected RequestHolder requestHolder = new RequestHolder();
     protected String controller;
     protected String action;
     protected String handler;
@@ -72,11 +72,6 @@ public class FallbackServerSocket<T extends HttpConnection> extends EpollServer<
     }
 
     @Override
-    public void setRequestHolder(RequestHolder requestHolder) {
-        this.requestHolder = requestHolder;
-    }
-
-    @Override
     public void setController(String controller) {
         this.controller = controller;
     }
@@ -90,7 +85,7 @@ public class FallbackServerSocket<T extends HttpConnection> extends EpollServer<
     public void reset() {
         action = null;
         controller = null;
-        requestHolder = null;
+        requestHolder.reset();
     }
 
     @Override

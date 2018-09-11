@@ -429,7 +429,7 @@ public class WebApplication extends HttpServer<HttpConnection> {
     @Override
     protected boolean processConnection(HttpConnection connection) {
         RequestContext context = (RequestContext) Thread.currentThread();
-        context.setRequestHolder(new RequestHolder(connection.getRequest(), connection.getResponse()));
+        context.getRequestHolder().set(connection.getRequest(), connection.getResponse());
         try {
             return super.processConnection(connection);
         } finally {

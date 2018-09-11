@@ -7,10 +7,13 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class RequestHolder {
-    public final Request request;
-    public final Response response;
-    public final long startNanoTime;
-    private volatile Map<Object, Object> requestScope;
+    public Request request;
+    public Response response;
+    public long startNanoTime;
+    protected volatile Map<Object, Object> requestScope;
+
+    public RequestHolder() {
+    }
 
     public RequestHolder(Request request, Response response) {
         this.request = request;
@@ -35,5 +38,19 @@ public class RequestHolder {
     public long getExecutionTimeUntilNow() {
         long time = System.nanoTime() - startNanoTime;
         return time < 0 ? -1 : time;
+    }
+
+    public void set(Request request, Response response) {
+        this.request = request;
+        this.response = response;
+        startNanoTime = System.nanoTime();
+        requestScope = null;
+    }
+
+    public void reset() {
+        this.request = null;
+        this.response = null;
+        startNanoTime = System.nanoTime();
+        requestScope = null;
     }
 }

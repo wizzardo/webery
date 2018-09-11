@@ -10,7 +10,7 @@ import java.util.concurrent.BlockingQueue;
  * Created by wizzardo on 28.04.15.
  */
 public class WebWorker<T extends HttpConnection> extends HttpWorker<T> implements RequestContext {
-    protected RequestHolder requestHolder;
+    protected RequestHolder requestHolder = new RequestHolder();
     protected String controller;
     protected String action;
     protected String handler;
@@ -35,11 +35,6 @@ public class WebWorker<T extends HttpConnection> extends HttpWorker<T> implement
     }
 
     @Override
-    public void setRequestHolder(RequestHolder requestHolder) {
-        this.requestHolder = requestHolder;
-    }
-
-    @Override
     public void setController(String controller) {
         this.controller = controller;
     }
@@ -53,7 +48,7 @@ public class WebWorker<T extends HttpConnection> extends HttpWorker<T> implement
     public void reset() {
         action = null;
         controller = null;
-        requestHolder = null;
+        requestHolder.reset();
     }
 
     @Override

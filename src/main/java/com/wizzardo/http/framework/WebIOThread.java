@@ -8,7 +8,7 @@ import com.wizzardo.http.HttpIOThread;
  * Created by wizzardo on 28.04.15.
  */
 public class WebIOThread<T extends HttpConnection> extends HttpIOThread<T> implements RequestContext {
-    protected RequestHolder requestHolder;
+    protected RequestHolder requestHolder = new RequestHolder();
     protected String controller;
     protected String action;
     protected String handler;
@@ -33,11 +33,6 @@ public class WebIOThread<T extends HttpConnection> extends HttpIOThread<T> imple
     }
 
     @Override
-    public void setRequestHolder(RequestHolder requestHolder) {
-        this.requestHolder = requestHolder;
-    }
-
-    @Override
     public void setController(String controller) {
         this.controller = controller;
     }
@@ -51,7 +46,7 @@ public class WebIOThread<T extends HttpConnection> extends HttpIOThread<T> imple
     public void reset() {
         action = null;
         controller = null;
-        requestHolder = null;
+        requestHolder.reset();
     }
 
     @Override
