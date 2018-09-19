@@ -52,6 +52,7 @@ public enum Header {
     VALUE_HTML_UTF8("text/html;charset=UTF-8"),
     VALUE_KEEP_ALIVE("Keep-Alive"),
     VALUE_NO_CACHE("no-cache"),
+    VALUE_TEXT_EVENT_STREAM("text/event-stream"),
     VALUE_TEXT_PLAIN("text/plain"),
     VALUE_TEXT_XML("text/xml"),
     VALUE_UPGRADE("Upgrade"),
