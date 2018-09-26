@@ -84,14 +84,6 @@ public abstract class Dependency<T> {
         return t;
     }
 
-    protected static <T> T newInstance(Class<T> clazz) {
-        try {
-            return clazz.newInstance();
-        } catch (InstantiationException | IllegalAccessException e) {
-            throw new IllegalStateException("can't create instance of class " + clazz, e);
-        }
-    }
-
     public static class InjectionFailedException extends RuntimeException {
         public InjectionFailedException(Throwable cause) {
             super(cause);

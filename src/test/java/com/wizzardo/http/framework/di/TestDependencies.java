@@ -380,4 +380,21 @@ public class TestDependencies extends WebApplicationTest {
         FieldInjectedByName fieldInjectedByName = DependencyFactory.get(FieldInjectedByName.class);
         Assert.assertEquals("bar", fieldInjectedByName.foo);
     }
+
+    @Injectable
+    public static class ConstructorInjectable {
+        final A a;
+
+        public ConstructorInjectable(A a) {
+            this.a = a;
+        }
+    }
+
+    @Test
+    public void test_constructor_injection() {
+        ConstructorInjectable b = DependencyFactory.get(ConstructorInjectable.class);
+
+        Assert.assertNotNull(b);
+        Assert.assertNotNull(b.a);
+    }
 }
