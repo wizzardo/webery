@@ -10,6 +10,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Created by wizzardo on 20.06.15.
@@ -28,9 +29,9 @@ public class PipeliningTest extends ServerTest {
                 .append("/foobar", (request, response) -> response.setBody("foobar")) //length = 127
         ;
 
-        Assert.assertTrue(response(request("/"), 123).endsWith("\r\n\r\nok"));
+        int length = rawRequest("/").length() + rawRequest("/foo").length() + rawRequest("/foobar").length();
 
-        String response = response(request("/") + request("/foo") + request("/foobar"), 123 + 124 + 127);
+        String response = response(request("/") + request("/foo") + request("/foobar"), length);
         Assert.assertTrue(response.contains("\r\n\r\nok"));
         Assert.assertTrue(response.contains("\r\n\r\nfoo"));
         Assert.assertTrue(response.endsWith("\r\n\r\nfoobar"));
@@ -42,15 +43,16 @@ public class PipeliningTest extends ServerTest {
                 .append("/a", (request, response) -> {
                     response.setHeader(Header.KEY_CONNECTION, Header.VALUE_KEEP_ALIVE);
                     return response.setBody("ok");
-                }) //length = 128
+                })
         ;
+        int length = rawRequest("/a").length();
 
         StringBuilder sb = new StringBuilder();
         int n = 4000;
         for (int i = 0; i < n; i++) {
             sb.append(request("/a"));
         }
-        String response = response(sb.toString(), n * 128);
+        String response = response(sb.toString(), n * length);
         Assert.assertEquals(n, response.split("\r\n\r\nok").length);
     }
 

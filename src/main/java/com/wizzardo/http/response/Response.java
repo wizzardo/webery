@@ -481,7 +481,9 @@ public class Response {
             if (builderProxy.length() > 0) {
                 connection.flush();
                 if (!connection.hasDataToWrite() && builderProxy.length() <= buffer.capacity()) {
-                    builderProxy.read(buffer);
+                    do {
+                        builderProxy.read(buffer);
+                    } while (builderProxy.remains() > 0);
                 } else
                     connection.send(builderProxy);
             }
