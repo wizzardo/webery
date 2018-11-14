@@ -37,27 +37,10 @@ public abstract class Dependency<T> {
         FieldReflectionFactory reflectionFactory = new FieldReflectionFactory();
         while (clazz != null) {
             for (Field f : clazz.getDeclaredFields()) {
-                if (Modifier.isFinal(f.getModifiers()) || f.getType().isPrimitive())
+                if (Modifier.isFinal(f.getModifiers()))
                     continue;
 
-                if (DependencyFactory.get().contains(f.getType()) || DependencyFactory.get().contains(f.getName())) {
-                    l.add(reflectionFactory.create(f, true));
-                    continue;
-                }
-
-                int mod = f.getType().getModifiers();
-                if (hasAnnotation(f.getType(), Injectable.class)
-                        || Modifier.isAbstract(mod)
-                        || Modifier.isInterface(mod)) {
-                    l.add(reflectionFactory.create(f, true));
-                } else {
-                    for (Class i : f.getType().getInterfaces()) {
-                        if (hasAnnotation(i, Injectable.class)) {
-                            l.add(reflectionFactory.create(f, true));
-                            break;
-                        }
-                    }
-                }
+                l.add(reflectionFactory.create(f, true));
             }
             clazz = clazz.getSuperclass();
         }
@@ -78,10 +61,14 @@ public abstract class Dependency<T> {
     protected T prepare(T t, boolean injectDependenciesAndInit) {
         if (injectDependenciesAndInit) {
             injectDependencies(t);
-            if (t instanceof PostConstruct)
-                ((PostConstruct) t).init();
+            onCreate(t);
         }
         return t;
+    }
+
+    protected void onCreate(T t) {
+        if (t instanceof PostConstruct)
+            ((PostConstruct) t).init();
     }
 
     public static class InjectionFailedException extends RuntimeException {

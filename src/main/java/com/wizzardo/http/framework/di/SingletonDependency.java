@@ -40,8 +40,7 @@ public class SingletonDependency<T> extends Dependency<T> {
                         injecting = true;
                         injectDependencies(instance);
                         injecting = false;
-                        if (instance instanceof PostConstruct)
-                            ((PostConstruct) instance).init();
+                        onCreate(instance);
                     }
                     init = true;
                 }

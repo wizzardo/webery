@@ -2,6 +2,8 @@ package com.wizzardo.http.framework.di;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Parameter;
+import java.util.Arrays;
 import java.util.function.Supplier;
 
 /**
@@ -30,11 +32,18 @@ public interface DependencyForge {
         }
 
         Constructor<T> constructor = (Constructor<T>) constructors[0];
-        Class<?>[] argsTypes = constructor.getParameterTypes();
+        Parameter[] parameters = constructor.getParameters();
         return () -> {
-            Object[] args = new Object[argsTypes.length];
+            Object[] args = new Object[parameters.length];
             for (int i = 0; i < args.length; i++) {
-                args[i] = DependencyFactory.get(argsTypes[i]);
+                Parameter parameter = parameters[i];
+                try {
+                    args[i] = DependencyFactory.get(parameter.getType(), parameter.getAnnotations());
+                } catch (Exception e) {
+                    throw new IllegalStateException("Cannot resolve " + i + "th (" +
+                            parameter.getType().getName() + (parameter.isNamePresent() ? " " + parameter.getName() : "") +
+                            ") argument of " + clazz.getName() + "'s constructors", e);
+                }
             }
             return newInstance(constructor, args);
         };
@@ -59,8 +68,8 @@ public interface DependencyForge {
     static <T> T newInstance(Constructor<T> constructor, Object[] args) {
         try {
             return constructor.newInstance(args);
-        } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
-            throw new IllegalStateException("can't create instance of class " + constructor.getDeclaringClass(), e);
+        } catch (InstantiationException | IllegalAccessException | InvocationTargetException | IllegalArgumentException e) {
+            throw new IllegalStateException("can't create instance of class " + constructor.getDeclaringClass() + " with args: " + Arrays.toString(args), e);
         }
     }
 }

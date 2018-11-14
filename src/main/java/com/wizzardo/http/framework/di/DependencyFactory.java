@@ -15,9 +15,14 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class DependencyFactory {
 
+    public interface AnnotationDependencyResolver<A extends Annotation> {
+        <T> Dependency<T> resolve(A annotation, Class<T> clazz);
+    }
+
     private List<Class> classes;
     private final Map<Class, Class> mappingByClass = new ConcurrentHashMap<>();
     private final Map<String, Dependency> mappingByName = new ConcurrentHashMap<>();
+    private final Map<Class<? extends Annotation>, AnnotationDependencyResolver> annotationDependencyResolvers = new ConcurrentHashMap<>();
 
     private Cache<Class, Dependency> dependencies = new Cache<>("dependencies", 0, clazz -> {
         Injectable injectable = getAnnotation(clazz, Injectable.class);
@@ -45,6 +50,10 @@ public class DependencyFactory {
 
         throw new IllegalStateException("can't create dependency-holder for class: " + clazz);
     });
+
+    public <A extends Annotation> void addResolver(Class<A> type, AnnotationDependencyResolver<A> annotationDependencyResolver) {
+        annotationDependencyResolvers.put(type, annotationDependencyResolver);
+    }
 
     protected Class findImplementation(Class<?> interfase) {
         Class implementation = mappingByClass.get(interfase);
@@ -108,7 +117,17 @@ public class DependencyFactory {
         if (dependency != null)
             return dependency.get();
 
-        return DependencyFactoryHolder.instance.resolve((Class<T>) field.getType());
+        return get((Class<T>) field.getType(), field.getDeclaredAnnotations());
+    }
+
+    public static <T> T get(Class<T> type, Annotation[] annotations) {
+        for (Annotation annotation : annotations) {
+            AnnotationDependencyResolver resolver = get().annotationDependencyResolvers.get(annotation.annotationType());
+            if (resolver != null)
+                return (T) resolver.resolve(annotation, type).get();
+        }
+
+        return get(type);
     }
 
     public static <T> T get(Class<T> clazz) {
