@@ -352,6 +352,24 @@ public class Response {
         }
 
         @Override
+        public int read(ByteBuffer byteBuffer) {
+            if (position >= partsCount)
+                return 0;
+
+            ReadableData[] parts = this.parts;
+            ReadableData data = parts[position];
+            int r = data.read(byteBuffer);
+            while (position < partsCount - 1 && data.isComplete()) {
+                data = parts[++position];
+                if (!byteBuffer.hasRemaining())
+                    break;
+                r += data.read(byteBuffer);
+            }
+
+            return r;
+        }
+
+        @Override
         public ReadableBuilder append(byte[] bytes, int offset, int length) {
             if (bb.buffer().remaining() > length) {
                 bb.put(bytes, offset, length);
@@ -541,6 +559,10 @@ public class Response {
                         .append(": ")
                         .append(new String(headers[i + 1], StandardCharsets.UTF_8))
                         .append("\r\n");
+        }
+
+        if (body != null) {
+            sb.append(new String(body()));
         }
 
         return sb.toString();
