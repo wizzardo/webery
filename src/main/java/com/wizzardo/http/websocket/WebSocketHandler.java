@@ -77,6 +77,10 @@ public class WebSocketHandler<T extends WebSocketHandler.WebSocketListener> impl
         if (key == null || key.isEmpty())
             return response.status(Status._400);
 
+        beforeHandshake(request, response);
+        if (response.isCommitted())
+            return response;
+
         key += "258EAFA5-E914-47DA-95CA-C5AB0DC85B11"; // websocket magic
         key = Base64.encodeToString(SHA1.create().update(key.getBytes()).asBytes());
 
@@ -84,12 +88,21 @@ public class WebSocketHandler<T extends WebSocketHandler.WebSocketListener> impl
         T listener = createListener(c, this);
         c.onDisconnect(listener);
         c.upgrade(listener);
-        listener.onConnect(c, ByteBufferProvider.current());
 
-        return response.status(Status._101)
+        response.status(Status._101)
                 .header(Header.KEY_UPGRADE, Header.VALUE_WEBSOCKET)
                 .header(Header.KEY_CONNECTION, Header.VALUE_UPGRADE)
-                .header(Header.KEY_SEC_WEBSOCKET_ACCEPT, key);
+                .header(Header.KEY_SEC_WEBSOCKET_ACCEPT, key)
+                .commit(c);
+
+        c.flush();
+
+        listener.onConnect(c, ByteBufferProvider.current());
+
+        return response;
+    }
+
+    protected void beforeHandshake(Request request, Response response) {
     }
 
     protected T createListener(HttpConnection connection, WebSocketHandler handler) {
@@ -223,6 +236,14 @@ public class WebSocketHandler<T extends WebSocketHandler.WebSocketListener> impl
         public void close() {
             if (connection.isAlive()) {
                 sendFrame(new Frame(Frame.OPCODE_CONNECTION_CLOSE));
+                connection.setCloseOnFinishWriting(true);
+            } else
+                connection.close();
+        }
+
+        public void close(int status, String message) {
+            if (connection.isAlive()) {
+                sendFrame(Frame.closeFrame(status, message));
                 connection.setCloseOnFinishWriting(true);
             } else
                 connection.close();
