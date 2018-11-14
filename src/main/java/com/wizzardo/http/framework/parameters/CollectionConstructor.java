@@ -32,7 +32,7 @@ public class CollectionConstructor<C extends Collection<T>, T> implements Mapper
 
     @Override
     public C map(Request request) {
-        MultiValue multiValue = request.params().get(name);
+        MultiValue<String> multiValue = request.params().get(name);
         if (multiValue != null) {
             C arr = supplier.supply();
             populate(arr, multiValue.getValues(), converter);

@@ -9,7 +9,12 @@ import java.lang.annotation.*;
 @Target(value = {ElementType.PARAMETER, ElementType.FIELD})
 @Retention(value = RetentionPolicy.RUNTIME)
 public @interface Parameter {
+
+    class Constants {
+        final static String DEFAULT_NONE = "\r\n";
+    }
+
     String name() default "";
 
-    String def() default "";
+    String def() default Constants.DEFAULT_NONE;
 }

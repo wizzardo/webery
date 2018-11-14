@@ -33,7 +33,7 @@ public class PrimitiveArrayConstructor<T> implements Mapper<Request, Object> {
 
     @Override
     public T map(Request request) {
-        MultiValue multiValue = request.params().get(name);
+        MultiValue<String> multiValue = request.params().get(name);
         if (multiValue != null) {
             T t = creator.map(multiValue.size());
             return populator.execute(t, multiValue.getValues());

@@ -5,6 +5,8 @@ import com.wizzardo.http.request.Header;
 import com.wizzardo.http.request.MultiPartEntry;
 import com.wizzardo.http.request.MultiPartFileEntry;
 import com.wizzardo.http.request.Request;
+import com.wizzardo.tools.collections.CollectionTools;
+import com.wizzardo.tools.interfaces.Consumer;
 import com.wizzardo.tools.misc.Pair;
 import com.wizzardo.tools.interfaces.Mapper;
 import com.wizzardo.tools.interfaces.Supplier;
@@ -23,6 +25,10 @@ import java.util.*;
  * Created by wizzardo on 25/10/16.
  */
 public class ParametersHelper {
+
+    public interface ParameterMapper<T> {
+        void map(Request request, String name, Consumer<T> consumer);
+    }
 
     public static String getParameterName(java.lang.reflect.Parameter parameter) {
         if (parameter.isNamePresent())
@@ -68,30 +74,35 @@ public class ParametersHelper {
     public static Mapper<Request, Object> createParametersMapper(java.lang.reflect.Parameter parameter, Type genericType) {
         String name = getParameterName(parameter);
         Parameter annotation = parameter.getAnnotation(Parameter.class);
-        String def = annotation != null ? annotation.def() : null;
+        String def = annotation != null && !annotation.def().equals(Parameter.Constants.DEFAULT_NONE) ? annotation.def() : null;
         return createParametersMapper(name, def, genericType);
     }
 
     public static Mapper<Request, Object> createParametersMapper(String name, String def, Type genericType) {
+        return createParametersMapper(name, def, genericType, Collections.emptyMap());
+    }
+
+    public static Mapper<Request, Object> createParametersMapper(String name, String def, Type genericType, Map<Class, ParameterMapper<?>> customMappers) {
         if (genericType instanceof Class)
-            return createParametersMapper(name, def, ((Class) genericType));
+            return createParametersMapper(name, def, ((Class) genericType), customMappers);
 
         if (genericType instanceof ParameterizedType) {
             ParameterizedType type = (ParameterizedType) genericType;
             if (type.getRawType().equals(Optional.class)) {
-                Mapper<Request, Object> mapper = createParametersMapper(name, def, type.getActualTypeArguments()[0]);
+                Mapper<Request, Object> mapper = createParametersMapper(name, def, type.getActualTypeArguments()[0], customMappers);
                 return parameters -> Optional.ofNullable(mapper.map(parameters));
             }
             if (Iterable.class.isAssignableFrom((Class<?>) type.getRawType())) {
                 Class subtype = (Class) type.getActualTypeArguments()[0];
                 Class<? extends Iterable> collectionClass = (Class<? extends Iterable>) type.getRawType();
-                Mapper<Request, Object> parametersMapper = createParametersMapper(name, def, createCollection(collectionClass), subtype);
-                if (parametersMapper != null)
-                    return parametersMapper;
+                Mapper<Request, Object> parametersMapper = createParametersMapper(name, def, createCollection(collectionClass), subtype, customMappers);
 
                 return request -> {
                     if (request.data() != null && Header.VALUE_APPLICATION_JSON.value.equalsIgnoreCase(request.header(Header.KEY_CONTENT_TYPE)))
                         return JsonTools.parse(request.data(), collectionClass, subtype);
+
+                    if (parametersMapper != null)
+                        return parametersMapper.map(request);
 
                     throw new IllegalArgumentException("Can't parse " + collectionClass.getSimpleName() + "<" + subtype.getSimpleName() + "> for parameter '" + name + "'");
                 };
@@ -101,7 +112,7 @@ public class ParametersHelper {
         throw new IllegalArgumentException("Can't create mapper for parameter '" + name + "' of type '" + genericType + "'");
     }
 
-    public static <C extends Collection> Mapper<Request, Object> createParametersMapper(String name, String def, Supplier<C> collectionSupplier, Class subtype) {
+    public static <C extends Collection> Mapper<Request, Object> createParametersMapper(String name, String def, Supplier<C> collectionSupplier, Class subtype, Map<Class, ParameterMapper<?>> customMappers) {
         if (subtype == Integer.class)
             return new CollectionConstructor<>(name, def, (Supplier<Collection<Integer>>) collectionSupplier, Integer::valueOf);
         if (subtype == Long.class)
@@ -125,14 +136,25 @@ public class ParametersHelper {
         if (subtype.isEnum())
             return new CollectionConstructor<>(name, def, collectionSupplier, s -> (Object) Enum.valueOf((Class<? extends Enum>) subtype, s));
 
+        ParameterMapper<?> mapper = customMappers.get(subtype);
+        if (mapper != null)
+            return request -> {
+                C c = collectionSupplier.supply();
+                mapper.map(request, name, c::add);
+                return c;
+            };
 
         return null;
     }
 
     public static Mapper<Request, Object> createParametersMapper(String name, String def, Class type) {
+        return createParametersMapper(name, def, type, Collections.emptyMap());
+    }
+
+    public static Mapper<Request, Object> createParametersMapper(String name, String def, Class type, Map<Class, ParameterMapper<?>> customMappers) {
         Mapper<Mapper<String, Object>, Mapper<Request, Object>> failIfEmpty = mapper -> {
             return request -> {
-                MultiValue multiValue = request.params().get(name);
+                MultiValue<String> multiValue = request.params().get(name);
                 String value;
                 if (multiValue != null)
                     value = multiValue.getValue();
@@ -167,14 +189,14 @@ public class ParametersHelper {
 
         Mapper<Mapper<String, Object>, Mapper<Request, Object>> parseNonNull = mapper -> {
             return request -> {
-                MultiValue multiValue = request.params().get(name);
+                MultiValue<String> multiValue = request.params().get(name);
                 String value;
                 if (multiValue != null)
                     value = multiValue.getValue();
                 else
                     value = def;
 
-                if (value == null || value.isEmpty())
+                if (value == null)
                     return null;
 
                 return mapper.map(value);
@@ -312,13 +334,21 @@ public class ParametersHelper {
 
                 if (subtype.isEnum())
                     return new ArrayConstructor<>(name, def, size -> (Enum[]) Array.newInstance(subtype, size), s -> Enum.valueOf((Class<? extends Enum>) subtype, s));
+
+                ParameterMapper<?> mapper = customMappers.get(subtype);
+                if (mapper != null)
+                    return request -> {
+                        ArrayList c = new ArrayList();
+                        mapper.map(request, name, c::add);
+                        return c.toArray((Object[]) Array.newInstance(subtype, c.size()));
+                    };
             }
         }
 
-        return createPojoMapper(type);
+        return createPojoMapper(type, name, customMappers);
     }
 
-    protected static Mapper<Request, Object> createPojoMapper(Class type) {
+    protected static Mapper<Request, Object> createPojoMapper(Class type, String parameterName, Map<Class, ParameterMapper<?>> customMappers) {
         Fields<FieldInfo> fields = Fields.getFields(type);
         List<Pair<FieldInfo, Mapper<Request, Object>>> mappers = new ArrayList<>(fields.size());
         for (FieldInfo field : fields) {
@@ -340,8 +370,16 @@ public class ParametersHelper {
             }
         }
         return request -> {
-            if (request.data() != null && Header.VALUE_APPLICATION_JSON.value.equalsIgnoreCase(request.header(Header.KEY_CONTENT_TYPE)))
+            String contentType = request.header(Header.KEY_CONTENT_TYPE);
+            if (request.data() != null && contentType != null && contentType.toLowerCase().startsWith(Header.VALUE_APPLICATION_JSON.value))
                 return JsonTools.parse(request.data(), type);
+
+            ParameterMapper<?> m = customMappers.get(type);
+            if (m != null) {
+                Object[] ref = new Object[1];
+                m.map(request, parameterName, o -> ref[0] = o);
+                return ref[0];
+            }
 
             try {
                 Object instance = type.newInstance();

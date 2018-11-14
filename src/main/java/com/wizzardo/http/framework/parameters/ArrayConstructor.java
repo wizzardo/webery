@@ -31,7 +31,7 @@ public class ArrayConstructor<T> implements Mapper<Request, Object> {
 
     @Override
     public T[] map(Request request) {
-        MultiValue multiValue = request.params().get(name);
+        MultiValue<String> multiValue = request.params().get(name);
         if (multiValue != null) {
             T[] arr = creator.map(multiValue.size());
             populate(arr, multiValue.getValues(), converter);

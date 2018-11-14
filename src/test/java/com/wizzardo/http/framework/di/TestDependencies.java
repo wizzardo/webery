@@ -2,15 +2,19 @@ package com.wizzardo.http.framework.di;
 
 import com.wizzardo.http.Handler;
 import com.wizzardo.http.framework.Controller;
+import com.wizzardo.http.framework.Holders;
 import com.wizzardo.http.framework.WebApplicationTest;
+import com.wizzardo.http.framework.di.DependencyFactory.AnnotationDependencyResolver;
 import com.wizzardo.http.framework.template.Renderer;
 import com.wizzardo.http.request.Request;
 import com.wizzardo.http.response.Response;
+import com.wizzardo.tools.evaluation.Config;
 import com.wizzardo.tools.http.HttpSession;
 import org.junit.Assert;
 import org.junit.Test;
 
 import java.io.IOException;
+import java.lang.annotation.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 
@@ -396,5 +400,42 @@ public class TestDependencies extends WebApplicationTest {
 
         Assert.assertNotNull(b);
         Assert.assertNotNull(b.a);
+    }
+
+
+    @Target(ElementType.PARAMETER)
+    @Retention(RetentionPolicy.RUNTIME)
+    public @interface ConfigValue {
+        String value();
+    }
+
+    @Injectable
+    public static class ConstructorConfigInjectable {
+        final int c;
+
+        public ConstructorConfigInjectable(@ConfigValue("a.c") int c) {
+            this.c = c;
+        }
+    }
+
+
+    @Test
+    public void test_custom_annotation_resolver() {
+        DependencyFactory.get().addResolver(ConfigValue.class, new AnnotationDependencyResolver<ConfigValue>() {
+            @Override
+            public <T> Dependency<T> resolve(ConfigValue annotation, Class<T> clazz) {
+                Config config = Holders.getConfig();
+                String[] path = annotation.value().split("\\.");
+                for (int i = 0; i < path.length - 1; i++) {
+                    config = config.config(path[i]);
+                }
+                return new SingletonDependency<>((T) config.get(path[path.length - 1]));
+            }
+        });
+
+        ConstructorConfigInjectable b = DependencyFactory.get(ConstructorConfigInjectable.class);
+
+        Assert.assertNotNull(b);
+        Assert.assertEquals(1, b.c);
     }
 }
