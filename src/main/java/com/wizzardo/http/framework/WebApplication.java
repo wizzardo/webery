@@ -295,7 +295,7 @@ public class WebApplication extends HttpServer<HttpConnection> {
         }
 
         return resourceTools
-                .addClasspathFilter(name -> name.startsWith("com.wizzardo"));
+                .addClasspathFilter(name -> name.startsWith("com.wizzardo.http.framework"));
     }
 
     protected void init() {

@@ -16,6 +16,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Date;
+import java.util.function.BiConsumer;
 import java.util.zip.GZIPOutputStream;
 
 /**
@@ -113,6 +114,10 @@ public class RangeResponseHelper {
     }
 
     public Response makeRangeResponse(Request request, Response response, File file) {
+        return makeRangeResponse(request, response, file, (res, f) -> request.connection().getServer().getMimeProvider().provideContentType(res, f));
+    }
+
+    public Response makeRangeResponse(Request request, Response response, File file, BiConsumer<Response, File> contentTypeProvider) {
         response.appendHeader(Header.KEY_ACCEPT_RANGES, Header.VALUE_BYTES);
 
         Range range;
@@ -155,7 +160,7 @@ public class RangeResponseHelper {
         }
         response.appendHeader(Header.KEY_CONNECTION, Header.VALUE_KEEP_ALIVE);
 
-        request.connection().getServer().getMimeProvider().provideContentType(response, file);
+        contentTypeProvider.accept(response, file);
 
         try {
             if (buffer != null)
@@ -168,10 +173,10 @@ public class RangeResponseHelper {
         return response;
     }
 
-    private static class Range {
-        long from;
-        long to;
-        long total;
+    public static class Range {
+        final long from;
+        final long to;
+        final long total;
 
         private Range(long from, long to, long total) {
             this.from = from;
@@ -180,6 +185,8 @@ public class RangeResponseHelper {
         }
 
         public Range(String range, long length) {
+            long to;
+            long from;
             if (!range.startsWith("bytes="))
                 throw new IllegalArgumentException("range string must starts with 'bytes='");
 
@@ -200,6 +207,8 @@ public class RangeResponseHelper {
             if (to > length)
                 to = length - 1;
 
+            this.to = to;
+            this.from = from;
             total = length;
         }
 
