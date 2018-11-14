@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -47,7 +48,7 @@ public abstract class MultiPartEntry {
     }
 
     public String asString() {
-        return new String(asBytes());
+        return new String(asBytes(), StandardCharsets.UTF_8);
     }
 
     public abstract int length();

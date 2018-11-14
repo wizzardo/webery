@@ -31,7 +31,7 @@ public class ProxyHandler implements Handler {
             .resetter(sb -> sb.setLength(0))
             .build();
 
-    protected static final MultiValue EMPTY_VALUE = new MultiValue();
+    protected static final MultiValue<String> EMPTY_VALUE = new MultiValue<>();
 
     protected Queue<ProxyConnection> connections = new LinkedBlockingQueue<>();
     protected EpollCore<ProxyConnection> epoll = new EpollCore<ProxyConnection>() {
@@ -169,7 +169,7 @@ public class ProxyHandler implements Handler {
                             continue;
 
                         srcResponse.headersReset();
-                        for (Map.Entry<String, MultiValue> entry : responseReader.headers.entrySet()) {
+                        for (Map.Entry<String, MultiValue<String>> entry : responseReader.headers.entrySet()) {
                             String name = entry.getKey();
                             if (entry.getValue().size() > 1)
                                 for (String value : entry.getValue().getValues()) {
@@ -180,7 +180,7 @@ public class ProxyHandler implements Handler {
                         }
 
                         offset = k;
-                        MultiValue length = responseReader.getHeaders().get(Header.KEY_CONTENT_LENGTH.value);
+                        MultiValue<String> length = responseReader.getHeaders().get(Header.KEY_CONTENT_LENGTH.value);
                         if (!responseReader.status.equals("200"))
                             srcResponse.setStatus(Status.valueOf(Integer.parseInt(responseReader.getStatus())));
 
@@ -337,8 +337,8 @@ public class ProxyHandler implements Handler {
                     .append("X-Real-IP: ").append(request.connection().getIp()).append("\r\n")
                     .append("X-Forwarded-for: ").append(request.connection().getServer().getHostname()).append("\r\n");
 
-            Map<String, MultiValue> headers = request.headers();
-            for (Map.Entry<String, MultiValue> header : headers.entrySet()) {
+            Map<String, MultiValue<String>> headers = request.headers();
+            for (Map.Entry<String, MultiValue<String>> header : headers.entrySet()) {
                 if (header.getKey().equalsIgnoreCase("Host"))
                     continue;
                 if (header.getKey().equalsIgnoreCase("Connection"))

@@ -11,6 +11,7 @@ import com.wizzardo.tools.misc.Unchecked;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -48,10 +49,9 @@ public class MultipartHandler implements Handler {
         String boundary = request.header(Header.KEY_CONTENT_TYPE);
         boundary = "--" + boundary.substring(boundary.indexOf("boundary=") + "boundary=".length());
         BlockReader br = new BlockReader(boundary.getBytes(), new MultipartConsumer(entry -> {
-
             if (entry instanceof MultiPartTextEntry) {
-                String value = new String(entry.asBytes());
-                MultiValue multiValue = request.params().putIfAbsent(entry.name(), new MultiValue(value));
+                String value = new String(entry.asBytes(), StandardCharsets.UTF_8);
+                MultiValue<String> multiValue = request.params().putIfAbsent(entry.name(), new MultiValue<>(value));
                 if (multiValue != null)
                     multiValue.append(value);
             }
@@ -83,9 +83,14 @@ public class MultipartHandler implements Handler {
     }
 
     protected void clean(Request request) {
-        Collection<MultiPartEntry> entries = request.entries();
-        for (MultiPartEntry entry : entries) {
-            entry.delete();
+        Collection<MultiValue<MultiPartEntry>> entries = request.entries();
+        for (MultiValue<MultiPartEntry> entry : entries) {
+            if (entry.size() == 1)
+                entry.getValue().delete();
+            else if (entry.size() > 1)
+                for (MultiPartEntry value : entry.getValues()) {
+                    value.delete();
+                }
         }
     }
 
@@ -186,7 +191,7 @@ public class MultipartHandler implements Handler {
                     }
 
                     headerReady = true;
-                    String type = new String(buffer, 2, rnrn - 2);
+                    String type = new String(buffer, 2, rnrn - 2, StandardCharsets.UTF_8);
 
                     name = type.substring(type.indexOf("name=\"") + 6);
                     name = name.substring(0, name.indexOf("\""));

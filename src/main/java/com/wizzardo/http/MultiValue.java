@@ -7,26 +7,26 @@ import java.util.List;
  * @author: wizzardo
  * Date: 7/26/14
  */
-public class MultiValue {
-    private String value;
-    private List<String> values;
+public class MultiValue<T> {
+    private T value;
+    private List<T> values;
 
     public MultiValue() {
     }
 
-    public MultiValue(String value) {
+    public MultiValue(T value) {
         this.value = value;
     }
 
-    public String getValue() {
+    public T getValue() {
         return value;
     }
 
-    public String value() {
+    public T value() {
         return value;
     }
 
-    public List<String> getValues() {
+    public List<T> getValues() {
         if (values == null) {
             values = new ArrayList<>();
             values.add(value);
@@ -34,21 +34,21 @@ public class MultiValue {
         return values;
     }
 
-    public void append(String value) {
+    public void append(T value) {
         if (this.value == null)
             this.value = value;
         else
             getValues().add(value);
     }
 
-    public String[] asArray() {
-        return getValues().toArray(new String[getValues().size()]);
+    public T[] asArray() {
+        return (T[]) getValues().toArray();
     }
 
     @Override
     public String toString() {
         if (values == null)
-            return value;
+            return String.valueOf(value);
         else
             return values.toString();
     }

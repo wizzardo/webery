@@ -11,7 +11,7 @@ public class ResponseReader extends HttpHeadersReader {
     protected String message;
     protected String status;
 
-    public ResponseReader(Map<String, MultiValue> headers) {
+    public ResponseReader(Map<String, MultiValue<String>> headers) {
         super(headers);
     }
 

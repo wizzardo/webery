@@ -10,10 +10,10 @@ import com.wizzardo.tools.misc.TextTools;
 
 import java.util.LinkedHashMap;
 
-public class Parameters extends LinkedHashMap<String, MultiValue> {
+public class Parameters extends LinkedHashMap<String, MultiValue<String>> {
 
     protected String getSingleValue(String key) {
-        MultiValue multiValue = get(key);
+        MultiValue<String> multiValue = get(key);
         return multiValue == null ? null : multiValue.getValue();
     }
 

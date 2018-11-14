@@ -21,9 +21,9 @@ public class Request<C extends HttpConnection, R extends Response> {
     protected static final int NOT_INITIALISED = -2;
     protected C connection;
     protected R response;
-    protected Map<String, MultiValue> headers;
+    protected Map<String, MultiValue<String>> headers;
     protected Parameters params;
-    protected Map<String, MultiPartEntry> multiPartEntryMap;
+    protected Map<String, MultiValue<MultiPartEntry>> multiPartEntryMap;
     protected Map<String, String> cookies;
     protected Method method;
     protected Path path;
@@ -96,7 +96,7 @@ public class Request<C extends HttpConnection, R extends Response> {
         return connection;
     }
 
-    public Map<String, MultiValue> headers() {
+    public Map<String, MultiValue<String>> headers() {
         return headers;
     }
 
@@ -144,12 +144,12 @@ public class Request<C extends HttpConnection, R extends Response> {
     }
 
     public String header(String key, String def) {
-        MultiValue value = headers.get(key);
+        MultiValue<String> value = headers.get(key);
         return value == null ? def : value.getValue();
     }
 
     public List<String> headers(String key) {
-        MultiValue value = headers.get(key);
+        MultiValue<String> value = headers.get(key);
         return value == null ? null : value.getValues();
     }
 
@@ -162,7 +162,7 @@ public class Request<C extends HttpConnection, R extends Response> {
     }
 
     public String param(String key) {
-        MultiValue value = params().get(key);
+        MultiValue<String> value = params().get(key);
         return value == null ? null : value.getValue();
     }
 
@@ -172,13 +172,13 @@ public class Request<C extends HttpConnection, R extends Response> {
     }
 
     public void param(String key, String value) {
-        MultiValue mv = params().putIfAbsent(key, new MultiValue(value));
+        MultiValue<String> mv = params().putIfAbsent(key, new MultiValue<>(value));
         if (mv != null)
             mv.append(value);
     }
 
     public List<String> params(String key) {
-        MultiValue value = params().get(key);
+        MultiValue<String> value = params().get(key);
         return value == null ? null : value.getValues();
     }
 
@@ -227,7 +227,8 @@ public class Request<C extends HttpConnection, R extends Response> {
         if (multiPartEntryMap == null)
             return null;
 
-        return multiPartEntryMap.get(key);
+        MultiValue<MultiPartEntry> multiValue = multiPartEntryMap.get(key);
+        return multiValue != null ? multiValue.getValue() : null;
     }
 
     public <T> T entry(String key, Mapper<MultiPartEntry, T> mapper) {
@@ -242,7 +243,8 @@ public class Request<C extends HttpConnection, R extends Response> {
         if (multiPartEntryMap == null)
             multiPartEntryMap = new HashMap<>();
 
-        multiPartEntryMap.put(key, entry);
+        MultiValue<MultiPartEntry> multiValue = multiPartEntryMap.computeIfAbsent(key, s -> new MultiValue<>());
+        multiValue.append(entry);
     }
 
     public boolean isMultiPartDataPrepared() {
@@ -253,8 +255,12 @@ public class Request<C extends HttpConnection, R extends Response> {
         multiPartDataPrepared = true;
     }
 
-    public Collection<MultiPartEntry> entries() {
+    public Collection<MultiValue<MultiPartEntry>> entries() {
         return multiPartEntryMap.values();
+    }
+
+    public MultiValue<MultiPartEntry> entries(String key) {
+        return multiPartEntryMap.get(key);
     }
 
     public InputStream getInputStream() {

@@ -16,7 +16,7 @@ public abstract class HttpHeadersReader {
     protected int r;
     protected String tempKey;
     protected boolean waitForNewLine;
-    protected Map<String, MultiValue> headers;
+    protected Map<String, MultiValue<String>> headers;
 
     protected boolean complete = false;
     protected boolean onlyCachedHeaders = false;
@@ -25,11 +25,11 @@ public abstract class HttpHeadersReader {
         this(new LinkedHashMap<>(16));
     }
 
-    public HttpHeadersReader(Map<String, MultiValue> headers) {
+    public HttpHeadersReader(Map<String, MultiValue<String>> headers) {
         this(headers, null);
     }
 
-    public HttpHeadersReader(Map<String, MultiValue> headers, ByteTree headersTree) {
+    public HttpHeadersReader(Map<String, MultiValue<String>> headers, ByteTree headersTree) {
         this.headers = headers != null ? headers : new LinkedHashMap<>(16);
         this.headersTree = headersTree;
     }
@@ -277,7 +277,7 @@ public abstract class HttpHeadersReader {
         return AsciiReader.read(chars, offset, length);
     }
 
-    public Map<String, MultiValue> getHeaders() {
+    public Map<String, MultiValue<String>> getHeaders() {
         return headers;
     }
 
