@@ -26,7 +26,7 @@ public class ZipBytesProducer implements BytesProducer {
         this.entries = entries;
         out = new DirectByteArrayOutputStream(buffer.length);
         zipout = new ZipOutputStream(out);
-        zipout.setMethod(ZipOutputStream.STORED);
+        zipout.setMethod(ZipOutputStream.DEFLATED);
         zipout.setLevel(0);
     }
 
