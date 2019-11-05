@@ -256,10 +256,16 @@ public class Request<C extends HttpConnection, R extends Response> {
     }
 
     public Collection<MultiValue<MultiPartEntry>> entries() {
+        if (multiPartEntryMap == null)
+            return Collections.emptyList();
+
         return multiPartEntryMap.values();
     }
 
     public MultiValue<MultiPartEntry> entries(String key) {
+        if (multiPartEntryMap == null)
+            return null;
+
         return multiPartEntryMap.get(key);
     }
 
