@@ -37,7 +37,7 @@ public class Request<C extends HttpConnection, R extends Response> {
     protected boolean ready = false;
     protected volatile State state = State.READING_HEADERS;
 
-    protected SimpleRequestBody body;
+    protected RequestBody body;
 
     public static enum Method {
         GET, PUT, POST, DELETE, HEAD, TRACE, OPTIONS, CONNECT, PATCH
@@ -82,7 +82,7 @@ public class Request<C extends HttpConnection, R extends Response> {
         return protocol;
     }
 
-    public SimpleRequestBody getBody() {
+    public RequestBody getBody() {
         return body;
     }
 
@@ -183,7 +183,7 @@ public class Request<C extends HttpConnection, R extends Response> {
     }
 
     public Parameters params() {
-        if (body != null && !bodyParsed) {
+        if (body != null && !bodyParsed && header(Header.KEY_CONTENT_TYPE, "").startsWith(Header.VALUE_FORM_URLENCODED.value)) {
             new RequestReader(headers, params).parseParameters(body.bytes(), 0, (int) contentLength);
             bodyParsed = true;
         }
