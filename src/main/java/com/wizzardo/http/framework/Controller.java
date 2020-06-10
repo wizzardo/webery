@@ -103,7 +103,7 @@ public abstract class Controller {
         return name;
     }
 
-    static String getControllerName(Class<? extends Controller> clazz) {
+    public static String getControllerName(Class clazz) {
         String controllerName = clazz.getSimpleName();
         if (controllerName.endsWith("Controller"))
             controllerName = controllerName.substring(0, controllerName.length() - "Controller".length());

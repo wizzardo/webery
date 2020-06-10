@@ -109,9 +109,12 @@ public class RequestReader extends HttpHeadersReader {
     }
 
     protected void parseQueryString(byte[] chars, int offset, int length) {
-        chars = getCharsValue(chars, offset, length);
-        length = chars.length;
-        offset = 0;
+        if (r != 0) {
+            chars = getCharsValue(chars, offset, length);
+            length = chars.length;
+            offset = 0;
+        }
+
         if (length == 1 && chars[offset] == '?') {
             queryString = "";
             return;

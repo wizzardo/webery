@@ -49,7 +49,7 @@ public class ControllerHandler<T extends Controller> implements Handler {
     protected CollectionTools.Closure<ReadableData, T> renderer;
     protected ServerConfiguration configuration;
     protected ViewRenderingService viewRenderingService;
-    protected RestHandler restHandler = new RestHandler();
+    protected RestHandler restHandler;
 
     public ControllerHandler(Class<T> controller, String action, Request.Method... methods) {
         init(controller, action, methods);
@@ -68,13 +68,8 @@ public class ControllerHandler<T extends Controller> implements Handler {
         configuration = DependencyFactory.get(ServerConfiguration.class);
         viewRenderingService = DependencyFactory.get(ViewRenderingService.class);
 
-        if (methods == null || methods.length == 0) {
-            restHandler
-                    .get(HANDLER_NOOP)
-                    .post(HANDLER_NOOP)
-                    .put(HANDLER_NOOP)
-                    .delete(HANDLER_NOOP);
-        } else {
+        if (methods != null && methods.length != 0) {
+            restHandler = new RestHandler();
             for (Request.Method method : methods) {
                 restHandler.set(method, HANDLER_NOOP);
             }
@@ -88,7 +83,7 @@ public class ControllerHandler<T extends Controller> implements Handler {
 
     @Override
     public Response handle(Request request, Response response) throws IOException {
-        if (restHandler.handle(request, response).status() != Status._200)
+        if (restHandler != null && restHandler.handle(request, response).status() != Status._200)
             return response;
 
         if (configuration.multipart.enabled && request.isMultipart() && !request.isMultiPartDataPrepared()) {
@@ -202,14 +197,14 @@ public class ControllerHandler<T extends Controller> implements Handler {
         if (byte[].class.isAssignableFrom(method.getReturnType()))
             return (it, args) -> Unchecked.call(() -> it.renderData((byte[]) method.invoke(it, args)));
 
-        if (!PARSABLE_TYPES.contains(method.getReturnType()) && !method.getReturnType().isPrimitive())
-            return (it, args) -> Unchecked.call(() -> it.renderJson(method.invoke(it, args)));
-
-        if (method.getReturnType() == Void.TYPE)
+        if (Response.class.isAssignableFrom(method.getReturnType()) || method.getReturnType() == Void.TYPE)
             return (it, args) -> Unchecked.call(() -> {
                 method.invoke(it, args);
                 return null;
             });
+
+        if (!PARSABLE_TYPES.contains(method.getReturnType()) && !method.getReturnType().isPrimitive())
+            return (it, args) -> Unchecked.call(() -> it.renderJson(method.invoke(it, args)));
 
         throw new IllegalStateException("Cannot create renderer for " + method.getReturnType());
     }

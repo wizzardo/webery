@@ -12,7 +12,7 @@ import java.io.IOException;
  * Created by wizzardo on 06.03.15.
  */
 public class MimeProvider {
-    private static final String APACHE_MIME_TYPES_URL = "http://svn.apache.org/viewvc/httpd/httpd/branches/2.4.x/docs/conf/mime.types?view=co";
+    private static final String APACHE_MIME_TYPES_URL = "https://svn.apache.org/viewvc/httpd/httpd/branches/2.4.x/docs/conf/mime.types?view=co";
 
     private UrlMapping<Holder> types = new UrlMapping<>();
 

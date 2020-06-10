@@ -5,7 +5,6 @@ import com.wizzardo.http.request.Header;
 import com.wizzardo.http.request.MultiPartEntry;
 import com.wizzardo.http.request.MultiPartFileEntry;
 import com.wizzardo.http.request.Request;
-import com.wizzardo.tools.collections.CollectionTools;
 import com.wizzardo.tools.interfaces.Consumer;
 import com.wizzardo.tools.misc.Pair;
 import com.wizzardo.tools.interfaces.Mapper;
@@ -223,6 +222,10 @@ public class ParametersHelper {
 
                 return ((MultiPartFileEntry) entry).getFile();
             };
+        }
+
+        if (MultiPartEntry.class.isAssignableFrom(type)) {
+            return request -> !request.isMultipart() ? null : request.entry(name);
         }
 
         if (type == Integer.class)

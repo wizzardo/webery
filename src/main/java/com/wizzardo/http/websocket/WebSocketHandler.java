@@ -11,12 +11,14 @@ import com.wizzardo.http.request.Request;
 import com.wizzardo.http.response.Response;
 import com.wizzardo.http.response.Status;
 import com.wizzardo.tools.interfaces.Supplier;
+import com.wizzardo.tools.misc.Unchecked;
 import com.wizzardo.tools.misc.pool.Pool;
 import com.wizzardo.tools.misc.pool.PoolBuilder;
 import com.wizzardo.tools.security.Base64;
 import com.wizzardo.tools.security.SHA1;
 
 import java.io.IOException;
+import java.nio.channels.ClosedChannelException;
 
 /**
  * @author: wizzardo
@@ -181,6 +183,8 @@ public class WebSocketHandler<T extends WebSocketHandler.WebSocketListener> impl
                     }
                 }
 
+            } catch (ClosedChannelException e) {
+                throw Unchecked.rethrow(e);
             } catch (Exception e) {
                 onError(e);
                 releaseByteBuffers(message);
@@ -224,9 +228,12 @@ public class WebSocketHandler<T extends WebSocketHandler.WebSocketListener> impl
         }
 
         public synchronized void sendMessage(Message message) {
-            for (Frame frame : message.getFrames()) {
-                connection.write(convertFrameToReadableData(frame), (ByteBufferProvider) Thread.currentThread());
-            }
+            if (connection.isAlive()) {
+                for (Frame frame : message.getFrames()) {
+                    connection.write(convertFrameToReadableData(frame), (ByteBufferProvider) Thread.currentThread());
+                }
+            } else
+                connection.close();
         }
 
         protected synchronized void sendFrame(Frame frame) {

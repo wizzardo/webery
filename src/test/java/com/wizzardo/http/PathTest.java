@@ -97,7 +97,7 @@ public class PathTest {
     public void exceptions() {
         ServerTest.checkException(() -> parse("/foo/../../"), IllegalStateException.class, "can't parse: /foo/../../");
         ServerTest.checkException(() -> parse("/.."), IllegalStateException.class, "can't parse: /..");
-        ServerTest.checkException(() -> parse("foo"), IllegalStateException.class, "path must starts with '/'");
+        ServerTest.checkException(() -> parse("foo"), IllegalStateException.class, "Path must starts with '/', but was 'foo'");
     }
 
     @Test

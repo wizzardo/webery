@@ -1,5 +1,6 @@
 package com.wizzardo.http.utils;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
 /**
@@ -41,29 +42,33 @@ public class PercentEncoding {
     public static int decode(byte[] bytes, int from, int to) {
         int position = from;
         int i = from;
-        while (i < to) {
-            byte b = bytes[i];
-            if (b == '%') {
-                if (i + 2 >= to)
-                    throw new IllegalStateException("Unexpected end of the string");
+        try {
+            while (i < to) {
+                byte b = bytes[i];
+                if (b == '%') {
+                    if (i + 2 >= to)
+                        throw new IllegalStateException("Unexpected end of the string");
 
-                byte value = (byte) ((getHexValue(bytes[++i]) << 4) + getHexValue(bytes[++i]));
-                bytes[position++] = value;
-            } else if (b == '+') {
-                bytes[position++] = ' ';
-            } else if (position == i) {
-                position++;
-            } else {
-                bytes[position++] = b;
+                    byte value = (byte) ((getHexValue(bytes[++i]) << 4) + getHexValue(bytes[++i]));
+                    bytes[position++] = value;
+                } else if (b == '+') {
+                    bytes[position++] = ' ';
+                } else if (position == i) {
+                    position++;
+                } else {
+                    bytes[position++] = b;
+                }
+
+                i++;
             }
-
-            i++;
+        } catch (Exception e) {
+            throw new IllegalArgumentException("Cannot decode string '" + new String(bytes, from, to - from, StandardCharsets.UTF_8) + "'", e);
         }
         return position - from;
     }
 
     public static int getHexValue(int c) {
-        if (c >= 128)
+        if (c >= 128 || c < 0)
             throw new IllegalStateException("unexpected char for hex value: " + (char) c);
 
         c = mapping[c];

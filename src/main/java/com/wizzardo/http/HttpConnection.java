@@ -11,6 +11,7 @@ import com.wizzardo.http.request.RequestReader;
 import com.wizzardo.http.response.Response;
 import com.wizzardo.http.response.Status;
 import com.wizzardo.tools.io.IOTools;
+import com.wizzardo.tools.misc.Unchecked;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -27,9 +28,9 @@ public class HttpConnection<H extends AbstractHttpServer, Q extends Request, S e
     public static final String HTTP_1_0 = "HTTP/1.0";
     public static final String HTTP_1_1 = "HTTP/1.1";
 
-    private boolean closeOnFinishWriting = false;
-    private boolean keepAlive = false;
-    private RequestReader requestReader;
+    protected boolean closeOnFinishWriting = false;
+    protected boolean keepAlive = false;
+    protected RequestReader requestReader;
 
     protected Q request = createRequest(createResponse());
     protected H server;
@@ -99,8 +100,10 @@ public class HttpConnection<H extends AbstractHttpServer, Q extends Request, S e
 
     protected boolean handleHeaders(Buffer buffer) {
         int i = requestReader.read(buffer.bytes(), buffer.position(), buffer.remains());
-        if (i == -1 && !requestReader.complete)
+        if (i == -1 && !requestReader.complete) {
+            buffer.clear();
             return false;
+        }
 
         buffer.position(i >= 0 ? i : buffer.limit());
         requestReader.fillRequest(request);
@@ -114,7 +117,13 @@ public class HttpConnection<H extends AbstractHttpServer, Q extends Request, S e
 
     protected boolean prepareKeepAlive() {
         String connection = request.header(Header.KEY_CONNECTION);
-        boolean keepAlive = (request.protocol().equals(HttpConnection.HTTP_1_1) && connection == null) || Header.VALUE_KEEP_ALIVE.value.equalsIgnoreCase(connection);
+        boolean keepAlive;
+        if (connection == null) {
+            keepAlive = request.protocol().equals(HttpConnection.HTTP_1_1);
+        } else {
+            keepAlive = !Header.VALUE_CLOSE.value.equalsIgnoreCase(connection);
+        }
+
         if (keepAlive && request.protocol().equals(HttpConnection.HTTP_1_0))
             request.response().appendHeader(Header.KV_CONNECTION_KEEP_ALIVE);
 
@@ -130,10 +139,9 @@ public class HttpConnection<H extends AbstractHttpServer, Q extends Request, S e
     }
 
     protected void readFromByteBuffer(ByteBuffer bb, Buffer buffer) {
-        int limit = Math.min(bb.remaining(), buffer.capacity());
-        bb.get(buffer.bytes(), 0, limit);
-        buffer.position(0);
-        buffer.limit(limit);
+        int limit = Math.min(bb.remaining(), buffer.capacity() - buffer.limit());
+        bb.get(buffer.bytes(), buffer.limit(), limit);
+        buffer.limit(buffer.limit() + limit);
     }
 
     protected boolean checkData(Buffer buffer) {
@@ -142,7 +150,7 @@ public class HttpConnection<H extends AbstractHttpServer, Q extends Request, S e
 //                getInputStream();
                 return true;
             }
-            request.getBody().read(buffer.bytes(), buffer.position(), buffer.remains());
+            buffer.position(buffer.position() + request.getBody().read(buffer.bytes(), buffer.position(), buffer.remains()));
             request.setState(Request.State.READING_BODY);
             return request.isReady(request.getBody().isReady());
         }
@@ -151,7 +159,7 @@ public class HttpConnection<H extends AbstractHttpServer, Q extends Request, S e
 
     protected boolean handleData(Buffer buffer) {
         if (buffer.hasRemaining()) {
-            request.getBody().read(buffer.bytes(), buffer.position(), buffer.remains());
+            buffer.position(buffer.position() + request.getBody().read(buffer.bytes(), buffer.position(), buffer.remains()));
         }
         return request.isReady(request.getBody().isReady());
     }
@@ -161,12 +169,13 @@ public class HttpConnection<H extends AbstractHttpServer, Q extends Request, S e
     }
 
     public boolean onFinishingHandling() throws IOException {
+        Buffer buffer = Buffer.current();
         if (request.getState() == Request.State.UPGRADED && readListener != null) {
-            request.connection().flush();
+            flush();
             readListener.onRead(this, ByteBufferProvider.current());
+            buffer.clear();
             return false;
         }
-        Buffer buffer = Buffer.current();
         if (!keepAlive || request.response().status().code > 300) {
             buffer.clear();
             flush();
@@ -210,23 +219,20 @@ public class HttpConnection<H extends AbstractHttpServer, Q extends Request, S e
                 byte[] bytes = new byte[bb.remaining()];
                 bb.get(bytes);
                 sending.addFirst(new ReadableByteArray(bytes));
-                buffer.clear();
             } else {
-                buffer.clear();
                 if (!sending.isEmpty())
                     write(provider);
             }
         } catch (IOException e) {
             IOTools.close(this);
+            throw Unchecked.rethrow(e);
+        } finally {
+            buffer.clear();
         }
     }
 
     public void send(ReadableData readableData) {
-        ReadableData peek = sending.peek();
-        if (peek != null) {
-            ((ReadableBuilder) peek).append(readableData);
-        } else
-            sending.add(readableData);
+        sending.add(readableData);
     }
 
     @Override
@@ -324,9 +330,11 @@ public class HttpConnection<H extends AbstractHttpServer, Q extends Request, S e
         } catch (HttpException e) {
             closeConnection(e.status, bufferProvider);
             e.printStackTrace();
+            buffer.clear();
             return false;
         } catch (Exception e) {
             closeConnection(Status._400, bufferProvider);
+            buffer.clear();
             e.printStackTrace();
             return false;
         }

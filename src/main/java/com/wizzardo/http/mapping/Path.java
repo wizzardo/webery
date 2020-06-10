@@ -131,7 +131,7 @@ public class Path {
 
     public static Path parse(byte[] bytes, int offset, int limit, ByteTree byteTree, Path path) {
         if (bytes[offset] != '/')
-            throw new IllegalStateException("path must starts with '/'");
+            throw new IllegalStateException("Path must starts with '/', but was '" + new String(bytes, offset, limit - offset) + "'");
 
         int length = limit - offset;
         int partStart = offset + 1;
