@@ -50,7 +50,7 @@ public class FallbackServerSocketTest {
 
     @After
     public void shudown() {
-        epollSupportedField.setBoolean(null, false);
+        epollSupportedField.setBoolean(null, true);
     }
 
 
