@@ -7,7 +7,9 @@ import com.wizzardo.http.response.Response;
 import com.wizzardo.tools.http.HttpClient;
 import com.wizzardo.tools.reflection.FieldReflection;
 import com.wizzardo.tools.reflection.FieldReflectionFactory;
+import org.junit.After;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 
 import java.io.ByteArrayOutputStream;
@@ -25,6 +27,33 @@ import java.util.concurrent.atomic.AtomicInteger;
  * Created by wizzardo on 14/11/16.
  */
 public class FallbackServerSocketTest {
+    private FieldReflection epollSupportedField;
+
+    {
+        try {
+            epollSupportedField = new FieldReflectionFactory().create(EpollCore.class, "SUPPORTED");
+
+            Field modifiersField = Field.class.getDeclaredField("modifiers");
+            modifiersField.setAccessible(true);
+            modifiersField.setInt(epollSupportedField.getField(), epollSupportedField.getField().getModifiers() & ~Modifier.FINAL);
+            epollSupportedField.getField().setAccessible(true);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Before
+    public void setup() {
+        epollSupportedField.setBoolean(null, false);
+    }
+
+
+    @After
+    public void shudown() {
+        epollSupportedField.setBoolean(null, false);
+    }
+
+
     @Test
     public void test_simple_read() throws IOException, InterruptedException {
         AtomicInteger counter = new AtomicInteger();
@@ -114,17 +143,7 @@ public class FallbackServerSocketTest {
     }
 
     @Test
-    public void test_slow_client() throws IOException, InterruptedException, NoSuchFieldException, IllegalAccessException {
-//        System.out.println("EpollCore.SUPPORTED: " + EpollCore.SUPPORTED);
-        FieldReflection fieldReflection = new FieldReflectionFactory().create(EpollCore.class, "SUPPORTED");
-
-        Field modifiersField = Field.class.getDeclaredField("modifiers");
-        modifiersField.setAccessible(true);
-        modifiersField.setInt(fieldReflection.getField(), fieldReflection.getField().getModifiers() & ~Modifier.FINAL);
-        fieldReflection.getField().setAccessible(true);
-
-        fieldReflection.setBoolean(null, false);
-
+    public void test_slow_client() throws IOException, InterruptedException {
         System.out.println("EpollCore.SUPPORTED: " + EpollCore.SUPPORTED);
 
         byte[] data = new byte[1024 * 1024 * 10];
