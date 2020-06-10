@@ -1,6 +1,10 @@
 apply plugin: 'java'
 apply plugin: 'application'
 
+javadoc {
+    options.tags = [ "author:" ]
+}
+
 repositories {
     jcenter()
     mavenCentral()

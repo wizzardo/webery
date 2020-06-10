@@ -2,6 +2,7 @@ package com.wizzardo.http.response;
 
 import com.wizzardo.epoll.ByteBufferProvider;
 import com.wizzardo.epoll.ByteBufferWrapper;
+import com.wizzardo.epoll.EpollCore;
 import com.wizzardo.epoll.readable.*;
 import com.wizzardo.http.*;
 import com.wizzardo.http.html.Renderer;
@@ -32,7 +33,7 @@ public class Response {
     protected boolean committed = false;
     protected Status status = Status._200;
     protected ReadableData body;
-    protected ReadableData staticResponse;
+    protected ReadableByteBuffer staticResponse;
 
     private byte[][] headers = new byte[8][];
     private int headersCount = 0;
@@ -371,7 +372,7 @@ public class Response {
 
         @Override
         public ReadableBuilder append(byte[] bytes, int offset, int length) {
-            if (bb.buffer().remaining() > length) {
+            if (EpollCore.SUPPORTED && bb.buffer().remaining() >= length) {
                 bb.put(bytes, offset, length);
                 return this;
             } else
@@ -380,7 +381,7 @@ public class Response {
 
         @Override
         public ReadableBuilder append(ReadableData readableData) {
-            if (bb.buffer().remaining() > readableData.length()) {
+            if (EpollCore.SUPPORTED && bb.buffer().remaining() >= readableData.length()) {
                 readableData.read(bb);
 
                 try {
@@ -394,7 +395,7 @@ public class Response {
         }
 
         public ReadableBuilder append(ReadableDirectByteBuffer readableData) {
-            if (bb.buffer().remaining() > readableData.length()) {
+            if (EpollCore.SUPPORTED && bb.buffer().remaining() >= readableData.length()) {
                 ReadableDirectByteBuffer.copy(bb, readableData);
                 return this;
             } else
@@ -402,7 +403,7 @@ public class Response {
         }
 
         public ReadableBuilderProxy append(ReadableDirectByteBuffer s1, ReadableDirectByteBuffer s2, ReadableDirectByteBuffer s3, ReadableDirectByteBuffer s4, ReadableDirectByteBuffer s5) {
-            if (bb.buffer().remaining() >= s1.length() + s2.length() + s3.length() + s4.length() + s5.length()) {
+            if (EpollCore.SUPPORTED && bb.buffer().remaining() >= s1.length() + s2.length() + s3.length() + s4.length() + s5.length()) {
                 ReadableDirectByteBuffer.read(bb, s1, s2, s3, s4, s5);
                 return this;
             } else {
@@ -413,6 +414,14 @@ public class Response {
                 super.append(s5.copy());
             }
             return this;
+        }
+
+        public int getPartsCount() {
+            return partsCount;
+        }
+
+        public ReadableData getPart(int i) {
+            return parts[i];
         }
     }
 
@@ -494,11 +503,15 @@ public class Response {
 //            byteBufferProvider.getBuffer().clear();
             ByteBufferWrapper buffer = byteBufferProvider.getBuffer();
             ReadableBuilderProxy builderProxy = new ReadableBuilderProxy(buffer);
-            buildResponse(builderProxy);
+            if (staticResponse != null)
+                builderProxy.append(staticResponse);
+            else
+                buildResponse(builderProxy);
+
 //            System.out.println("commits: " + (++commits) + "\tdata:" + buffer.position());
             if (builderProxy.length() > 0) {
-                connection.flush();
-                if (!connection.hasDataToWrite() && builderProxy.length() <= buffer.capacity()) {
+                connection.flush(byteBufferProvider);
+                if (EpollCore.SUPPORTED && !connection.hasDataToWrite() && builderProxy.length() <= buffer.capacity()) {
                     do {
                         builderProxy.read(buffer);
                     } while (builderProxy.remains() > 0);
@@ -562,7 +575,13 @@ public class Response {
         }
 
         if (body != null) {
-            sb.append(new String(body()));
+            byte[] bytes = new byte[(int) Math.min(body.length(), 1024l)];
+            ByteBuffer bb = ByteBuffer.wrap(bytes);
+            body.read(bb);
+            body.unread(bytes.length);
+            sb.append(new String(bytes));
+            if (bytes.length < body.length())
+                sb.append("...");
         }
 
         return sb.toString();

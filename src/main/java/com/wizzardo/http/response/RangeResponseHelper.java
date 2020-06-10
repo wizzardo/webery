@@ -65,10 +65,12 @@ public class RangeResponseHelper {
             gout.close();
 
             byte[] byteArray = out.toByteArray();
-            ByteBuffer buffer = ByteBuffer.allocateDirect(byteArray.length);
-            buffer.put(byteArray);
-            buffer.flip();
-            gzipped = new ReadableByteBuffer(buffer);
+            if (byteArray.length < bytes.length) {
+                ByteBuffer buffer = ByteBuffer.allocateDirect(byteArray.length);
+                buffer.put(byteArray);
+                buffer.flip();
+                gzipped = new ReadableByteBuffer(buffer);
+            }
         }
 
         ByteBuffer buffer = ByteBuffer.allocateDirect(bytes.length);
@@ -99,6 +101,13 @@ public class RangeResponseHelper {
             return buffer.length() + (gzipped != null ? gzipped.length() : 0);
         }
 
+        public long length(Request request) {
+            if (gzipped != null && request.header(Header.KEY_ACCEPT_ENCODING, "").contains("gzip"))
+                return gzipped.length();
+            else
+                return buffer.length();
+        }
+
         public ReadableByteBuffer getBuffer(Request request, Response response) {
             if (gzipped != null && request.header(Header.KEY_ACCEPT_ENCODING, "").contains("gzip")) {
                 response.appendHeader(Header.KV_CONTENT_ENCODING_GZIP);
@@ -126,7 +135,7 @@ public class RangeResponseHelper {
         ReadableByteBuffer buffer = null;
 
         if (rangeHeader != null) {
-            long length = fileHolder == null ? file.length() : fileHolder.size();
+            long length = fileHolder == null ? file.length() : fileHolder.length(request);
             range = new Range(rangeHeader, length);
             if (!range.isValid()) {
                 response.setStatus(Status._416);
@@ -135,29 +144,30 @@ public class RangeResponseHelper {
 
             response.setStatus(Status._206);
             response.appendHeader(Header.KEY_CONTENT_RANGE, range.toString());
-            response.appendHeader(Header.KEY_CONTENT_LENGTH, String.valueOf(range.length()));
         } else {
             Date modifiedSince = request.headerDate(Header.KEY_IF_MODIFIED_SINCE);
             if (modifiedSince != null && modifiedSince.getTime() >= file.lastModified())
                 return response.status(Status._304);
 
-            if (fileHolder != null) {
-                if (fileHolder.md5.equals(request.header(Header.KEY_IF_NONE_MATCH)))
-                    return response.status(Status._304);
-
-                buffer = fileHolder.getBuffer(request, response);
-
-                response.appendHeader(Header.KEY_ETAG, fileHolder.md5);
-                response.appendHeader(Header.KEY_LAST_MODIFIED, fileHolder.lastModified);
-                response.appendHeader(Header.KEY_CACHE_CONTROL, MAX_AGE_1_YEAR);
-                response.appendHeader(Header.KEY_CONTENT_LENGTH, String.valueOf(buffer.length()));
-                range = new Range(0, buffer.length() - 1, buffer.length());
-            } else {
-                response.appendHeader(Header.KEY_CONTENT_LENGTH, String.valueOf(file.length()));
-                response.appendHeader(Header.KEY_LAST_MODIFIED, HttpDateFormatterHolder.get().format(new Date(file.lastModified())));
-                range = new Range(0, file.length() - 1, file.length());
-            }
+            range = new Range(0, file.length() - 1, file.length());
         }
+
+        if (fileHolder != null) {
+            if (fileHolder.md5.equals(request.header(Header.KEY_IF_NONE_MATCH)))
+                return response.status(Status._304);
+
+            buffer = fileHolder.getBuffer(request, response);
+
+            response.appendHeader(Header.KEY_ETAG, fileHolder.md5);
+            response.appendHeader(Header.KEY_LAST_MODIFIED, fileHolder.lastModified);
+            response.appendHeader(Header.KEY_CACHE_CONTROL, MAX_AGE_1_YEAR);
+            if (range.to >= buffer.length())
+                range = new Range(0, buffer.length() - 1, buffer.length());
+        } else {
+            response.appendHeader(Header.KEY_LAST_MODIFIED, HttpDateFormatterHolder.get().format(new Date(file.lastModified())));
+        }
+
+        response.appendHeader(Header.KEY_CONTENT_LENGTH, String.valueOf(range.length()));
         response.appendHeader(Header.KEY_CONNECTION, Header.VALUE_KEEP_ALIVE);
 
         contentTypeProvider.accept(response, file);
