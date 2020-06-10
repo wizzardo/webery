@@ -49,7 +49,7 @@ public class FallbackServerSocketTest {
 
 
     @After
-    public void shudown() {
+    public void shutdown() {
         epollSupportedField.setBoolean(null, true);
     }
 
@@ -149,7 +149,7 @@ public class FallbackServerSocketTest {
         byte[] data = new byte[1024 * 1024 * 10];
         new Random().nextBytes(data);
 
-        AbstractHttpServer<HttpConnection> serverMock = new AbstractHttpServer(null, 9999, 2, true) {
+        AbstractHttpServer<HttpConnection> serverMock = new AbstractHttpServer(null, 9998, 2, true) {
             @Override
             protected void handle(HttpConnection connection) throws Exception {
                 Request request = connection.getRequest();
@@ -157,7 +157,7 @@ public class FallbackServerSocketTest {
                 response.body(data);
             }
         };
-        serverMock.setPort(9999);
+        serverMock.setPort(9998);
         serverMock.start();
 
         Thread.sleep(20);

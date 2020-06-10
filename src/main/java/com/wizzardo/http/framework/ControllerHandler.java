@@ -9,6 +9,7 @@ import com.wizzardo.http.framework.parameters.ParametersHelper;
 import com.wizzardo.http.framework.template.Model;
 import com.wizzardo.http.framework.template.Renderer;
 import com.wizzardo.http.framework.template.ViewRenderingService;
+import com.wizzardo.http.request.Header;
 import com.wizzardo.http.request.Request;
 import com.wizzardo.http.response.Response;
 import com.wizzardo.http.response.Status;
@@ -85,6 +86,11 @@ public class ControllerHandler<T extends Controller> implements Handler {
     public Response handle(Request request, Response response) throws IOException {
         if (restHandler != null && restHandler.handle(request, response).status() != Status._200)
             return response;
+
+        if (restHandler == null && request.method() == Request.Method.OPTIONS) {
+            return response.status(Status._204)
+                    .header(Header.KEY_ALLOW, "GET, HEAD, POST, PUT, DELETE, OPTIONS");
+        }
 
         if (configuration.multipart.enabled && request.isMultipart() && !request.isMultiPartDataPrepared()) {
             return new MultipartHandler(this, configuration.multipart.limit).handle(request, response);
