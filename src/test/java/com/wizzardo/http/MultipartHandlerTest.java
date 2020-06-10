@@ -234,6 +234,11 @@ public class MultipartHandlerTest extends ServerTest {
         }
     }
 
+    @Override
+    protected com.wizzardo.tools.http.Request fillRequest(com.wizzardo.tools.http.Request request) {
+        return request.header("testMethod", name.getMethodName());
+    }
+
     @Test
     public void test_multipart_2() throws IOException, InterruptedException, NoSuchMethodException, NoSuchFieldException, ClassNotFoundException {
         tearDown();
