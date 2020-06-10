@@ -15,9 +15,8 @@ import java.nio.ByteBuffer;
 import java.nio.channels.*;
 import java.util.Iterator;
 import java.util.Queue;
-import java.util.concurrent.ConcurrentLinkedQueue;
 
-public class FallbackServerSocket<T extends HttpConnection> extends EpollServer<T> implements RequestContext {
+public class FallbackServerSocket<T extends HttpConnection> extends EpollServer<T> implements RequestContext, Buffer {
     protected ServerSocketChannel server;
     protected AbstractHttpServer<T> httpServer;
     protected Selector selector = null;
@@ -27,6 +26,56 @@ public class FallbackServerSocket<T extends HttpConnection> extends EpollServer<
     protected String controller;
     protected String action;
     protected String handler;
+
+    protected byte[] buffer = new byte[byteBufferWrapper.capacity()];
+    protected int position;
+    protected int limit;
+
+    @Override
+    public byte[] bytes() {
+        return buffer;
+    }
+
+    @Override
+    public int position() {
+        return position;
+    }
+
+    @Override
+    public void position(int position) {
+        this.position = position;
+    }
+
+    @Override
+    public int limit() {
+        return limit;
+    }
+
+    @Override
+    public void limit(int limit) {
+        this.limit = limit;
+    }
+
+    @Override
+    public int capacity() {
+        return buffer.length;
+    }
+
+    @Override
+    public boolean hasRemaining() {
+        return position < limit;
+    }
+
+    @Override
+    public int remains() {
+        return limit - position;
+    }
+
+    @Override
+    public void clear() {
+        limit = 0;
+        position = 0;
+    }
 
     public FallbackServerSocket() {
         this(null, 8080, null);
@@ -99,10 +148,11 @@ public class FallbackServerSocket<T extends HttpConnection> extends EpollServer<
     }
 
     public class SelectorConnectionWrapper extends HttpConnection {
+        SelectionKey key;
         String ip;
         int port;
         SocketChannel channel;
-        Queue<ReadableData> sending = new ConcurrentLinkedQueue<ReadableData>();
+        //        Queue<ReadableData> sending = new ConcurrentLinkedQueue<ReadableData>();
         private boolean readyToRead;
 
         public SelectorConnectionWrapper(SocketChannel channel, AbstractHttpServer server) throws IOException {
@@ -143,6 +193,23 @@ public class FallbackServerSocket<T extends HttpConnection> extends EpollServer<
         }
 
         @Override
+        protected boolean checkData(ByteBufferProvider bufferProvider) throws IOException {
+            boolean isReady = super.checkData(bufferProvider);
+            if (isReady) {
+                key.interestOps(0);
+            }
+            return isReady;
+        }
+
+        @Override
+        public void send(ReadableData readableData) {
+            super.send(readableData);
+            int ops = key.interestOps();
+            if ((ops & SelectionKey.OP_WRITE) == 0)
+                key.interestOps(ops | SelectionKey.OP_WRITE);
+        }
+
+        @Override
         public boolean write(byte[] bytes, ByteBufferProvider bufferProvider) {
             return write(bytes, 0, bytes.length, bufferProvider);
         }
@@ -153,16 +220,14 @@ public class FallbackServerSocket<T extends HttpConnection> extends EpollServer<
         }
 
         @Override
+        protected int write(ByteBufferWrapper wrapper, int off, int len) throws IOException {
+            return 0;
+        }
+
+        @Override
         public boolean write(ReadableData readable, ByteBufferProvider bufferProvider) {
-            if (sending.isEmpty())
-                try {
-                    channel.register(selector, SelectionKey.OP_READ | SelectionKey.OP_WRITE, this);
-                } catch (ClosedChannelException e) {
-                    e.printStackTrace();
-                }
             sending.add(readable);
-            write(bufferProvider);
-            return true;
+            return write(bufferProvider);
         }
 
         @Override
@@ -173,13 +238,21 @@ public class FallbackServerSocket<T extends HttpConnection> extends EpollServer<
                 while ((readable = queue.peek()) != null) {
                     while (!readable.isComplete() && actualWrite(readable, bufferProvider)) {
                     }
-                    if (!readable.isComplete())
+                    if (!readable.isComplete()) {
+                        key.interestOps(key.interestOps() | SelectionKey.OP_WRITE);
+//                        System.out.println("key.interestOps(SelectionKey.OP_WRITE)");
                         return false;
+                    }
 
                     queue.poll();
                     readable.close();
                     readable.onComplete();
-                    onWriteData(readable, !queue.isEmpty());
+                    boolean hasMore = !queue.isEmpty();
+                    onWriteData(readable, hasMore);
+                    if (!hasMore && key.isValid()) {
+                        key.interestOps(SelectionKey.OP_READ);
+//                        System.out.println("key.interestOps(SelectionKey.OP_READ)");
+                    }
                 }
 //                close();
 
@@ -198,7 +271,8 @@ public class FallbackServerSocket<T extends HttpConnection> extends EpollServer<
             buffer.flip();
             if (r > 0 && isAlive()) {
                 int written = channel.write(buffer);
-//            System.out.println("write: " + written + " (" + readable.complete() + "/" + readable.length() + ")" + " to " + this);
+                bb.clear();
+//                System.out.println("write: " + written + " (" + readable.complete() + "/" + readable.length() + ", " + readable.remains() + " remains)" + " to " + this);
                 if (written != r) {
                     readable.unread(r - written);
                     return false;
@@ -239,6 +313,12 @@ public class FallbackServerSocket<T extends HttpConnection> extends EpollServer<
                     IOTools.close(data);
 
             IOTools.close(channel);
+        }
+
+        @Override
+        public void onRead(ReadListener<Connection> listener) {
+            super.onRead(listener);
+            key.interestOps(key.interestOps() | SelectionKey.OP_READ);
         }
 
         @Override
@@ -283,6 +363,9 @@ public class FallbackServerSocket<T extends HttpConnection> extends EpollServer<
                 for (Iterator<SelectionKey> i = selector.selectedKeys().iterator(); i.hasNext(); ) {
                     SelectionKey key = i.next();
                     i.remove();
+                    if (!key.isValid())
+                        continue;
+
                     if (key.isConnectable()) {
                         ((SocketChannel) key.channel()).finishConnect();
                     }
@@ -296,6 +379,7 @@ public class FallbackServerSocket<T extends HttpConnection> extends EpollServer<
                         wrapper = createConnection(client);
                         key = client.keyFor(selector);
                         key.attach(wrapper);
+                        wrapper.key = key;
                     } else {
                         wrapper = (SelectorConnectionWrapper) key.attachment();
                     }
@@ -303,12 +387,18 @@ public class FallbackServerSocket<T extends HttpConnection> extends EpollServer<
                     if (wrapper == null)
                         continue;
 
-                    if (key.isValid() && key.isReadable()) {
-                        onRead((T) wrapper, this);
-                    }
+                    try {
+                        if (key.isValid() && key.isReadable()) {
+                            onRead((T) wrapper, this);
+                        }
 
-                    if (key.isValid() && key.isWritable()) {
-                        wrapper.write(this);
+                        if (key.isValid() && key.isWritable()) {
+                            wrapper.write(this);
+                        }
+                    } catch (ClosedChannelException e) {
+                        wrapper.onDisconnect(this);
+                    } catch (Exception e) {
+                        e.printStackTrace();
                     }
                 }
 

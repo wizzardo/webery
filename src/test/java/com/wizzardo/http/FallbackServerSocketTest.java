@@ -1,13 +1,23 @@
 package com.wizzardo.http;
 
 import com.wizzardo.epoll.ByteBufferProvider;
+import com.wizzardo.epoll.EpollCore;
+import com.wizzardo.http.request.Request;
 import com.wizzardo.http.response.Response;
+import com.wizzardo.tools.http.HttpClient;
+import com.wizzardo.tools.reflection.FieldReflection;
+import com.wizzardo.tools.reflection.FieldReflectionFactory;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.net.Socket;
 import java.nio.channels.SocketChannel;
+import java.util.Random;
 import java.util.concurrent.atomic.AtomicInteger;
 
 
@@ -101,5 +111,51 @@ public class FallbackServerSocketTest {
         socket.close();
 
         serverSocket.close();
+    }
+
+    @Test
+    public void test_slow_client() throws IOException, InterruptedException, NoSuchFieldException, IllegalAccessException {
+//        System.out.println("EpollCore.SUPPORTED: " + EpollCore.SUPPORTED);
+        FieldReflection fieldReflection = new FieldReflectionFactory().create(EpollCore.class, "SUPPORTED");
+
+        Field modifiersField = Field.class.getDeclaredField("modifiers");
+        modifiersField.setAccessible(true);
+        modifiersField.setInt(fieldReflection.getField(), fieldReflection.getField().getModifiers() & ~Modifier.FINAL);
+        fieldReflection.getField().setAccessible(true);
+
+        fieldReflection.setBoolean(null, false);
+
+        System.out.println("EpollCore.SUPPORTED: " + EpollCore.SUPPORTED);
+
+        byte[] data = new byte[1024 * 1024 * 10];
+        new Random().nextBytes(data);
+
+        AbstractHttpServer<HttpConnection> serverMock = new AbstractHttpServer(null, 9999, 2, true) {
+            @Override
+            protected void handle(HttpConnection connection) throws Exception {
+                Request request = connection.getRequest();
+                Response response = connection.getResponse();
+                response.body(data);
+            }
+        };
+        serverMock.setPort(9999);
+        serverMock.start();
+
+        Thread.sleep(20);
+        com.wizzardo.tools.http.Response response = HttpClient.createRequest("http://localhost:" + serverMock.getPort() + "/").get();
+        InputStream stream = response.asStream();
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        byte[] result = new byte[response.getContentLength()];
+        int offset = 0;
+        while ((offset += stream.read(result, offset, Math.min(result.length - offset, 65536))) != result.length) {
+            Thread.sleep(100);
+        }
+
+//        byte[] result = out.toByteArray();
+//        byte[] result = IOTools.bytes(stream);
+//        byte[] result = HttpClient.createRequest("http://localhost:" + serverMock.getPort() + "/").get().asBytes();
+        Assert.assertArrayEquals(data, result);
+
+        serverMock.close();
     }
 }
