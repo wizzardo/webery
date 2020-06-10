@@ -23,4 +23,15 @@ public interface RequestContext {
     void handler(String name);
 
     String handler();
+
+    default RequestContext copy() {
+        return new DetachedRequestContext(this);
+    }
+
+    default void set(RequestContext context) {
+        getRequestHolder().set(context.getRequestHolder());
+        setController(context.controller());
+        setAction(context.action());
+        handler(context.handler());
+    }
 }
