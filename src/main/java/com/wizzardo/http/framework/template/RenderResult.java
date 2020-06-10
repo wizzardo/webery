@@ -28,7 +28,7 @@ public class RenderResult {
     }
 
     public RenderResult(String s) {
-        this(s, Charset.defaultCharset());
+        this(s, StandardCharsets.UTF_8);
     }
 
     public void add(RenderResult r) {
