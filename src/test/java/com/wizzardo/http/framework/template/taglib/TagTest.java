@@ -13,7 +13,7 @@ public interface TagTest {
     default RenderableList prepare(String html) {
         Node n = new GspParser().parse(html);
         RenderableList l = new RenderableList();
-        new ViewRenderingService().prepare(n.children(), l, "", "");
+        new ViewRenderingService().prepare(n.children(), l, "", "", true, null);
         return l;
     }
 

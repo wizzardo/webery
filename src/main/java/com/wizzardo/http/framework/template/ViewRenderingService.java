@@ -5,6 +5,7 @@ import com.wizzardo.http.framework.di.DependencyFactory;
 import com.wizzardo.http.framework.di.PostConstruct;
 import com.wizzardo.http.framework.di.Service;
 import com.wizzardo.tools.cache.Cache;
+import com.wizzardo.tools.evaluation.Function;
 import com.wizzardo.tools.misc.Pair;
 import com.wizzardo.tools.misc.With;
 import com.wizzardo.tools.xml.GspParser;
@@ -15,20 +16,31 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class ViewRenderingService implements Service, PostConstruct {
-    protected static final String OFFSET = "    ";
     protected static Pattern p = Pattern.compile("\\$\\{(.+)\\}|\\$([\\w]+)");
 
     protected Cache<Pair<String, String>, RenderableList> viewsCache;
     protected Cache<Pair<String, String>, RenderableList> templatesCache;
     protected ServerConfiguration configuration;
     protected ResourceTools resourceTools;
+    protected String offset = "    ";
+    protected boolean withNewline;
+
+    static {
+        Function.setMethod(String.class, "encodeAsHTML", (it, model, args) -> HtmlTools.encodeAsHTML((String) it));
+    }
 
     @Override
     public void init() {
         ServerConfiguration.Renderer renderer = configuration.renderer;
 
+        offset = renderer.offset == null ? "" : renderer.offset;
+        withNewline = renderer.withNewline;
         viewsCache = new Cache<>("views", renderer.viewCacheTtl, s -> prepareView(s.key, s.value));
         templatesCache = new Cache<>("templates", renderer.templateCacheTtl, s -> With.with(new RenderableList(), l -> prepare(s.key, l, null)));
+    }
+
+    protected String getOffset() {
+        return offset;
     }
 
     protected RenderableList prepareView(String view, String offset) {
@@ -101,14 +113,24 @@ public class ViewRenderingService implements Service, PostConstruct {
         prepare(n, l, dir, offset, null);
     }
 
+    public void prepare(List<Node> n, RenderableList l, String dir, String offset, boolean addNewLine) {
+        prepare(n, l, dir, offset, addNewLine, null);
+    }
+
     public void prepare(List<Node> n, RenderableList l, String dir, String offset, Set<String> imports) {
         for (Node node : n) {
             prepare(node, l, dir, offset, imports);
         }
     }
 
+    public void prepare(List<Node> n, RenderableList l, String dir, String offset, boolean addNewLine, Set<String> imports) {
+        for (Node node : n) {
+            prepare(node, l, dir, offset, addNewLine, imports);
+        }
+    }
+
     public void prepare(Node n, RenderableList l, String dir, String offset, Set<String> imports) {
-        prepare(n, l, dir, offset, true, imports);
+        prepare(n, l, dir, offset, withNewline, imports);
     }
 
     public void prepare(Node n, RenderableList l, String dir, String offset, boolean addNewLine, Set<String> imports) {
@@ -123,7 +145,7 @@ public class ViewRenderingService implements Service, PostConstruct {
             return;
         }
 
-        if (checkTagLib(n, l, dir, offset, imports)) {
+        if (checkTagLib(n, l, dir, offset, addNewLine, imports)) {
             return;
         }
 
@@ -146,7 +168,7 @@ public class ViewRenderingService implements Service, PostConstruct {
             if (addNewLine)
                 l.append("\n");
             for (Node child : n.children()) {
-                prepare(child, l, dir, offset + OFFSET, addNewLine, imports);
+                prepare(child, l, dir, offset + getOffset(), addNewLine, imports);
             }
             l.append(offset);
             l.append("</").append(n.name()).append(">");
@@ -162,7 +184,7 @@ public class ViewRenderingService implements Service, PostConstruct {
     }
 
 
-    public boolean checkTagLib(final Node n, RenderableList l, String dir, String offset, Set<String> imports) {
+    public boolean checkTagLib(final Node n, RenderableList l, String dir, String offset, boolean addNewLine, Set<String> imports) {
         if (n.name().equals("g:render")) {
             String model = n.attr("model");
             if (model == null)
@@ -189,7 +211,7 @@ public class ViewRenderingService implements Service, PostConstruct {
                     var = "it";
 
                 n.attr("model", "[" + var + ": it]");
-                return checkTagLib(fakeEach, l, dir, offset, imports);
+                return checkTagLib(fakeEach, l, dir, offset, addNewLine, imports);
             } else {
                 l.add(createRenderClosure(dir + path + "_" + template + ".gsp", model, offset));
             }
@@ -200,7 +222,7 @@ public class ViewRenderingService implements Service, PostConstruct {
             Tag t = TagLib.createTag(n.name());
             if (t != null) {
                 t.setImports(imports);
-                t.init(n, offset, dir, this);
+                t.init(n, offset, dir, addNewLine, this);
                 t.appendTo(l);
                 return true;
             }

@@ -91,14 +91,18 @@ public class ServerConfiguration implements Configuration {
     public static class Renderer {
         public final long viewCacheTtl;
         public final long templateCacheTtl;
+        public final String offset;
+        public final boolean withNewline;
 
-        public Renderer(long viewCacheTtl, long templateCacheTtl) {
+        public Renderer(long viewCacheTtl, long templateCacheTtl, String offset, boolean withNewline) {
             this.viewCacheTtl = viewCacheTtl;
             this.templateCacheTtl = templateCacheTtl;
+            this.offset = offset;
+            this.withNewline = withNewline;
         }
 
         public Renderer() {
-            this(-1, -1);
+            this(-1, -1, "", false);
         }
     }
 

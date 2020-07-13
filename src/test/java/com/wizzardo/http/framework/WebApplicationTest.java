@@ -46,6 +46,8 @@ public class WebApplicationTest extends ServerTest<WebApplication> {
     }
 
     protected void configure(Config config) {
+        config.config("server").config("renderer").put("offset", "    ");
+        config.config("server").config("renderer").put("withNewline", true);
     }
 
     protected MessageBundle initMessageSource(MessageBundle bundle) {

@@ -11,7 +11,7 @@ import java.util.Map;
 public class TextArea extends Tag {
 
     @Override
-    public Tag init(Node node, String offset, String dir, ViewRenderingService viewRenderingService) {
+    public Tag init(Node node, String offset, String dir, boolean addNewLine, ViewRenderingService viewRenderingService) {
         return init(node.attributes(), new Body(node, "", dir, false, imports), offset);
     }
 

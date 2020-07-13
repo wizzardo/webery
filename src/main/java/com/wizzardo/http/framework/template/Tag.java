@@ -10,12 +10,12 @@ public abstract class Tag extends RenderableList {
 
     protected Set<String> imports;
 
-    public Tag init(Node node, String offset, String dir, ViewRenderingService viewRenderingService) {
-        return init(node.attributes(), new Body(node, getBodyOffset(offset), dir, imports, viewRenderingService), offset);
+    public Tag init(Node node, String offset, String dir, boolean addNewLine, ViewRenderingService viewRenderingService) {
+        return init(node.attributes(), new Body(node, getBodyOffset(offset, viewRenderingService.getOffset()), dir, addNewLine, imports, viewRenderingService), offset);
     }
 
-    protected String getBodyOffset(String offset) {
-        return offset + ViewRenderingService.OFFSET;
+    protected String getBodyOffset(String offset, String padding) {
+        return offset + padding;
     }
 
     public Tag init(Map<String, String> attrs) {

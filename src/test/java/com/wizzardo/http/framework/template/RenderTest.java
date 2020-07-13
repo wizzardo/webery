@@ -23,7 +23,7 @@ public class RenderTest {
         Node n = new GspParser().parse("<div style=\"width: 100px\"><a href=\"http://${host.toLowerCase()}\">yandex</a><br></div>");
 
         RenderableList l = new RenderableList();
-        new ViewRenderingService().prepare(n.children(), l, "", "");
+        new ViewRenderingService().prepare(n.children(), l, "", "", true);
 
 
         Model model = new Model();
@@ -137,7 +137,7 @@ public class RenderTest {
                 "</div>";
 
         RenderableList renderable = new RenderableList();
-        new ViewRenderingService().prepare(new GspParser().parse(gsp).children(), renderable, "", "");
+        new ViewRenderingService().prepare(new GspParser().parse(gsp).children(), renderable, "", "", true);
         Assert.assertEquals("<div>\n" +
                 "    before\n" +
                 "    after\n" +
