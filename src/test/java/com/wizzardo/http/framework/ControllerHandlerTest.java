@@ -1066,12 +1066,12 @@ public class ControllerHandlerTest extends WebApplicationTest {
     @Test
     public void test_request_in_view() throws IOException {
         server.getUrlMapping().append("/variables", DefaultVariablesController.class, "test_1");
-        Assert.assertEquals("" +
+        Assert.assertEquals("\n" +
                         "/variables\n" +
                         "bar\n" +
                         "defaultVariables\n" +
                         "test_1\n" +
-                        "defaultVariables.test_1\n"
+                        "defaultVariables.test_1"
                 , makeRequest("/variables").get().asString());
     }
 

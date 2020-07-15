@@ -137,10 +137,13 @@ public class RenderTest {
                 "</div>";
 
         RenderableList renderable = new RenderableList();
-        new ViewRenderingService().prepare(new GspParser().parse(gsp).children(), renderable, "", "", true);
+        ViewRenderingService service = new ViewRenderingService();
+        service.offset = "";
+        service.prepare(new GspParser().parse(gsp).children(), renderable, "", "", false);
         Assert.assertEquals("<div>\n" +
                 "    before\n" +
+                "    \n" +
                 "    after\n" +
-                "</div>\n", renderable.get(null).toString());
+                "</div>", renderable.get(null).toString());
     }
 }
