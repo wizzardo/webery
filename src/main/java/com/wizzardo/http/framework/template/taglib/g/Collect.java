@@ -17,13 +17,12 @@ public class Collect extends Tag {
         ExpressionHolder<Collection> in = asExpression(attrs, "in", false, true);
         ExpressionHolder expr = asExpression(attrs, "expr", false, true);
 
-        add(model -> {
+        add((model, result) -> {
             Collection src = in.getRaw(model);
-            RenderResult result = new RenderResult();
             for (Object ob : src) {
                 model.put("it", ob);
                 model.put("it", expr.getRaw(model));
-                result.add(body.get(model));
+                body.get(model, result);
             }
             return result;
         });

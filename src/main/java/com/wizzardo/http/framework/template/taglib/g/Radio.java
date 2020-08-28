@@ -21,8 +21,7 @@ public class Radio extends Tag {
 
         append(offset);
         append("<input type=\"radio\" name=\"");
-        append(model -> {
-            RenderResult result = new RenderResult();
+        append((model, result) -> {
             String nameString = String.valueOf(name.getRaw(model));
             result.append(nameString);
             if (id == null)
@@ -44,7 +43,7 @@ public class Radio extends Tag {
                 append(" checked=\"checked\"");
             else if (!ch.equalsIgnoreCase("false")) {
                 ExpressionHolder checked = asExpression(ch, false);
-                append((model) -> new RenderResult(AsBooleanExpression.toBoolean(checked.getRaw(model)) ? " checked=\"checked\"" : ""));
+                append((model, result) -> result.append(AsBooleanExpression.toBoolean(checked.getRaw(model)) ? " checked=\"checked\"" : ""));
             }
         }
 

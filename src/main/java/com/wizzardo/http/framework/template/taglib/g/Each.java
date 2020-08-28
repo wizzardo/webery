@@ -20,16 +20,15 @@ public class Each extends Tag {
 
         String indexName = attrs.get("status");
 
-        add(model -> {
+        add((model, result) -> {
             Collection in = raw.getRaw(model);
-            RenderResult result = new RenderResult();
             int i = 0;
             for (Object ob : in) {
                 model.put(var, ob);
                 if (indexName != null)
                     model.put(indexName, i++);
 
-                result.add(body.get(model));
+                body.get(model, result);
             }
             return result;
         });

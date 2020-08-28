@@ -30,9 +30,7 @@ public class Else extends Tag {
     }
 
     @Override
-    public RenderResult get(Map<String, Object> model) {
-        RenderResult result = new RenderResult();
-        result.add(body.get(model));
-        return result;
+    public RenderResult get(Map<String, Object> model, RenderResult into) {
+        return body.get(model, into);
     }
 }

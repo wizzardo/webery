@@ -22,12 +22,12 @@ public class FormatBoolean extends Tag implements RenderableString {
         Renderable falseString = getValueRenderable("false", attrs);
 
         append(offset);
-        append(model -> {
+        append((model, result) -> {
             Object value = raw.getRaw(model);
             if (AsBooleanExpression.toBoolean(value))
-                return trueString.get(model);
+                return trueString.get(model, result);
             else
-                return falseString.get(model);
+                return falseString.get(model, result);
         });
         append("\n");
         return this;

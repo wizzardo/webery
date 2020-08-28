@@ -23,6 +23,11 @@ public class BytesHolder implements Renderable {
     }
 
     @Override
+    public RenderResult get(Map<String, Object> model, RenderResult into) {
+        return into.append(bytes);
+    }
+
+    @Override
     public String toString() {
         return new String(bytes, StandardCharsets.UTF_8);
     }

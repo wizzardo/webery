@@ -17,9 +17,8 @@ public class Join extends Tag {
         ExpressionHolder<Collection> in = asExpression(attrs, "in", false, true);
         String delimiter = attrs.getOrDefault("delimiter", ", ");
 
-        add(model -> {
+        add((model, result) -> {
             Collection src = in.getRaw(model);
-            RenderResult result = new RenderResult();
             result.append(CollectionTools.join(src, delimiter));
             return result;
         });

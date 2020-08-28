@@ -22,8 +22,7 @@ public class CheckBox extends Tag {
 
         append(offset);
         append("<input type=\"checkbox\" name=\"");
-        append(model -> {
-            RenderResult result = new RenderResult();
+        append((model, result) -> {
             String nameString = String.valueOf(name.getRaw(model));
             result.append(nameString);
             if (id == null)
@@ -45,7 +44,7 @@ public class CheckBox extends Tag {
                 append(" checked=\"checked\"");
             else if (!ch.equalsIgnoreCase("false")) {
                 ExpressionHolder checked = asExpression(ch, true);
-                append((model) -> new RenderResult(AsBooleanExpression.toBoolean(checked.getRaw(model)) ? " checked=\"checked\"" : ""));
+                append((model, result) -> result.append(AsBooleanExpression.toBoolean(checked.getRaw(model)) ? " checked=\"checked\"" : ""));
             }
         }
 

@@ -31,6 +31,10 @@ public abstract class Renderer {
     }
 
     public ReadableData renderReadableData() {
-        return render(new ReadableBuilder());
+        RenderResult result = render();
+        //todo fix sizing in epoll-lib
+        ReadableBuilder builder = new ReadableBuilder(result.partsCount() + 1);
+        result.provideBytes(builder::append);
+        return builder;
     }
 }

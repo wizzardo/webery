@@ -49,7 +49,7 @@ public class Resource extends Tag implements RenderableString {
         RenderableList preparedAttrs = new RenderableList();
         prepareAttrs(attrs, preparedAttrs);
 
-        append(model -> {
+        append((model, result) -> {
             String f = String.valueOf(file.raw(model));
             StringBuilder path = new StringBuilder();
             if (dir == null)
@@ -73,25 +73,24 @@ public class Resource extends Tag implements RenderableString {
                 url = template.getRelativeUrl(p);
 
             if (isStatic)
-                return new RenderResult(url);
+                return result.append(url);
 
             if (f.endsWith(".js"))
-                return new RenderResult()
+                return result
                         .append("<script type=\"text/javascript\" src=\"")
                         .append(url)
                         .append("\"")
                         .append(preparedAttrs.get(model))
                         .append("></script>");
             else if (f.endsWith(".css"))
-                return new RenderResult()
+                return result
                         .append("<link rel=\"stylesheet\" href=\"")
                         .append(url)
                         .append("\"")
                         .append(preparedAttrs.get(model))
                         .append(">");
             else if (tag != null && urlAttr != null) {
-                RenderResult renderResult = new RenderResult();
-                renderResult
+                result
                         .append("<")
                         .append(tag.toString())
                         .append(preparedAttrs.get(model))
@@ -103,9 +102,9 @@ public class Resource extends Tag implements RenderableString {
                         .append(tag.toString())
                         .append(">")
                 ;
-                return renderResult;
+                return result;
             } else
-                return new RenderResult();
+                return result;
         });
 
         if (isStatic)

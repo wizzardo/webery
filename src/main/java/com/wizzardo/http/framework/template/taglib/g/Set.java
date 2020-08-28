@@ -16,9 +16,9 @@ public class Set extends Tag {
         String var = remove(attrs, "var");
 
         ExpressionHolder raw = asExpression(attrs, "value", false, true);
-        add(model -> {
+        add((model, result) -> {
             model.put(var, raw.getRaw(model));
-            return new RenderResult();
+            return result;
         });
         return this;
     }

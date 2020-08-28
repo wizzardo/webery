@@ -35,13 +35,12 @@ public class If extends Tag {
     }
 
     @Override
-    public RenderResult get(Map<String, Object> model) {
-        RenderResult result = new RenderResult();
+    public RenderResult get(Map<String, Object> model, RenderResult into) {
         if (AsBooleanExpression.toBoolean(exp.getRaw(model))) {
-            result.add(body.get(model));
+            body.get(model, into);
         } else if (elseTag != null) {
-            result.add(elseTag.get(model));
+            elseTag.get(model, into);
         }
-        return result;
+        return into;
     }
 }

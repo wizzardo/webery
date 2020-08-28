@@ -39,6 +39,11 @@ public class ExpressionHolder<T> implements Renderable {
         return new RenderResult(String.valueOf(getRaw(model)));
     }
 
+    @Override
+    public RenderResult get(Map<String, Object> model, RenderResult into) {
+        return into.append(String.valueOf(getRaw(model)));
+    }
+
     private static Pattern p = Pattern.compile("\\$\\{([^\\{\\}]+)\\}|\\$([^\\., -]+)|(\\[.+\\])");
 
     public T raw(Map<String, Object> model) {

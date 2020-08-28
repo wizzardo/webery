@@ -16,10 +16,9 @@ public class While extends Tag {
     public Tag init(Map<String, String> attrs, Body body, String offset) {
         ExpressionHolder<Collection> raw = asExpression(attrs, "test", false, true);
 
-        add(model -> {
-            RenderResult result = new RenderResult();
+        add((model, result) -> {
             while (AsBooleanExpression.toBoolean(raw.getRaw(model))) {
-                result.append(body.get(model));
+                body.get(model, result);
             }
             return result;
         });

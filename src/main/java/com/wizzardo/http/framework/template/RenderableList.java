@@ -13,12 +13,11 @@ public class RenderableList extends ArrayList<Renderable> implements Renderable 
     protected BytesHolder lastStatic;
 
     @Override
-    public RenderResult get(Map<String, Object> model) {
-        RenderResult result = new RenderResult();
+    public RenderResult get(Map<String, Object> model, RenderResult into) {
         for (Renderable renderable : this) {
-            result.append(renderable.get(model));
+            renderable.get(model, into);
         }
-        return result;
+        return into;
     }
 
     public RenderableList append(String s) {

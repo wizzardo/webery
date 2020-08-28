@@ -23,8 +23,7 @@ public class TextArea extends Tag {
 
         append(offset);
         append("<textarea name=\"");
-        append(model -> {
-            RenderResult result = new RenderResult();
+        append((model, result) -> {
             String nameString = String.valueOf(name.getRaw(model));
             result.append(nameString);
             if (id == null)

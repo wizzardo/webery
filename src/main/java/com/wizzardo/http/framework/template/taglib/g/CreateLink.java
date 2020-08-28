@@ -50,16 +50,16 @@ public class CreateLink extends Tag implements RenderableString {
             throw new IllegalStateException("can not find mapping for '" + mapping + "'");
 
         if (base != null) {
-            add(model -> new RenderResult(template.getUrl(asString(base, model), params.getRaw(model), asString(suffix, model))));
+            add((model, result) -> result.append(template.getUrl(asString(base, model), params.getRaw(model), asString(suffix, model))));
         } else if (absolute != null)
-            add(model -> {
+            add((model, result) -> {
                 if (AsBooleanExpression.toBoolean(absolute.getRaw(model)))
-                    return new RenderResult(template.getAbsoluteUrl(params.getRaw(model), asString(suffix, model)));
+                    return result.append(template.getAbsoluteUrl(params.getRaw(model), asString(suffix, model)));
                 else
-                    return new RenderResult(template.getRelativeUrl(params.getRaw(model), asString(suffix, model)));
+                    return result.append(template.getRelativeUrl(params.getRaw(model), asString(suffix, model)));
             });
         else
-            add(model -> new RenderResult(template.getRelativeUrl(params.getRaw(model), asString(suffix, model))));
+            add((model, result) -> result.append(template.getRelativeUrl(params.getRaw(model), asString(suffix, model))));
 
         if (fragment != null) {
             append("#").append(fragment);

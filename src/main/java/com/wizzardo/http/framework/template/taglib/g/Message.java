@@ -29,7 +29,7 @@ public class Message extends Tag {
         ExpressionHolder defaultMessage = asExpression(attrs, "default", true, false);
 
         append(offset);
-        append(model -> {
+        append((model, into) -> {
             String stringCode = String.valueOf(code.getRaw(model));
             List l = args != null ? args.getRaw(model) : Collections.EMPTY_LIST;
 
@@ -41,12 +41,12 @@ public class Message extends Tag {
 
             if (result == null) {
                 if (defaultMessage != null)
-                    return defaultMessage.get(model);
+                    return defaultMessage.get(model, into);
                 else
-                    return new RenderResult("null");
+                    return into.append("null");
             }
 
-            return new RenderResult(result);
+            return into.append(result);
         });
         append("\n");
         return this;

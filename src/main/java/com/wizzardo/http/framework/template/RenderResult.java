@@ -79,6 +79,20 @@ public class RenderResult {
         return size;
     }
 
+    public int partsCount() {
+        if (bytes != null)
+            return 1;
+
+        if (renders == null)
+            return 0;
+
+        int parts = 0;
+        for (RenderResult r : renders) {
+            parts += r.partsCount();
+        }
+        return parts;
+    }
+
     public void write(OutputStream out) throws IOException {
         if (bytes != null) {
             out.write(bytes);

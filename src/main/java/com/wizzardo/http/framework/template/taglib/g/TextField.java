@@ -19,8 +19,7 @@ public class TextField extends Tag {
 
         append(offset);
         append("<input type=\"").append(getType()).append("\" name=\"");
-        append(model -> {
-            RenderResult result = new RenderResult();
+        append((model, result) -> {
             String nameString = String.valueOf(name.getRaw(model));
             result.append(nameString);
             if (id == null)
