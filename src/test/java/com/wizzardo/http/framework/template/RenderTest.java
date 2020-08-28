@@ -131,19 +131,13 @@ public class RenderTest {
     @Test()
     public void test_ignore_comments() {
         String gsp = "<div>\n" +
-                "    before\n" +
-                "    %{--<p>text</p>--}%\n" +
-                "    after\n" +
+                "    before%{--<p>text</p>--}% after\n" +
                 "</div>";
 
         RenderableList renderable = new RenderableList();
         ViewRenderingService service = new ViewRenderingService();
         service.offset = "";
         service.prepare(new GspParser().parse(gsp).children(), renderable, "", "", false);
-        Assert.assertEquals("<div>\n" +
-                "    before\n" +
-                "    \n" +
-                "    after\n" +
-                "</div>", renderable.get(null).toString());
+        Assert.assertEquals("<div>before after</div>", renderable.get(null).toString());
     }
 }
