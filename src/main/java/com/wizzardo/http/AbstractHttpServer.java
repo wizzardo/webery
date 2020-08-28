@@ -27,6 +27,7 @@ public abstract class AbstractHttpServer<T extends HttpConnection> {
     protected String context;
     protected final EpollServer<T> server;
     protected HttpStringsCache httpStringsCache = new HttpStringsCache();
+    protected ReadableDirectByteBuffer serverName = new ReadableDirectByteBuffer(new ByteBufferWrapper("Server: wizzardo\r\n".getBytes()));
 
     protected MimeProvider mimeProvider;
 
@@ -135,6 +136,10 @@ public abstract class AbstractHttpServer<T extends HttpConnection> {
 
     public void setHostname(String hostname) {
         server.setHostname(hostname);
+    }
+
+    public void setServerName(String name) {
+        serverName = new ReadableDirectByteBuffer(new ByteBufferWrapper(("Server: " + name + "\r\n").getBytes()));
     }
 
     public void setPort(int port) {

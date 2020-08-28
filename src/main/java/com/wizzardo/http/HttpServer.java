@@ -23,7 +23,6 @@ public class HttpServer<T extends HttpConnection> extends AbstractHttpServer<T> 
             .setBody("It's alive!".getBytes())
             .buildStaticResponse();
 
-    protected ReadableDirectByteBuffer serverName = new ReadableDirectByteBuffer(new ByteBufferWrapper("Server: wizzardo\r\n".getBytes()));
     protected FiltersMapping filtersMapping;
     protected UrlMapping<Handler> urlMapping;
     protected ServerDate serverDate = new ServerDate();

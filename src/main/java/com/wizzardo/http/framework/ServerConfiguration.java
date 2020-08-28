@@ -7,6 +7,7 @@ import com.wizzardo.tools.evaluation.Config;
  */
 public class ServerConfiguration implements Configuration {
     public final String hostname;
+    public final String name;
     public final int port;
     public final String context;
     public final Session session;
@@ -24,8 +25,9 @@ public class ServerConfiguration implements Configuration {
     public final Multipart multipart;
     public final Renderer renderer;
 
-    public ServerConfiguration(String hostname, int port, String context, Session session, boolean debugOutput, int ioWorkersCount, int workersCount, long ttl, int postBodyLimit, int websocketFrameLengthLimit, int maxRequestsInQueue, boolean onlyCachedHeaders, SslConfig ssl, BasicAuth basicAuth, Resources resources, Multipart multipart, Renderer renderer) {
+    public ServerConfiguration(String hostname, String name, int port, String context, Session session, boolean debugOutput, int ioWorkersCount, int workersCount, long ttl, int postBodyLimit, int websocketFrameLengthLimit, int maxRequestsInQueue, boolean onlyCachedHeaders, SslConfig ssl, BasicAuth basicAuth, Resources resources, Multipart multipart, Renderer renderer) {
         this.hostname = hostname;
+        this.name = name;
         this.port = port;
         this.context = context;
         this.session = session;
@@ -45,7 +47,7 @@ public class ServerConfiguration implements Configuration {
     }
 
     public ServerConfiguration() {
-        this(null, -1, null, null, false, -1, -1, -1, -1, -1, -1, false, null, null, null, null, null);
+        this(null, null, -1, null, null, false, -1, -1, -1, -1, -1, -1, false, null, null, null, null, null);
     }
 
     public static class Session {

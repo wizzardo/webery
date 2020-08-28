@@ -198,6 +198,7 @@ public class WebApplication extends HttpServer<HttpConnection> {
         ServerConfiguration server = DependencyFactory.get(ServerConfiguration.class);
 
         super.setHostname(server.hostname);
+        super.setServerName(server.name);
         super.setPort(server.port);
         super.setDebugOutput(server.debugOutput);
         super.setPostBodyLimit(server.postBodyLimit);
@@ -325,6 +326,7 @@ public class WebApplication extends HttpServer<HttpConnection> {
         Config server = config.config("server");
 
         server.put("hostname", "0.0.0.0");
+        server.put("name", "wizzardo");
         server.put("port", 8080);
         server.put("debugOutput", false);
         server.put("postBodyLimit", 2 * 1024 * 1024);
@@ -480,6 +482,12 @@ public class WebApplication extends HttpServer<HttpConnection> {
     public void setHostname(String hostname) {
         super.setHostname(hostname);
         config.config("server").put("hostname", hostname);
+    }
+
+    @Override
+    public void setServerName(String name) {
+        super.setServerName(name);
+        config.config("server").put("name", name);
     }
 
     @Override
