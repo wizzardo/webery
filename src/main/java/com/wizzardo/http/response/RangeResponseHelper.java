@@ -6,7 +6,8 @@ import com.wizzardo.http.HttpDateFormatterHolder;
 import com.wizzardo.http.framework.ServerConfiguration;
 import com.wizzardo.http.request.Header;
 import com.wizzardo.http.request.Request;
-import com.wizzardo.tools.cache.MemoryLimitedCache;
+import com.wizzardo.tools.cache.Cache;
+import com.wizzardo.tools.cache.MemoryLimitedCacheWrapper;
 import com.wizzardo.tools.io.FileTools;
 import com.wizzardo.tools.misc.Unchecked;
 import com.wizzardo.tools.security.MD5;
@@ -30,7 +31,7 @@ public class RangeResponseHelper {
     protected static final boolean DEFAULT_CACHE_GZIP = true;
     protected static final String MAX_AGE_1_YEAR = "max-age=31556926";
 
-    protected MemoryLimitedCache<String, FileHolder> filesCache;
+    protected MemoryLimitedCacheWrapper<String, FileHolder> filesCache;
     protected final long maxCachedFileSize;
 
     public RangeResponseHelper() {
@@ -51,8 +52,8 @@ public class RangeResponseHelper {
         }
     }
 
-    protected MemoryLimitedCache<String, FileHolder> createFileHolderCache(long cacheMemoryLimit, long cacheTTL, boolean gzip) {
-        return new MemoryLimitedCache<>("resources", cacheMemoryLimit, cacheTTL, path -> createFileHolder(path, gzip));
+    protected MemoryLimitedCacheWrapper<String, FileHolder> createFileHolderCache(long cacheMemoryLimit, long cacheTTL, boolean gzip) {
+        return new MemoryLimitedCacheWrapper<>(new Cache<>("resources", cacheTTL, path -> createFileHolder(path, gzip)), cacheMemoryLimit);
     }
 
     protected FileHolder createFileHolder(String path, boolean gzip) throws IOException {
@@ -83,7 +84,7 @@ public class RangeResponseHelper {
         return new FileHolder(new ReadableByteBuffer(buffer), md5, lastModified, gzipped);
     }
 
-    public static class FileHolder implements MemoryLimitedCache.SizeProvider {
+    public static class FileHolder implements MemoryLimitedCacheWrapper.SizeProvider {
         public final ReadableByteBuffer buffer;
         public final String md5;
         public final String lastModified;
