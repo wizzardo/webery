@@ -1,9 +1,8 @@
 package com.wizzardo.http;
 
+import com.wizzardo.http.request.Request;
 import com.wizzardo.tools.cache.Cache;
-import com.wizzardo.tools.security.MD5;
 
-import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -13,12 +12,9 @@ import java.util.concurrent.ConcurrentHashMap;
 public class Session extends ConcurrentHashMap {
 
     private static volatile Cache<String, Session> cache;
-    private static Random random = new Random();
+    private static volatile SessionIdGenerator sessionIdGenerator = new MD5SessionIdGenerator();
 
     private String id;
-
-    private Session() {
-    }
 
     private Session(String id) {
         this.id = id;
@@ -32,15 +28,13 @@ public class Session extends ConcurrentHashMap {
         return cache.get(id, true);
     }
 
-    public static Session create() {
-        Session session = new Session();
-        String id;
-        do {
-            id = MD5.create().update(String.valueOf(random.nextInt(Integer.MAX_VALUE))).asString();
-        } while (!cache.putIfAbsent(id, session));
+    public static Session create(Request request) {
+        String id = sessionIdGenerator.generate(request);
+        return cache.get(id, Session::new);
+    }
 
-        session.id = id;
-        return session;
+    public static void setSessionIdGenerator(SessionIdGenerator sessionIdGenerator) {
+        Session.sessionIdGenerator = sessionIdGenerator;
     }
 
     public String getId() {

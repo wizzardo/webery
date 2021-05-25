@@ -297,7 +297,7 @@ public class Request<C extends HttpConnection, R extends Response> {
         if (session != null)
             return session;
 
-        session = Session.create();
+        session = Session.create(this);
         sessionId = session.getId();
 
         response().setCookie(new CookieBuilder("JSESSIONID", sessionId).path(path).maxAge(30 * 60).expires(System.currentTimeMillis() + 30 * 60 * 1000));
