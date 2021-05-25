@@ -26,7 +26,17 @@ public class ViewRenderingService implements Service, PostConstruct {
     protected boolean withNewline;
 
     static {
-        Function.setMethod(String.class, "encodeAsHTML", (it, model, args) -> HtmlTools.encodeAsHTML((String) it));
+        Function.setMethod(String.class, "encodeAsHTML", new Function.MethodInvoker() {
+            @Override
+            public Object map(Object instance, Object[] args) {
+                return HtmlTools.encodeAsHTML(String.valueOf(instance));
+            }
+
+            @Override
+            public boolean canInvoke(Object instance) {
+                return true;
+            }
+        });
     }
 
     @Override
