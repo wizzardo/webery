@@ -19,13 +19,14 @@ public class ServerConfiguration implements Configuration {
     public final int websocketFrameLengthLimit;
     public final int maxRequestsInQueue;
     public final boolean onlyCachedHeaders;
+    public final boolean webdavEnabled;
     public final SslConfig ssl;
     public final BasicAuth basicAuth;
     public final Resources resources;
     public final Multipart multipart;
     public final Renderer renderer;
 
-    public ServerConfiguration(String hostname, String name, int port, String context, Session session, boolean debugOutput, int ioWorkersCount, int workersCount, long ttl, int postBodyLimit, int websocketFrameLengthLimit, int maxRequestsInQueue, boolean onlyCachedHeaders, SslConfig ssl, BasicAuth basicAuth, Resources resources, Multipart multipart, Renderer renderer) {
+    public ServerConfiguration(String hostname, String name, int port, String context, Session session, boolean debugOutput, int ioWorkersCount, int workersCount, long ttl, int postBodyLimit, int websocketFrameLengthLimit, int maxRequestsInQueue, boolean onlyCachedHeaders, boolean webdavEnabled, SslConfig ssl, BasicAuth basicAuth, Resources resources, Multipart multipart, Renderer renderer) {
         this.hostname = hostname;
         this.name = name;
         this.port = port;
@@ -39,6 +40,7 @@ public class ServerConfiguration implements Configuration {
         this.websocketFrameLengthLimit = websocketFrameLengthLimit;
         this.maxRequestsInQueue = maxRequestsInQueue;
         this.onlyCachedHeaders = onlyCachedHeaders;
+        this.webdavEnabled = webdavEnabled;
         this.ssl = ssl;
         this.basicAuth = basicAuth;
         this.resources = resources;
@@ -47,7 +49,7 @@ public class ServerConfiguration implements Configuration {
     }
 
     public ServerConfiguration() {
-        this(null, null, -1, null, null, false, -1, -1, -1, -1, -1, -1, false, null, null, null, null, null);
+        this(null, null, -1, null, null, false, -1, -1, -1, -1, -1, -1, false, false, null, null, null, null, null);
     }
 
     public static class Session {

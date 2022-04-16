@@ -2,10 +2,8 @@ package com.wizzardo.http;
 
 import com.wizzardo.epoll.*;
 import com.wizzardo.http.request.*;
-import com.wizzardo.http.response.Status;
 
 import java.io.IOException;
-import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 import java.util.LinkedHashMap;
 import java.util.concurrent.BlockingQueue;
@@ -24,6 +22,7 @@ public abstract class AbstractHttpServer<T extends HttpConnection> {
     protected int websocketFrameLengthLimit = 64 * 1024;
     protected int maxRequestsInQueue = 1000;
     protected boolean onlyCachedHeaders = false;
+    protected boolean webdavEnabled = false;
     protected String context;
     protected final EpollServer<T> server;
     protected HttpStringsCache httpStringsCache = new HttpStringsCache();
@@ -117,7 +116,7 @@ public abstract class AbstractHttpServer<T extends HttpConnection> {
     }
 
     public RequestReader createRequestReader() {
-        RequestReader requestReader = new RequestReader(new LinkedHashMap<>(16), httpStringsCache.getTree(), new Parameters());
+        RequestReader requestReader = new RequestReader(new LinkedHashMap<>(16), httpStringsCache.getTree(), new Parameters(), this);
         requestReader.setOnlyCachedHeaders(onlyCachedHeaders);
         return requestReader;
     }
@@ -180,6 +179,14 @@ public abstract class AbstractHttpServer<T extends HttpConnection> {
 
     public void setWebsocketFrameLengthLimit(int websocketFrameLengthLimit) {
         this.websocketFrameLengthLimit = websocketFrameLengthLimit;
+    }
+
+    public boolean isWebdavEnabled() {
+        return webdavEnabled;
+    }
+
+    public void setWebdavEnabled(boolean webdavEnabled) {
+        this.webdavEnabled = webdavEnabled;
     }
 
     public boolean isOnlyCachedHeaders() {
@@ -309,5 +316,13 @@ public abstract class AbstractHttpServer<T extends HttpConnection> {
 
     protected MimeProvider createMimeProvider() {
         return new MimeProvider();
+    }
+
+    public boolean isAnyExtensionEnabled(Request.Extension[] extensions) {
+        for (Request.Extension extension : extensions) {
+            if (webdavEnabled && extension == Request.Extension.WEBDAV)
+                return true;
+        }
+        return false;
     }
 }

@@ -1,5 +1,6 @@
 package com.wizzardo.http.request;
 
+import com.wizzardo.http.AbstractHttpServer;
 import com.wizzardo.http.HttpException;
 import com.wizzardo.http.HttpHeadersReader;
 import com.wizzardo.http.MultiValue;
@@ -25,9 +26,11 @@ public class RequestReader extends HttpHeadersReader {
     protected PathHolder pathHolder = new PathHolder();
     protected String queryString;
     protected String protocol;
+    protected AbstractHttpServer server;
 
-    public RequestReader(Map<String, MultiValue<String>> headers, ByteTree cacheTree, Parameters parameters) {
+    public RequestReader(Map<String, MultiValue<String>> headers, ByteTree cacheTree, Parameters parameters, AbstractHttpServer server) {
         super(headers, cacheTree);
+        this.server = server;
         this.params = parameters != null ? parameters : new Parameters();
     }
 
@@ -44,15 +47,15 @@ public class RequestReader extends HttpHeadersReader {
     }
 
     public RequestReader() {
-        this(null, null, null);
+        this(null, null, null, null);
     }
 
     public RequestReader(Map<String, MultiValue<String>> headers) {
-        this(headers, null, null);
+        this(headers, null, null, null);
     }
 
     public RequestReader(Map<String, MultiValue<String>> headers, Parameters params) {
-        this(headers, null, params);
+        this(headers, null, params, null);
     }
 
     static class PathHolder {
@@ -80,7 +83,12 @@ public class RequestReader extends HttpHeadersReader {
         request.headers = headers;
         request.params = params;
         try {
-            request.method = Request.Method.valueOf(method);
+            Request.Method method = Request.Method.valueOf(this.method);
+            request.method = method;
+            if (method.extensions.length != 0) {
+                if(server.isAnyExtensionEnabled(method.extensions))
+                    throw new HttpException(new IllegalArgumentException(),Status._501);
+            }
         } catch (IllegalArgumentException | NullPointerException e) {
             throw new HttpException(e, Status._501);
         }

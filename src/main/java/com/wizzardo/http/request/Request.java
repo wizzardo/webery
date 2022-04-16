@@ -39,8 +39,21 @@ public class Request<C extends HttpConnection, R extends Response> {
 
     protected RequestBody body;
 
-    public static enum Method {
-        GET, PUT, POST, DELETE, HEAD, TRACE, OPTIONS, CONNECT, PATCH
+    public enum Method {
+        GET, PUT, POST, DELETE, HEAD, TRACE, OPTIONS, CONNECT, PATCH,
+
+        COPY(Extension.WEBDAV), LOCK(Extension.WEBDAV), MKCOL(Extension.WEBDAV), MOVE(Extension.WEBDAV),
+        PROPFIND(Extension.WEBDAV), PROPPATCH(Extension.WEBDAV), UNLOCK(Extension.WEBDAV);
+
+        final Extension[] extensions;
+
+        Method(Extension... extension) {
+            this.extensions = extension;
+        }
+    }
+
+    public enum Extension {
+        WEBDAV
     }
 
     public enum State {

@@ -55,6 +55,11 @@ public enum Status {
     _206(206, "Partial Content"),
 
     /**
+     * Multi-Status
+     */
+    _207(207, "Multi-Status"),
+
+    /**
      * Multiple Choices
      */
     _300(300, "Multiple Choices"),
@@ -276,6 +281,8 @@ public enum Status {
                 return _205;
             case 206:
                 return _206;
+            case 207:
+                return _207;
             case 300:
                 return _300;
             case 301:
