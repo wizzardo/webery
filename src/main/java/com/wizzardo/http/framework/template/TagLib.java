@@ -41,7 +41,7 @@ public class TagLib {
     static class TagFunction extends UserFunction {
 
         public TagFunction(String name, Class<? extends RenderableString> aClass) {
-            super(name, new Expression() {
+            super(name, new Expression(null, 1,1) {
                 @Override
                 public void setVariable(Variable v) {
                 }
@@ -52,7 +52,7 @@ public class TagLib {
                 }
 
                 @Override
-                public Object get(Map<String, Object> model) {
+                public Object doExecute(Map<String, Object> model) {
                     return Unchecked.call(() -> aClass.newInstance().render((Map<String, Object>) model.get("attrs")));
                 }
             }, "attrs");

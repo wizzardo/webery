@@ -36,17 +36,40 @@ public class ReadableDirectByteBuffer extends ReadableData {
     @Override
     public int read(ByteBuffer bb) {
         int r = Math.min(bb.remaining(), end - position);
-        EpollCore.arraycopy(buffer.buffer(), position, bb, bb.position(), r);
+        if (EpollCore.SUPPORTED) {
+            EpollCore.arraycopy(buffer.buffer(), position, bb, bb.position(), r);
+            bb.position(r + bb.position());
+        } else {
+            ByteBuffer buffer = this.buffer.buffer();
+            int position = buffer.position();
+            int limit = buffer.limit();
+            buffer.position(this.position);
+            buffer.limit(this.position + r);
+            bb.put(buffer);
+            buffer.position(position);
+            buffer.limit(limit);
+        }
 
-        bb.position(r + bb.position());
         position += r;
         return r;
     }
 
     public int read(ByteBufferWrapper bb) {
         int r = Math.min(bb.remaining(), end - position);
-        EpollCore.copy(buffer, position, bb, bb.position(), r);
-        bb.position(r + bb.buffer().position());
+
+        if (EpollCore.SUPPORTED) {
+            EpollCore.copy(buffer, position, bb, bb.position(), r);
+            bb.position(r + bb.buffer().position());
+        } else {
+            ByteBuffer buffer = this.buffer.buffer();
+            int position = buffer.position();
+            int limit = buffer.limit();
+            buffer.position(this.position);
+            buffer.limit(this.position + r);
+            bb.buffer().put(buffer);
+            buffer.position(position);
+            buffer.limit(limit);
+        }
         position += r;
         return r;
     }

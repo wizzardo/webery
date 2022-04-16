@@ -299,6 +299,9 @@ public class ParametersHelper {
                     }, arr -> Arrays.copyOf(arr, arr.length)) {
                         @Override
                         public byte[] map(Request request) {
+                            if (request.getBody() != null) {
+                                return request.getBody().bytes();
+                            }
                             if (request.isMultipart()) {
                                 MultiPartEntry entry = request.entry(name);
                                 if (entry != null)

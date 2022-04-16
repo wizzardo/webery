@@ -33,6 +33,9 @@ public class TokenFilter implements AuthFilter {
 
     @Override
     public boolean filter(Request request, Response response) {
+        if (request.method() == Request.Method.OPTIONS)
+            return true;
+
         String token;
         byte[] data;
         try {

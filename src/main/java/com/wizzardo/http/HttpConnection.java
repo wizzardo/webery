@@ -150,9 +150,8 @@ public class HttpConnection<H extends AbstractHttpServer, Q extends Request, S e
 //                getInputStream();
                 return true;
             }
-            buffer.position(buffer.position() + request.getBody().read(buffer.bytes(), buffer.position(), buffer.remains()));
             request.setState(Request.State.READING_BODY);
-            return request.isReady(request.getBody().isReady());
+            return handleData(buffer);
         }
         return true;
     }
@@ -160,6 +159,8 @@ public class HttpConnection<H extends AbstractHttpServer, Q extends Request, S e
     protected boolean handleData(Buffer buffer) {
         if (buffer.hasRemaining()) {
             buffer.position(buffer.position() + request.getBody().read(buffer.bytes(), buffer.position(), buffer.remains()));
+            if (!buffer.hasRemaining())
+                buffer.clear();
         }
         return request.isReady(request.getBody().isReady());
     }
