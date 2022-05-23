@@ -28,6 +28,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class FallbackServerSocketTest {
     private FieldReflection epollSupportedField;
+    private boolean epollSupport = EpollCore.SUPPORTED;
 
     {
         try {
@@ -50,7 +51,7 @@ public class FallbackServerSocketTest {
 
     @After
     public void shutdown() {
-        epollSupportedField.setBoolean(null, true);
+        epollSupportedField.setBoolean(null, epollSupport);
     }
 
 
