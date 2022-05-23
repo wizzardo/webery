@@ -3,6 +3,7 @@ package com.wizzardo.http;
 import com.wizzardo.http.request.Header;
 import com.wizzardo.http.request.Request;
 import com.wizzardo.http.response.Response;
+import com.wizzardo.tools.evaluation.CallStack;
 import com.wizzardo.tools.http.HttpClient;
 import com.wizzardo.tools.http.HttpSession;
 import com.wizzardo.tools.io.IOTools;
@@ -188,6 +189,12 @@ public class ServerTest<S extends HttpServer> {
             runnable.run();
             b = true;
         } catch (Exception e) {
+            if (e.getCause() != null) {
+                Throwable cause = e.getCause();
+                Assert.assertEquals(exceptionClass, cause.getClass());
+                Assert.assertEquals(message, cause.getMessage());
+                return;
+            }
             Assert.assertEquals(exceptionClass, e.getClass());
             Assert.assertEquals(message, e.getMessage());
         }
