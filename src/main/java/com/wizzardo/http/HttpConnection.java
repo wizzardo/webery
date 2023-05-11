@@ -204,13 +204,13 @@ public class HttpConnection<H extends AbstractHttpServer, Q extends Request, S e
 
     public void flush(ByteBufferProvider provider) {
         ByteBufferWrapper buffer = provider.getBuffer();
-        if (buffer.position() == 0) {
-            if (!sending.isEmpty())
-                write(provider);
-            return;
-        }
-
         try {
+            if (buffer.position() == 0) {
+                if (!sending.isEmpty())
+                    write(provider);
+                return;
+            }
+
             int w = write(buffer, 0, buffer.position());
 
             ByteBuffer bb = buffer.buffer();

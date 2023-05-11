@@ -511,7 +511,7 @@ public class Response {
 //            System.out.println("commits: " + (++commits) + "\tdata:" + buffer.position());
             if (builderProxy.length() > 0) {
                 connection.flush(byteBufferProvider);
-                if (EpollCore.SUPPORTED && !connection.hasDataToWrite() && builderProxy.length() <= buffer.capacity()) {
+                if (EpollCore.SUPPORTED && !connection.hasDataToWrite() && builderProxy.length() <= buffer.remaining()) {
                     do {
                         builderProxy.read(buffer);
                     } while (builderProxy.remains() > 0);
