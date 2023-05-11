@@ -25,7 +25,7 @@ public class RestHandlerTest extends ServerTest {
         ;
 
         Assert.assertEquals("post", makeRequest("/rest").post().asString());
-        Assert.assertEquals("put", makeRequest("/rest").method(ConnectionMethod.PUT).execute().asString());
+        Assert.assertEquals("put", makeRequest("/rest").method(ConnectionMethod.HTTPMethod.PUT).execute().asString());
         Assert.assertEquals(405, makeRequest("/rest").get().getResponseCode());
         Assert.assertEquals("POST, PUT, OPTIONS", makeRequest("/rest").get().header("Allow"));
         Assert.assertEquals("POST, PUT, OPTIONS", makeRequest("/rest").options().header("Allow"));
@@ -44,7 +44,7 @@ public class RestHandlerTest extends ServerTest {
         ;
 
         Assert.assertEquals("get", makeRequest("/rest").get().asString());
-        Assert.assertEquals("delete", makeRequest("/rest").method(ConnectionMethod.DELETE).execute().asString());
+        Assert.assertEquals("delete", makeRequest("/rest").method(ConnectionMethod.HTTPMethod.DELETE).execute().asString());
         Assert.assertEquals(405, makeRequest("/rest").post().getResponseCode());
         Assert.assertEquals("GET, HEAD, DELETE, OPTIONS", makeRequest("/rest").post().header("Allow"));
     }
@@ -58,7 +58,7 @@ public class RestHandlerTest extends ServerTest {
         Assert.assertEquals(405, makeRequest("/rest").get().getResponseCode());
         Assert.assertEquals("OPTIONS", makeRequest("/rest").get().header("Allow"));
 
-        Assert.assertEquals(405, makeRequest("/rest").method(ConnectionMethod.HEAD).execute().getResponseCode());
+        Assert.assertEquals(405, makeRequest("/rest").method(ConnectionMethod.HTTPMethod.HEAD).execute().getResponseCode());
     }
 
 }

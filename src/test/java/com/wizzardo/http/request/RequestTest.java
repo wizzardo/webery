@@ -113,9 +113,9 @@ public class RequestTest extends ServerTest {
         System.out.println("post");
         Assert.assertEquals("POST", makeRequest("/").post().asString());
         System.out.println("put");
-        Assert.assertEquals("PUT", makeRequest("/").method(ConnectionMethod.PUT).execute().asString());
+        Assert.assertEquals("PUT", makeRequest("/").method(ConnectionMethod.HTTPMethod.PUT).execute().asString());
         System.out.println("delete");
-        Assert.assertEquals("DELETE", makeRequest("/").method(ConnectionMethod.DELETE).execute().asString());
+        Assert.assertEquals("DELETE", makeRequest("/").method(ConnectionMethod.HTTPMethod.DELETE).execute().asString());
     }
 
     @Test
@@ -316,7 +316,7 @@ public class RequestTest extends ServerTest {
     public void testHead() throws IOException {
         handler = (request, response) -> response.setBody("response");
 
-        com.wizzardo.tools.http.Response response = makeRequest("/").setMethod(ConnectionMethod.HEAD).execute();
+        com.wizzardo.tools.http.Response response = makeRequest("/").setMethod(ConnectionMethod.HTTPMethod.HEAD).execute();
         Assert.assertEquals(200, response.getResponseCode());
         Assert.assertEquals("8", response.header("Content-Length"));
         Assert.assertEquals("", response.asString());
