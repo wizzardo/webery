@@ -19,6 +19,7 @@ public class UrlMappingTest extends ServerTest {
         handler = new UrlHandler()
                 .append("/action1", (request, response) -> response.setBody("action1"))
                 .append("/action2", (request, response) -> response.setBody("action2"))
+                .append("/$action/$sub", (request, response) -> response.setBody(request.param("action")+" "+request.param("sub")))
                 .append("/$action/1", (request, response) -> response.setBody(request.param("action")))
                 .append("/2/$action?", (request, response) -> response.setBody(request.paramWithDefault("action", "default")))
                 .append("/3/$action?/${id}?", (request, response) ->
@@ -31,6 +32,7 @@ public class UrlMappingTest extends ServerTest {
         Assert.assertEquals("action1", makeRequest("/action1").get().asString());
         Assert.assertEquals("action2", makeRequest("/action2").get().asString());
         Assert.assertEquals("action5", makeRequest("/action5/1").get().asString());
+        Assert.assertEquals("foo bar", makeRequest("/foo/bar").get().asString());
         Assert.assertEquals("action6", makeRequest("/2/action6").get().asString());
         Assert.assertEquals("default", makeRequest("/2").get().asString());
         Assert.assertEquals("ololo+123", makeRequest("/3/ololo/123").get().asString());

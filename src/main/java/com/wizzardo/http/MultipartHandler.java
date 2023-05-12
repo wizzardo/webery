@@ -1,7 +1,6 @@
 package com.wizzardo.http;
 
 import com.wizzardo.epoll.ByteBufferProvider;
-import com.wizzardo.epoll.Connection;
 import com.wizzardo.epoll.ReadListener;
 import com.wizzardo.http.request.*;
 import com.wizzardo.http.response.Response;
@@ -163,15 +162,17 @@ public class MultipartHandler implements Handler {
             try {
                 if (end) {
                     if (entry != null) {
-                        if (r != 0)
+                        if (r != 0) {
                             if (r == 1) {
-                                if (lastBytes == 2)
+                                if (lastBytes == 2) {
                                     out.write(last, 0, 1);
+                                }
                             } else {
-                                out.write(last);
+                                if (lastBytes > 0)
+                                    out.write(last, 0, lastBytes);
                                 out.write(b, offset, r - 2);
                             }
-
+                        }
                         out.close();
                         entrySetter.set(entry);
                         reset();

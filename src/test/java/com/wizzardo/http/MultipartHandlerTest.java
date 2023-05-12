@@ -7,6 +7,8 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -115,39 +117,45 @@ public class MultipartHandlerTest extends ServerTest {
 
         String boundary = "------WebKitFormBoundaryrmfuIZ7BtpVXhNbQ";
         byte[] data = request.getBytes();
+        for (int step = 1; step < data.length; step++) {
+            String errorMessage = "failed at step: " + step;
 
-        AtomicInteger counter = new AtomicInteger();
-        BlockReader br = new BlockReader(boundary.getBytes(), new MultipartHandler.MultipartConsumer(entry -> {
-            switch (counter.get()) {
-                case 0: {
-                    Assert.assertEquals("url", entry.name());
-                    Assert.assertEquals("", entry.asString());
-                    break;
+            AtomicInteger counter = new AtomicInteger();
+            BlockReader br = new BlockReader(boundary.getBytes(), new MultipartHandler.MultipartConsumer(entry -> {
+                switch (counter.get()) {
+                    case 0: {
+                        Assert.assertEquals(errorMessage, "url", entry.name());
+                        Assert.assertEquals(errorMessage, "", entry.asString());
+                        break;
+                    }
+                    case 1: {
+                        Assert.assertEquals(errorMessage, "fileName", entry.name());
+                        Assert.assertEquals(errorMessage, "", entry.asString());
+                        break;
+                    }
+                    case 2: {
+                        Assert.assertEquals(errorMessage, "file", entry.name());
+                        Assert.assertEquals(errorMessage, "", entry.fileName());
+                        Assert.assertEquals(errorMessage, "", entry.asString());
+                        break;
+                    }
+                    case 3: {
+                        Assert.assertEquals(errorMessage, "autostart", entry.name());
+                        Assert.assertEquals(errorMessage, "on", entry.asString());
+                        break;
+                    }
+                    default:
+                        Assert.assertTrue(false);
                 }
-                case 1: {
-                    Assert.assertEquals("fileName", entry.name());
-                    Assert.assertEquals("", entry.asString());
-                    break;
-                }
-                case 2: {
-                    Assert.assertEquals("file", entry.name());
-                    Assert.assertEquals("", entry.fileName());
-                    Assert.assertEquals("", entry.asString());
-                    break;
-                }
-                case 3: {
-                    Assert.assertEquals("autostart", entry.name());
-                    Assert.assertEquals("on", entry.asString());
-                    break;
-                }
-                default:
-                    Assert.assertTrue(false);
+                counter.incrementAndGet();
+            }));
+            for (int i = 0; i < data.length; i += step) {
+                br.process(data, i, Math.min(data.length - i, step));
             }
-            counter.incrementAndGet();
-        }));
-        br.process(data);
 
-        Assert.assertEquals(4, counter.get());
+            Assert.assertEquals(4, counter.get());
+        }
+
     }
 
     @Test
@@ -215,6 +223,8 @@ public class MultipartHandlerTest extends ServerTest {
         handler = new MultipartHandler((request, response) -> {
             String foo = request.entry("foo").asString();
             String bar = request.entry("bar").asString();
+//            System.out.println("request.foo: |" + foo + "| " + Arrays.toString(foo.getBytes(StandardCharsets.UTF_8)));
+//            System.out.println("request.bar: |" + bar + "| " + Arrays.toString(bar.getBytes(StandardCharsets.UTF_8)));
             String fileMD5 = MD5.create().update(request.entry("file").asBytes()).asString();
             return response.setBody(foo + "-" + bar + "-" + fileMD5);
         });
@@ -230,7 +240,11 @@ public class MultipartHandlerTest extends ServerTest {
                     .execute();
 
             Assert.assertEquals(200, response.getResponseCode());
-            Assert.assertEquals("foo-bar-" + MD5.create().update(data).asString(), response.asString());
+            String expected = "foo-bar-" + MD5.create().update(data).asString();
+            String actual = response.asString();
+//            System.out.println("expected: |" + expected + "|" + Arrays.toString(expected.getBytes(StandardCharsets.UTF_8)));
+//            System.out.println("actual:   |" + actual + "|" + Arrays.toString(actual.getBytes(StandardCharsets.UTF_8)));
+            Assert.assertEquals(expected, actual);
         }
     }
 

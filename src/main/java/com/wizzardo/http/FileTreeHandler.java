@@ -12,6 +12,7 @@ import com.wizzardo.tools.misc.DateIso8601;
 import com.wizzardo.tools.misc.Unchecked;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.util.Arrays;
@@ -39,6 +40,16 @@ public class FileTreeHandler<T extends FileTreeHandler.HandlerContext> implement
     protected boolean showFolder = true;
     protected final String name;
     protected RangeResponseHelper rangeResponseHelper = new RangeResponseHelper();
+
+    protected Handler notFoundHandler = (request, response) ->
+            response.setStatus(Status._404)
+                    .appendHeader(Header.KV_CONTENT_TYPE_TEXT_PLAIN)
+                    .setBody(request.path() + " not found");
+
+    protected Handler forbiddenHandler = (request, response) ->
+            response.setStatus(Status._403)
+                    .appendHeader(Header.KV_CONTENT_TYPE_TEXT_PLAIN)
+                    .setBody(request.path() + " is forbidden");
 
     public FileTreeHandler(File workDir, String prefix) {
         this(workDir, prefix, null);
@@ -91,7 +102,7 @@ public class FileTreeHandler<T extends FileTreeHandler.HandlerContext> implement
     }
 
     @Override
-    public Response handle(Request request, Response response) {
+    public Response handle(Request request, Response response) throws IOException {
         Path p = request.path();
         if (request.context() != null)
             p = p.subPath(1);
@@ -108,16 +119,16 @@ public class FileTreeHandler<T extends FileTreeHandler.HandlerContext> implement
         String canonicalPath = getCanonicalPath(file);
 
         if (!canonicalPath.startsWith(workDirPath))
-            return response.setStatus(Status._403).setBody(path + " is forbidden");
+            return forbiddenHandler.handle(request, response);
 
         if (!file.exists())
-            return response.setStatus(Status._404).setBody(path + " not found");
+            return notFoundHandler.handle(request, response);
 
         if (!file.canRead())
-            return response.setStatus(Status._403).setBody(path + " is forbidden");
+            return forbiddenHandler.handle(request, response);
 
         if (file.isDirectory())
-            return handleDirectory(request, response, path, file);
+            return handleDirectory(request, response, file);
         else
             return handleFile(request, response, file);
     }
@@ -126,11 +137,11 @@ public class FileTreeHandler<T extends FileTreeHandler.HandlerContext> implement
         return rangeResponseHelper.makeRangeResponse(request, response, file);
     }
 
-    protected Response handleDirectory(Request request, Response response, String path, File file) {
+    protected Response handleDirectory(Request request, Response response, File file) throws IOException {
         if (showFolder)
             return response.appendHeader(Header.KV_CONTENT_TYPE_HTML_UTF8).setBody(renderDirectory(request, file));
         else
-            return response.setStatus(Status._403).setBody(path + " is forbidden");
+            return forbiddenHandler.handle(request, response);
     }
 
     public FileTreeHandler<T> setShowFolder(boolean showFolder) {
@@ -275,5 +286,23 @@ public class FileTreeHandler<T extends FileTreeHandler.HandlerContext> implement
             return l / SIZE_KB + "K";
 
         return String.valueOf(l);
+    }
+
+    public FileTreeHandler<T> notFoundHandler(Handler notFoundHandler) {
+        this.notFoundHandler = notFoundHandler;
+        return this;
+    }
+
+    public Handler notFoundHandler() {
+        return notFoundHandler;
+    }
+
+    public FileTreeHandler<T> forbiddenHandler(Handler forbiddenHandler) {
+        this.forbiddenHandler = forbiddenHandler;
+        return this;
+    }
+
+    public Handler forbiddenHandler() {
+        return forbiddenHandler;
     }
 }

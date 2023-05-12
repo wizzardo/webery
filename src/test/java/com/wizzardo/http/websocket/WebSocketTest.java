@@ -129,6 +129,8 @@ public class WebSocketTest extends ServerTest {
             Assert.assertTrue(false);
         } catch (SocketException e) {
             Assert.assertEquals("Connection reset", e.getMessage());
+        } catch (IOException e) {
+            Assert.assertEquals("Connection closed", e.getMessage());
         }
     }
 

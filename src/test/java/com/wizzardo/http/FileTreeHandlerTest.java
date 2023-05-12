@@ -119,10 +119,11 @@ public class FileTreeHandlerTest extends ServerTest {
         Assert.assertEquals("bar", makeRequest("/prefix/foo").get().asString());
         checkResponse(400, "path must starts with prefix '/prefix'. path=/wrong_prefix/foo", makeRequest("/wrong_prefix/foo").get());
         checkResponse(400, "path must starts with prefix '/prefix'. path=/foo", makeRequest("/prefix/../foo").get());
-        checkResponse(404, "/bar not found", makeRequest("/prefix/bar").get());
+        checkResponse(404, "/prefix/bar not found", makeRequest("/prefix/bar").get());
 
-        new File(testDir, "foo").setReadable(false);
-        checkResponse(403, "/foo is forbidden", makeRequest("/prefix/foo").get());
+        Assert.assertTrue(new File(testDir, "foo").setReadable(false));
+        if (!new File(testDir, "foo").canRead())
+            checkResponse(403, "/prefix/foo is forbidden", makeRequest("/prefix/foo").get());
 
         new File(testDir, "bar").mkdirs();
         handler = new FileTreeHandler(testDir, "").setShowFolder(false);

@@ -43,7 +43,7 @@ public class BlockReader {
                     process(bytes, offset, length);
                 } else {
                     consumer.consume(false, buffer, 0, buffered);
-                    consumer.consume(true, bytes, offset, start - buffered);
+                    consumer.consume(true, bytes, offset, start - buffered - offset);
 
                     length -= sl + start - offset - buffered;
                     offset = sl + start - buffered;
