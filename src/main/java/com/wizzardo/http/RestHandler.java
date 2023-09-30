@@ -22,13 +22,20 @@ public class RestHandler implements Handler {
     protected Handler post;
     protected Handler put;
     protected Handler delete;
-    protected final Handler options = (request, response) -> response.appendHeader(Header.KEY_CONTENT_LENGTH, String.valueOf(0));
 
     private byte[] allow;
     private byte[] accessControlAllowMethods;
     private byte[] allowHeaders = "Access-Control-Allow-Headers: *\r\n".getBytes();
     private byte[] allowCredentials = "Access-Control-Allow-Credentials: true\r\n".getBytes();
     private byte[] maxAge = "Access-Control-Max-Age: 1800\r\n".getBytes();
+
+    protected final Handler options = (request, response) -> {
+        String requestHeaders = request.header(Header.KEY_ACCESS_CONTROL_REQUEST_HEADERS);
+        if (requestHeaders != null && allowHeaders[allowHeaders.length - 3] == '*') {
+            response.appendHeader(Header.KEY_ACCESS_CONTROL_ALLOW_HEADERS, requestHeaders);
+        }
+        return response.appendHeader(Header.KEY_CONTENT_LENGTH, String.valueOf(0));
+    };
 
     public RestHandler() {
         this(null);
@@ -88,10 +95,11 @@ public class RestHandler implements Handler {
     }
 
     protected Response provideAllowHeader(Request request, Response response) {
+        if (request.header(Header.KEY_ACCESS_CONTROL_REQUEST_HEADERS) == null || allowHeaders[allowHeaders.length - 3] != '*')
+            response.appendHeader(allowHeaders);
         return response
                 .appendHeader(allowCredentials)
-                .appendHeader(allowHeaders)
-                .appendHeader("Access-Control-Allow-Origin", request.header(Header.KEY_ORIGIN, "*"))
+                .appendHeader(Header.KEY_ACCESS_CONTROL_ALLOW_ORIGIN, request.header(Header.KEY_ORIGIN, "*"))
                 .appendHeader(maxAge)
                 .appendHeader(accessControlAllowMethods)
                 .appendHeader(allow);

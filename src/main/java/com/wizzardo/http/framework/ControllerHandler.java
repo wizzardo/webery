@@ -84,7 +84,7 @@ public class ControllerHandler<T extends Controller> implements Handler {
 
     @Override
     public Response handle(Request request, Response response) throws IOException {
-        if (restHandler != null && restHandler.handle(request, response).status() != Status._200)
+        if (restHandler != null && (restHandler.handle(request, response).status() != Status._200 || request.method() == Request.Method.OPTIONS))
             return response;
 
         if (restHandler == null && request.method() == Request.Method.OPTIONS) {
