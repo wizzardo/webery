@@ -132,8 +132,8 @@ public class Response {
 
         byte[] bytes = new byte[(int) body.length()];
         ByteBuffer bb = ByteBuffer.wrap(bytes);
-        body.read(bb);
-        body.unread(bytes.length);
+        int r = body.read(bb);
+        body.unread(r);
         return bytes;
     }
 
@@ -577,8 +577,8 @@ public class Response {
         if (body != null) {
             byte[] bytes = new byte[(int) Math.min(body.length(), 1024l)];
             ByteBuffer bb = ByteBuffer.wrap(bytes);
-            body.read(bb);
-            body.unread(bytes.length);
+            int readFromBody = body.read(bb);
+            body.unread(readFromBody);
             sb.append(new String(bytes));
             if (bytes.length < body.length())
                 sb.append("...");

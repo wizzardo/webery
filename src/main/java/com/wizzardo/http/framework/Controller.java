@@ -76,6 +76,10 @@ public abstract class Controller {
     }
 
     public Renderer renderJson(Object o) {
+        if (o == null) {
+            response.setStatus(Status._404);
+            return null;
+        }
         response.appendHeader(Header.KV_CONTENT_TYPE_APPLICATION_JSON);
         return new ReadableDataRenderer(JsonResponseHelper.renderJson(o));
     }

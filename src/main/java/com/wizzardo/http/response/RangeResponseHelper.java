@@ -185,11 +185,11 @@ public class RangeResponseHelper {
     }
 
     public static class Range {
-        final long from;
-        final long to;
-        final long total;
+        public final long from;
+        public final long to;
+        public final long total;
 
-        private Range(long from, long to, long total) {
+        public Range(long from, long to, long total) {
             this.from = from;
             this.to = to;
             this.total = total;

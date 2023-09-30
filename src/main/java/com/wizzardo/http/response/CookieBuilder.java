@@ -51,6 +51,18 @@ public class CookieBuilder {
         return this;
     }
 
+    public enum SameSite {
+        Lax, None, Strict
+    }
+
+    public CookieBuilder sameSite(SameSite value) {
+        if (value == null)
+            throw new NullPointerException("SameSite value should not be null");
+
+        sb.append(";SameSite=").append(value);
+        return this;
+    }
+
     public String build() {
         return sb.toString();
     }

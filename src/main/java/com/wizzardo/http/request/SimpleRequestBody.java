@@ -44,4 +44,13 @@ public class SimpleRequestBody implements RequestBody {
     public int length() {
         return bytes.length;
     }
+
+    @Override
+    public String toString() {
+        return "SimpleRequestBody{" +
+                "length=" + length() +
+                ", isReady=" + isReady() +
+                ", position=" + position +
+                '}';
+    }
 }

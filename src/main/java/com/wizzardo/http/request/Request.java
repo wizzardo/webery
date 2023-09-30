@@ -157,6 +157,8 @@ public class Request<C extends HttpConnection, R extends Response> {
     }
 
     public String header(String key, String def) {
+        if (headers == null)
+            return def;
         MultiValue<String> value = headers.get(key);
         return value == null ? def : value.getValue();
     }

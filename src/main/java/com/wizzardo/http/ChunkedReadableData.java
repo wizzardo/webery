@@ -21,12 +21,13 @@ public class ChunkedReadableData extends ReadableBuilder implements BytesConsume
 
     @Override
     public void consume(byte[] bytes, int offset, int length) {
-        if (length == 0)
+        if (length <= 0)
             last = true;
 
-        append(Integer.toHexString(length).getBytes(StandardCharsets.UTF_8));
+        int toAppend = Math.max(length, 0);
+        append(Integer.toHexString(toAppend).getBytes(StandardCharsets.UTF_8));
         append(RN);
-        append(bytes, offset, length);
+        append(bytes, offset, toAppend);
         append(RN);
     }
 
