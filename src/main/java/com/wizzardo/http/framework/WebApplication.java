@@ -372,7 +372,42 @@ public class WebApplication extends HttpServer<HttpConnection> {
     }
 
     protected void loadEnvironmentVariables(Config config) {
-        System.getenv().forEach(config::put);
+        outer:
+        for (Map.Entry<String, String> entry : System.getenv().entrySet()) {
+            String key = entry.getKey();
+            String value = entry.getValue();
+            config.put(key, value);
+
+            String[] keys = key.split("_");
+            if (keys.length == 0)
+                continue;
+
+            Config subConfig = config;
+            int last = keys.length - 1;
+            int i = 0;
+            try {
+                for (; i < last; i++) {
+                    String part = keys[i];
+                    Optional<String> k = subConfig.keySet().stream().filter(it -> it.equalsIgnoreCase(part)).findFirst();
+                    if (!k.isPresent())
+                        continue outer;
+
+                    subConfig = subConfig.config(k.get());
+                }
+
+                Optional<String> k = subConfig.keySet().stream().filter(it -> it.equalsIgnoreCase(keys[last])).findFirst();
+                if (!k.isPresent())
+                    continue;
+                subConfig.put(k.get(), value);
+            } catch (ClassCastException e) {
+                String k = "";
+                for (int j = 0; j < i; j++) {
+                    k += keys[j] + ".";
+                }
+                k += keys[i];
+                System.out.println("WARNING! cannot overwrite config value " + k + "=" + subConfig.get(keys[i]) + " with new config " + key + "=" + value);
+            }
+        }
     }
 
     protected void loadSystemProperties(Config config) {
