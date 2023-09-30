@@ -40,11 +40,12 @@ task codeCoverageReport(type: JacocoReport) {
 }
 
 dependencies {
-    compile 'com.wizzardo:epoll:0.3.5-SNAPSHOT'
-    compile 'com.wizzardo:epoll:0.3.5-SNAPSHOT:natives-x64'
-    compile 'com.wizzardo:epoll:0.3.5-SNAPSHOT:natives-x32'
-    compile 'com.wizzardo:epoll:0.3.5-SNAPSHOT:natives-aarch64'
+//    compile files('epoll-0.3.5-SNAPSHOT.jar')
     compile 'com.wizzardo.tools:tools:0.24-SNAPSHOT'
+    compile 'com.wizzardo:epoll:0.3.5-SNAPSHOT'
+//    compile 'com.wizzardo:epoll:0.3.5-SNAPSHOT:natives-x64'
+//    compile 'com.wizzardo:epoll:0.3.5-SNAPSHOT:natives-x32'
+//    compile 'com.wizzardo:epoll:0.3.5-SNAPSHOT:natives-aarch64'
     compile 'com.wizzardo:simple-websocket-client:0.2'
 
     testCompile 'junit:junit:4.12'

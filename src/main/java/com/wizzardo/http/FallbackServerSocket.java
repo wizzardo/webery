@@ -101,11 +101,6 @@ public class FallbackServerSocket<T extends HttpConnection> extends EpollServer<
     }
 
     @Override
-    public boolean isStarted() {
-        return started;
-    }
-
-    @Override
     public RequestHolder getRequestHolder() {
         return requestHolder;
     }
@@ -341,7 +336,6 @@ public class FallbackServerSocket<T extends HttpConnection> extends EpollServer<
     @Override
     public void run() {
         try {
-            started = true;
             selector = Selector.open();
             server = ServerSocketChannel.open();
             server.socket().setReuseAddress(true);
@@ -349,6 +343,7 @@ public class FallbackServerSocket<T extends HttpConnection> extends EpollServer<
             server.socket().bind(new InetSocketAddress(hostname, port));
             server.configureBlocking(false);
             server.register(selector, SelectionKey.OP_ACCEPT);
+            started.countDown();
 
             while (running) {
 //                System.out.println("waiting for events");
