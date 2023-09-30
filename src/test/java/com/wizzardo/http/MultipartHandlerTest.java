@@ -1,15 +1,21 @@
 package com.wizzardo.http;
 
 import com.wizzardo.http.request.BlockReader;
+import com.wizzardo.http.request.Header;
 import com.wizzardo.http.request.MultiPartEntry;
 import com.wizzardo.tools.security.MD5;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Random;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -31,12 +37,14 @@ public class MultipartHandlerTest extends ServerTest {
         handler = new MultipartHandler((request, response) -> {
             Assert.assertEquals(true, request.isMultipart());
             byte[] bytes = request.entry("data").asBytes();
-            return response.setBody(MD5.create().update(bytes).asString());
+            return response.setBody(MD5.create().update(bytes).asString()).appendHeader(Header.KV_CONNECTION_CLOSE);
         });
 
-        Assert.assertEquals(md5, makeRequest("/")
+        String responseString = makeRequest("/")
                 .addByteArray("data", data, "just some data")
-                .post().asString());
+                .post().asString();
+
+        Assert.assertEquals(md5, responseString);
 
 
         handler = new MultipartHandler((request, response) -> {
@@ -99,16 +107,16 @@ public class MultipartHandlerTest extends ServerTest {
         String request = "------WebKitFormBoundaryrmfuIZ7BtpVXhNbQ\r\n" +
                 "Content-Disposition: form-data; name=\"url\"\r\n" +
                 "\r\n" +
-                "\r\n" +
+                "url-value\r\n" +
                 "------WebKitFormBoundaryrmfuIZ7BtpVXhNbQ\r\n" +
                 "Content-Disposition: form-data; name=\"fileName\"\r\n" +
                 "\r\n" +
-                "\r\n" +
+                "fileName-value\r\n" +
                 "------WebKitFormBoundaryrmfuIZ7BtpVXhNbQ\r\n" +
                 "Content-Disposition: form-data; name=\"file\"; filename=\"\"\r\n" +
                 "Content-Type: application/octet-stream\r\n" +
                 "\r\n" +
-                "\r\n" +
+                "data\r\n" +
                 "------WebKitFormBoundaryrmfuIZ7BtpVXhNbQ\r\n" +
                 "Content-Disposition: form-data; name=\"autostart\"\r\n" +
                 "\r\n" +
@@ -117,6 +125,7 @@ public class MultipartHandlerTest extends ServerTest {
 
         String boundary = "------WebKitFormBoundaryrmfuIZ7BtpVXhNbQ";
         byte[] data = request.getBytes();
+        byte[] buffer = new byte[data.length];
         for (int step = 1; step < data.length; step++) {
             String errorMessage = "failed at step: " + step;
 
@@ -125,18 +134,18 @@ public class MultipartHandlerTest extends ServerTest {
                 switch (counter.get()) {
                     case 0: {
                         Assert.assertEquals(errorMessage, "url", entry.name());
-                        Assert.assertEquals(errorMessage, "", entry.asString());
+                        Assert.assertEquals(errorMessage, "url-value", entry.asString());
                         break;
                     }
                     case 1: {
                         Assert.assertEquals(errorMessage, "fileName", entry.name());
-                        Assert.assertEquals(errorMessage, "", entry.asString());
+                        Assert.assertEquals(errorMessage, "fileName-value", entry.asString());
                         break;
                     }
                     case 2: {
                         Assert.assertEquals(errorMessage, "file", entry.name());
                         Assert.assertEquals(errorMessage, "", entry.fileName());
-                        Assert.assertEquals(errorMessage, "", entry.asString());
+                        Assert.assertEquals(errorMessage, "data", entry.asString());
                         break;
                     }
                     case 3: {
@@ -150,11 +159,152 @@ public class MultipartHandlerTest extends ServerTest {
                 counter.incrementAndGet();
             }));
             for (int i = 0; i < data.length; i += step) {
-                br.process(data, i, Math.min(data.length - i, step));
+//                br.process(data, i, Math.min(data.length - i, step));
+                int l = Math.min(data.length - i, step);
+                System.arraycopy(data, i, buffer, 0, l);
+                br.process(buffer, 0, l);
             }
 
             Assert.assertEquals(4, counter.get());
         }
+
+    }
+
+    @Test
+    public void manual_test_4() throws IOException, ExecutionException, InterruptedException {
+        String request = "------WebKitFormBoundaryrmfuIZ7BtpVXhNbQ\r\n" +
+                "Content-Disposition: form-data; name=\"url\"\r\n" +
+                "\r\n" +
+                "url-value\r\n" +
+                "------WebKitFormBoundaryrmfuIZ7BtpVXhNbQ\r\n" +
+                "Content-Disposition: form-data; name=\"fileName\"\r\n" +
+                "\r\n" +
+                "fileName-value\r\n" +
+                "------WebKitFormBoundaryrmfuIZ7BtpVXhNbQ\r\n" +
+                "Content-Disposition: form-data; name=\"file\"; filename=\"\"\r\n" +
+                "Content-Type: application/octet-stream\r\n" +
+                "\r\n" +
+                "data\r\n" +
+                "------WebKitFormBoundaryrmfuIZ7BtpVXhNbQ\r\n" +
+                "Content-Disposition: form-data; name=\"autostart\"\r\n" +
+                "\r\n" +
+                "on\r\n" +
+                "------WebKitFormBoundaryrmfuIZ7BtpVXhNbQ--\r\n";
+
+        String boundary = "------WebKitFormBoundaryrmfuIZ7BtpVXhNbQ";
+        byte[] data = request.getBytes();
+        byte[] buffer = new byte[data.length];
+        ExecutorService executorService = Executors.newFixedThreadPool(1);
+
+        for (int separator = 1; separator < data.length; separator++) {
+            String errorMessage = "failed at step: " + separator;
+
+            AtomicInteger counter = new AtomicInteger();
+            BlockReader br = new BlockReader(boundary.getBytes(), new MultipartHandler.MultipartConsumer(entry -> {
+                switch (counter.get()) {
+                    case 0: {
+                        Assert.assertEquals(errorMessage, "url", entry.name());
+                        Assert.assertEquals(errorMessage, "url-value", entry.asString());
+                        break;
+                    }
+                    case 1: {
+                        Assert.assertEquals(errorMessage, "fileName", entry.name());
+                        Assert.assertEquals(errorMessage, "fileName-value", entry.asString());
+                        break;
+                    }
+                    case 2: {
+                        Assert.assertEquals(errorMessage, "file", entry.name());
+                        Assert.assertEquals(errorMessage, "", entry.fileName());
+                        Assert.assertEquals(errorMessage, "data", entry.asString());
+                        break;
+                    }
+                    case 3: {
+                        Assert.assertEquals(errorMessage, "autostart", entry.name());
+                        Assert.assertEquals(errorMessage, "on", entry.asString());
+                        break;
+                    }
+                    default:
+                        Assert.assertTrue(false);
+                }
+                counter.incrementAndGet();
+            }));
+
+            br.process(data, 0, separator);
+            int length = data.length - separator;
+            System.arraycopy(data, separator, buffer, 0, length);
+            Future<?> future = executorService.submit(() -> {
+                br.process(buffer, 0, length);
+            });
+            future.get();
+
+//            for (int i = 0; i < data.length; i += separator) {
+////                br.process(data, i, Math.min(data.length - i, step));
+//                int l = Math.min(data.length - i, separator);
+//                System.arraycopy(data, i, buffer, 0, l);
+//                br.process(buffer, 0, l);
+//            }
+
+            Assert.assertEquals(4, counter.get());
+        }
+
+    }
+
+    @Test
+    public void manual_test_3() throws IOException {
+        String request = "------WebKitFormBoundaryZzaC4MkAfrAMfJCJ\r\n" +
+                "Content-Disposition: form-data; name=\"foo\"\r\n" +
+                "\r\n";
+        String part2 =
+                "bar\r\n" +
+                        "------WebKitFormBoundaryZzaC4MkAfrAMfJCJ\r\n" +
+                        "Content-Disposition: form-data; name=\"data\"; filename=\"just some data\"\r\n" +
+                        "Content-Type: application/octet-stream\r\n\r\n" +
+                        "some data\r\n" +
+                        "------WebKitFormBoundaryZzaC4MkAfrAMfJCJ\r\n" +
+                        "Content-Disposition: form-data; name=\"empty\"; filename=\"\"\r\n" +
+                        "Content-Type: application/octet-stream\r\n\r\n" +
+                        "\r\n" +
+                        "------WebKitFormBoundaryZzaC4MkAfrAMfJCJ\r\n" +
+                        "Content-Disposition: form-data; name=\"foofoo\"\r\n\r\n" +
+                        "barbar\r\n" +
+                        "------WebKitFormBoundaryZzaC4MkAfrAMfJCJ--";
+
+        String boundary = "------WebKitFormBoundaryZzaC4MkAfrAMfJCJ";
+
+        AtomicInteger counter = new AtomicInteger();
+        BlockReader br = new BlockReader(boundary.getBytes(), new MultipartHandler.MultipartConsumer(entry -> {
+            String errorMessage = "";
+            switch (counter.get()) {
+                case 0: {
+                    Assert.assertEquals(errorMessage, "foo", entry.name());
+                    Assert.assertEquals(errorMessage, "bar", entry.asString());
+                    break;
+                }
+                case 1: {
+                    Assert.assertEquals(errorMessage, "data", entry.name());
+                    Assert.assertEquals(errorMessage, "some data", entry.asString());
+                    Assert.assertEquals(errorMessage, "just some data", entry.fileName());
+                    break;
+                }
+                case 2: {
+                    Assert.assertEquals(errorMessage, "empty", entry.name());
+                    Assert.assertEquals(errorMessage, "", entry.asString());
+                    break;
+                }
+                case 3: {
+                    Assert.assertEquals(errorMessage, "foofoo", entry.name());
+                    Assert.assertEquals(errorMessage, "barbar", entry.asString());
+                    break;
+                }
+                default:
+                    Assert.assertTrue(false);
+            }
+            counter.incrementAndGet();
+        }));
+        br.process(request.getBytes());
+        br.process(part2.getBytes());
+
+        Assert.assertEquals(4, counter.get());
 
     }
 

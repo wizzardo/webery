@@ -142,11 +142,11 @@ public class MultipartHandler implements Handler {
         MultiPartEntry entry;
         BoyerMoore newLine;
         byte[] buffer = new byte[256];
-        int bufferLength;
+        volatile int bufferLength;
         OutputStream out;
         int rnrn;
         byte[] last = new byte[2];
-        int lastBytes = 0;
+        volatile int lastBytes = 0;
 
         public MultipartConsumer(EntrySetter entrySetter) {
             this.entrySetter = entrySetter;

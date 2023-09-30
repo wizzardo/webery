@@ -14,7 +14,7 @@ public class BlockReader {
     protected final BoyerMoore bm;
     protected final BytesConsumer consumer;
     protected byte[] buffer;
-    protected int buffered = 0;
+    protected volatile int buffered = 0;
 
     public BlockReader(byte[] separator, BytesConsumer consumer) {
         this.separator = Arrays.copyOf(separator, separator.length);

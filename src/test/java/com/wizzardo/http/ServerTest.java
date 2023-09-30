@@ -76,7 +76,7 @@ public class ServerTest<S extends HttpServer> {
         server.setIoThreadsCount(1);
         server.start();
         try {
-            Thread.sleep(25); // wait for server startup
+            Thread.sleep(50); // wait for server startup
         } catch (InterruptedException ignored) {
         }
     }
@@ -138,6 +138,7 @@ public class ServerTest<S extends HttpServer> {
     }
 
     protected com.wizzardo.tools.http.Request makeRequest(String path) {
+        Unchecked.ignore(() -> Thread.sleep(10));
         return makeRequest(path, port);
     }
 
