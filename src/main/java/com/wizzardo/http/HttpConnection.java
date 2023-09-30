@@ -2,7 +2,6 @@ package com.wizzardo.http;
 
 import com.wizzardo.epoll.*;
 import com.wizzardo.epoll.EpollInputStream;
-import com.wizzardo.epoll.readable.ReadableBuilder;
 import com.wizzardo.epoll.readable.ReadableByteArray;
 import com.wizzardo.epoll.readable.ReadableData;
 import com.wizzardo.http.request.Header;
@@ -14,9 +13,7 @@ import com.wizzardo.tools.io.IOTools;
 import com.wizzardo.tools.misc.Unchecked;
 
 import java.io.IOException;
-import java.io.OutputStream;
 import java.nio.ByteBuffer;
-import java.util.LinkedHashMap;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
@@ -139,7 +136,7 @@ public class HttpConnection<H extends AbstractHttpServer, Q extends Request, S e
     }
 
     protected void readFromByteBuffer(ByteBuffer bb, Buffer buffer) {
-        int limit = Math.min(bb.remaining(), buffer.capacity() - buffer.limit());
+        int limit = Math.min(bb.remaining(), buffer.free());
         bb.get(buffer.bytes(), buffer.limit(), limit);
         buffer.limit(buffer.limit() + limit);
     }
@@ -319,7 +316,7 @@ public class HttpConnection<H extends AbstractHttpServer, Q extends Request, S e
         ByteBuffer b;
         Buffer buffer = Buffer.current();
         try {
-            while ((b = read(bufferProvider.getBuffer().capacity(), bufferProvider)).limit() > 0) {
+            while ((b = read(buffer.free(), bufferProvider)).limit() > 0) {
                 readFromByteBuffer(b, buffer);
                 b.clear();
                 if (check(buffer))

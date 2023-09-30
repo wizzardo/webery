@@ -26,4 +26,8 @@ public interface Buffer {
     int remains();
 
     void clear();
+
+    default int free() {
+        return capacity() - limit();
+    }
 }
