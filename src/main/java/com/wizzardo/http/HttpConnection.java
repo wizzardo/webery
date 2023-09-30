@@ -296,6 +296,16 @@ public class HttpConnection<H extends AbstractHttpServer, Q extends Request, S e
 
     @Override
     public void onRead(ByteBufferProvider bufferProvider) throws IOException {
+        if (readListener != null) {
+            if (inputStream != null && processingBy.get() != null) // there is a worker waiting for wakeup
+                readListener.onRead(this, bufferProvider);
+
+            // todo should probably reset processingBy immediately when there is 0 bytes to read
+            if (inputStream == null && processingBy.get() == null) // there is no worker trying to read
+                readListener.onRead(this, bufferProvider);
+            return;
+        }
+
         server.process(this, bufferProvider);
     }
 
