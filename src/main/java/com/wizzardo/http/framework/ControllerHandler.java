@@ -93,7 +93,11 @@ public class ControllerHandler<T extends Controller> implements Handler {
         }
 
         if (configuration.multipart.enabled && request.isMultipart() && !request.isMultiPartDataPrepared()) {
-            return new MultipartHandler(this, configuration.multipart.limit).handle(request, response);
+            RequestContext context = RequestContext.get().copy();
+            return new MultipartHandler((req, res) -> {
+                RequestContext.get().set(context);
+                return this.handle(req, res);
+            }, configuration.multipart.limit).handle(request, response);
         }
 
 //        request.controller(controllerName);
