@@ -7,12 +7,15 @@ import com.wizzardo.http.framework.parameters.Parameter;
 import com.wizzardo.http.framework.parameters.ParametersHelper;
 import com.wizzardo.http.framework.template.Model;
 import com.wizzardo.http.framework.template.Renderer;
+import com.wizzardo.http.request.Request;
 import com.wizzardo.tools.evaluation.Config;
+import com.wizzardo.tools.http.ContentType;
 import com.wizzardo.tools.io.FileTools;
 import com.wizzardo.tools.json.JsonTools;
 import com.wizzardo.tools.misc.With;
 import com.wizzardo.tools.reflection.FieldReflectionFactory;
 import com.wizzardo.tools.reflection.UnsafeTools;
+import com.wizzardo.tools.security.MD5;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -1132,5 +1135,42 @@ public class ControllerHandlerTest extends WebApplicationTest {
 
         checkException(() -> server.getUrlMapping().append("/integer", CustomTypesController.class, "integer"), IllegalStateException.class, "Cannot create renderer for int");
         checkException(() -> server.getUrlMapping().append("/character", CustomTypesController.class, "character"), IllegalStateException.class, "Cannot create renderer for class java.lang.Character");
+    }
+
+
+    public static class TestMultipartController extends Controller {
+
+        public static class TestDataInfo {
+            String name;
+        }
+
+        public String test(
+                @Parameter(name = "data") byte[] data,
+                @Parameter(name = "info") TestDataInfo info
+        ) {
+            return info.name + ":" + MD5.create().update(data).asString();
+        }
+    }
+
+    @Test
+    public void testJsonAndBinaryParams() throws IOException {
+        byte[] data = new byte[10 * 1024 * 1024];
+        new Random().nextBytes(data);
+        final String md5 = MD5.create().update(data).asString();
+
+        server.getUrlMapping()
+                .append("/", TestMultipartController.class, "test", Request.Method.POST);
+
+        String name = "test-name";
+
+        TestMultipartController.TestDataInfo testDataInfo = new TestMultipartController.TestDataInfo();
+        testDataInfo.name = name;
+
+        String responseString = makeRequest("/")
+                .addByteArray("info", JsonTools.serializeToBytes(testDataInfo), "info", ContentType.JSON.value)
+                .addByteArray("data", data, "just some data")
+                .post().asString();
+
+        Assert.assertEquals(name + ":" + md5, responseString);
     }
 }

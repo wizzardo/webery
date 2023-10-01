@@ -380,6 +380,13 @@ public class ParametersHelper {
             if (request.data() != null && contentType != null && contentType.toLowerCase().startsWith(Header.VALUE_APPLICATION_JSON.value))
                 return JsonTools.parse(request.data(), type);
 
+            if (request.isMultipart()) {
+                MultiPartEntry entry = request.entry(parameterName);
+                if (entry != null && entry.contentType().toLowerCase().startsWith(Header.VALUE_APPLICATION_JSON.value)) {
+                    return JsonTools.parse(entry.asBytes(), type);
+                }
+            }
+
             ParameterMapper<?> m = customMappers.get(type);
             if (m != null) {
                 Object[] ref = new Object[1];

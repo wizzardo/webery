@@ -60,4 +60,12 @@ public abstract class MultiPartEntry {
     public abstract InputStream inputStream() throws IOException;
 
     public abstract OutputStream outputStream() throws IOException;
+
+    @Override
+    public String toString() {
+        return "MultiPartEntry{" +
+                "name='" + name + '\'' +
+                ", headers=" + headers +
+                '}';
+    }
 }
