@@ -20,8 +20,10 @@ public class HttpWorker<T extends HttpConnection> extends Worker<T> {
         if (!connection.processingBy.compareAndSet(null, this))
             return;
 
-        connection.process(this);
-
-        connection.processingBy.set(null);
+        try {
+            connection.process(this);
+        } finally {
+            connection.processingBy.set(null);
+        }
     }
 }

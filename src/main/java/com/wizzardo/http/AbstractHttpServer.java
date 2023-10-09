@@ -62,11 +62,6 @@ public abstract class AbstractHttpServer<T extends HttpConnection> {
         } else {
             server = new FallbackServerSocket<T>(host, port, this) {
                 @Override
-                public void onRead(T connection, ByteBufferProvider bufferProvider) throws IOException {
-                    process(connection, bufferProvider);
-                }
-
-                @Override
                 protected SelectorConnectionWrapper createConnection(SocketChannel client) throws IOException {
                     SelectorConnectionWrapper connection = super.createConnection(client);
                     connection.server = AbstractHttpServer.this;

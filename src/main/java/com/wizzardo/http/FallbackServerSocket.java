@@ -308,6 +308,10 @@ public class FallbackServerSocket<T extends HttpConnection> extends EpollServer<
                     IOTools.close(data);
 
             IOTools.close(channel);
+            try {
+                onDisconnect(ByteBufferProvider.current());
+            } catch (IOException ignored) {
+            }
         }
 
         @Override
@@ -420,6 +424,7 @@ public class FallbackServerSocket<T extends HttpConnection> extends EpollServer<
     }
 
     public void onRead(T connection, ByteBufferProvider bufferProvider) throws IOException {
+        connection.onRead(bufferProvider);
     }
 
     @Override

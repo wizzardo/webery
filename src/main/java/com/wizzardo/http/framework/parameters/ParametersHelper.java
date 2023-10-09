@@ -382,8 +382,11 @@ public class ParametersHelper {
 
             if (request.isMultipart()) {
                 MultiPartEntry entry = request.entry(parameterName);
-                if (entry != null && entry.contentType().toLowerCase().startsWith(Header.VALUE_APPLICATION_JSON.value)) {
-                    return JsonTools.parse(entry.asBytes(), type);
+                if (entry != null) {
+                    String entryContentType = entry.contentType();
+                    if (entryContentType != null && entryContentType.toLowerCase().startsWith(Header.VALUE_APPLICATION_JSON.value)) {
+                        return JsonTools.parse(entry.asBytes(), type);
+                    }
                 }
             }
 
