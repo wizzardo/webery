@@ -55,7 +55,7 @@ public class FallbackServerSocketTest {
     }
 
 
-//    @Test
+    @Test
     public void test_simple_read() throws IOException, InterruptedException {
         AtomicInteger counter = new AtomicInteger();
         AbstractHttpServer<HttpConnection> serverMock = new AbstractHttpServer(null, 9999, 2, true) {
@@ -99,7 +99,7 @@ public class FallbackServerSocketTest {
         Assert.assertEquals(1, counter.get());
     }
 
-//    @Test
+    @Test
     public void test_simple_write() throws IOException, InterruptedException {
         AbstractHttpServer<HttpConnection> serverMock = new AbstractHttpServer(null, 9999, 2, true) {
             @Override
@@ -143,7 +143,7 @@ public class FallbackServerSocketTest {
         serverSocket.close();
     }
 
-//    @Test
+    @Test
     public void test_slow_client() throws IOException, InterruptedException {
         System.out.println("EpollCore.SUPPORTED: " + EpollCore.SUPPORTED);
 

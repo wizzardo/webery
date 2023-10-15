@@ -15,6 +15,7 @@ import java.nio.ByteBuffer;
 import java.nio.channels.*;
 import java.util.Iterator;
 import java.util.Queue;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class FallbackServerSocket<T extends HttpConnection> extends EpollServer<T> implements RequestContext, Buffer {
     protected ServerSocketChannel server;
@@ -149,6 +150,7 @@ public class FallbackServerSocket<T extends HttpConnection> extends EpollServer<
         SocketChannel channel;
         //        Queue<ReadableData> sending = new ConcurrentLinkedQueue<ReadableData>();
         private boolean readyToRead;
+        final AtomicBoolean inQueue = new AtomicBoolean(false);
 
         public SelectorConnectionWrapper(SocketChannel channel, AbstractHttpServer server) throws IOException {
             super(0, 0, 0, server);
@@ -192,6 +194,10 @@ public class FallbackServerSocket<T extends HttpConnection> extends EpollServer<
             boolean isReady = super.checkData(bufferProvider);
             if (isReady) {
                 key.interestOps(0);
+            } else {
+                int ops = key.interestOps();
+                if ((ops & SelectionKey.OP_READ) == 0)
+                    key.interestOps(ops | SelectionKey.OP_READ);
             }
             return isReady;
         }
@@ -229,31 +235,35 @@ public class FallbackServerSocket<T extends HttpConnection> extends EpollServer<
         public boolean write(ByteBufferProvider bufferProvider) {
             Queue<ReadableData> queue = this.sending;
             ReadableData readable;
-            try {
-                while ((readable = queue.peek()) != null) {
-                    while (!readable.isComplete() && actualWrite(readable, bufferProvider)) {
-                    }
-                    if (!readable.isComplete()) {
-                        key.interestOps(key.interestOps() | SelectionKey.OP_WRITE);
+            while (!queue.isEmpty() && writer.compareAndSet(null, bufferProvider)) {
+                try {
+                    while ((readable = queue.peek()) != null) {
+                        while (!readable.isComplete() && actualWrite(readable, bufferProvider)) {
+                        }
+                        if (!readable.isComplete()) {
+                            key.interestOps(key.interestOps() | SelectionKey.OP_WRITE);
 //                        System.out.println("key.interestOps(SelectionKey.OP_WRITE)");
-                        return false;
-                    }
+                            return false;
+                        }
 
-                    queue.poll();
-                    readable.close();
-                    readable.onComplete();
-                    boolean hasMore = !queue.isEmpty();
-                    onWriteData(readable, hasMore);
-                    if (!hasMore && key.isValid()) {
-                        key.interestOps(SelectionKey.OP_READ);
+                        queue.poll();
+                        readable.close();
+                        readable.onComplete();
+                        boolean hasMore = !queue.isEmpty();
+                        onWriteData(readable, hasMore);
+                        if (!hasMore && key.isValid()) {
+                            key.interestOps(SelectionKey.OP_READ);
 //                        System.out.println("key.interestOps(SelectionKey.OP_READ)");
+                        }
                     }
-                }
 //                close();
 
-            } catch (Exception e) {
-                e.printStackTrace();
-                IOTools.close(this);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    IOTools.close(this);
+                } finally {
+                    writer.set(null);
+                }
             }
             return true;
         }
@@ -334,6 +344,33 @@ public class FallbackServerSocket<T extends HttpConnection> extends EpollServer<
         public void setIOThread(IOThread IOThread) {
             throw new IllegalStateException("Not supported yet");
         }
+
+        @Override
+        public void process(ByteBufferProvider bufferProvider) throws IOException {
+            super.process(bufferProvider);
+            inQueue.set(false);
+        }
+
+        @Override
+        public void onRead(ByteBufferProvider bufferProvider) throws IOException {
+            if (readListener != null) {
+                if (inputStream != null && processingBy.get() != null) // there is a worker waiting for wakeup
+                    readListener.onRead(this, bufferProvider);
+
+                // todo should probably reset processingBy immediately when there is 0 bytes to read
+                if (inputStream == null && processingBy.get() == null) // there is no worker trying to read
+                    readListener.onRead(this, bufferProvider);
+                return;
+            }
+
+//            System.out.println(key + " r: " + key.isReadable() + " w: " + key.isWritable()+" "+ key.interestOps());
+            if (!inQueue.compareAndSet(false, true)) {
+                key.interestOps(0);
+                return;
+            }
+
+            server.process(this, bufferProvider);
+        }
     }
 
 
@@ -399,11 +436,6 @@ public class FallbackServerSocket<T extends HttpConnection> extends EpollServer<
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
-                }
-
-                try {
-                    Thread.sleep(10);
-                } catch (InterruptedException ignored) {
                 }
             }
         } catch (IOException e) {
