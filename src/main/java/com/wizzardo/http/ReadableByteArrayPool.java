@@ -10,19 +10,24 @@ import java.lang.ref.SoftReference;
  * Created by wizzardo on 26/05/16.
  */
 public class ReadableByteArrayPool {
-    private static Pool<PooledReadableByteArray> pool = new PoolBuilder<PooledReadableByteArray>()
+    private static final Pool<PooledReadableByteArray> pool = new PoolBuilder<PooledReadableByteArray>()
             .queue(PoolBuilder.createThreadLocalQueueSupplier())
             .supplier(() -> new PooledReadableByteArray(new byte[10240]))
-            .holder((pool, value) -> value.holder = new SoftHolder<>(pool, value))
+            .holder(SoftHolder::new)
             .resetter(PooledReadableByteArray::reset)
             .build();
 
-    private static class SoftHolder<T> implements Holder<T> {
+    public interface WithHolder<T> {
+        void setHolder(Holder<T> holder);
+    }
+
+    private static class SoftHolder<T extends WithHolder<T>> implements Holder<T> {
         final Pool<T> pool;
         volatile SoftReference<T> ref;
 
         private SoftHolder(Pool<T> pool, T value) {
             this.pool = pool;
+            value.setHolder(this);
             ref = new SoftReference<>(value);
         }
 
@@ -30,7 +35,13 @@ public class ReadableByteArrayPool {
         public T get() {
             T value = ref.get();
             if (value == null) {
-                return pool.holder().get();
+                if (pool.size() > 0)
+                    return pool.holder().get();
+                else {
+                    T t = pool.create();
+                    new SoftHolder<>(pool, t);
+                    return t;
+                }
             } else {
                 pool.reset(value);
             }
@@ -43,7 +54,7 @@ public class ReadableByteArrayPool {
         }
     }
 
-    public static class PooledReadableByteArray extends ReadableByteArray {
+    public static class PooledReadableByteArray extends ReadableByteArray implements WithHolder<PooledReadableByteArray>{
         private volatile Holder<PooledReadableByteArray> holder;
 
         PooledReadableByteArray(byte[] bytes) {
@@ -66,6 +77,11 @@ public class ReadableByteArrayPool {
         public void reset() {
             length = bytes.length;
             position = 0;
+        }
+
+        @Override
+        public void setHolder(Holder<PooledReadableByteArray> holder) {
+            this.holder = holder;
         }
     }
 
