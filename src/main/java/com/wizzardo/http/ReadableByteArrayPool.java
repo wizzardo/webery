@@ -23,7 +23,7 @@ public class ReadableByteArrayPool {
 
     private static class SoftHolder<T extends WithHolder<T>> implements Holder<T> {
         final Pool<T> pool;
-        volatile SoftReference<T> ref;
+        final SoftReference<T> ref;
 
         private SoftHolder(Pool<T> pool, T value) {
             this.pool = pool;
@@ -35,13 +35,16 @@ public class ReadableByteArrayPool {
         public T get() {
             T value = ref.get();
             if (value == null) {
-                if (pool.size() > 0)
-                    return pool.holder().get();
-                else {
-                    T t = pool.create();
-                    new SoftHolder<>(pool, t);
-                    return t;
+                while (pool.size() > 0) {
+                    SoftHolder<T> holder = (SoftHolder<T>) pool.holder();
+                    T t = holder.ref.get();
+                    if (t != null)
+                        return pool.reset(t);
                 }
+
+                T t = pool.create();
+                new SoftHolder<>(pool, t);
+                return t;
             } else {
                 pool.reset(value);
             }
@@ -50,7 +53,8 @@ public class ReadableByteArrayPool {
 
         @Override
         public void close() {
-            pool.release(this);
+            if (ref.get() != null)
+                pool.release(this);
         }
     }
 
