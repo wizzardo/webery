@@ -8,13 +8,14 @@ import com.wizzardo.http.request.Request;
 import com.wizzardo.http.response.RangeResponseHelper;
 import com.wizzardo.http.response.Response;
 import com.wizzardo.http.response.Status;
+import com.wizzardo.http.utils.PercentEncoding;
 import com.wizzardo.tools.misc.DateIso8601;
 import com.wizzardo.tools.misc.Unchecked;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URLDecoder;
 import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Date;
@@ -263,8 +264,10 @@ public class FileTreeHandler<T extends FileTreeHandler.HandlerContext> implement
         return Unchecked.call(() -> URLEncoder.encode(name, "utf-8").replace("+", "%20"));
     }
 
-    private String decodePath(String path) {
-        return Unchecked.call(() -> URLDecoder.decode(VERSION_PATTERN.matcher(path).replaceAll(""), "utf-8"));
+    protected String decodePath(String path) {
+        byte[] bytes = VERSION_PATTERN.matcher(path).replaceAll("").getBytes(StandardCharsets.UTF_8);
+        int decodedLength = PercentEncoding.decode(bytes, 0, bytes.length, true);
+        return new String(bytes, 0, decodedLength, StandardCharsets.UTF_8);
     }
 
     public static class HandlerContext {

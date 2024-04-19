@@ -3,16 +3,13 @@ package com.wizzardo.http.utils;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
-/**
- * Created by Mikhail Bobrutskov on 20.08.17.
- */
 public class PercentEncoding {
 
     static byte[] mapping;
 
     static {
         mapping = new byte[128];
-        Arrays.fill(mapping, (byte) 128);
+        Arrays.fill(mapping, (byte) 127);
         mapping['0'] = 0;
         mapping['1'] = 1;
         mapping['2'] = 2;
@@ -40,6 +37,10 @@ public class PercentEncoding {
     }
 
     public static int decode(byte[] bytes, int from, int to) {
+        return decode(bytes, from, to, false);
+    }
+
+    public static int decode(byte[] bytes, int from, int to, boolean ignorePlus) {
         int position = from;
         int i = from;
         try {
@@ -51,7 +52,7 @@ public class PercentEncoding {
 
                     byte value = (byte) ((getHexValue(bytes[++i]) << 4) + getHexValue(bytes[++i]));
                     bytes[position++] = value;
-                } else if (b == '+') {
+                } else if (!ignorePlus && b == '+') {
                     bytes[position++] = ' ';
                 } else if (position == i) {
                     position++;
@@ -72,7 +73,7 @@ public class PercentEncoding {
             throw new IllegalStateException("unexpected char for hex value: " + (char) c);
 
         c = mapping[c];
-        if (c == 128)
+        if (c == 127)
             throw new IllegalStateException("unexpected char for hex value");
 
         return c;
