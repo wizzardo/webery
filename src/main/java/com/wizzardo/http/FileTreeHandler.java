@@ -39,6 +39,7 @@ public class FileTreeHandler<T extends FileTreeHandler.HandlerContext> implement
     protected String workDirPath;
     protected File workDir;
     protected boolean showFolder = true;
+    protected boolean versionedPath = true;
     protected final String name;
     protected RangeResponseHelper rangeResponseHelper = new RangeResponseHelper();
 
@@ -147,6 +148,11 @@ public class FileTreeHandler<T extends FileTreeHandler.HandlerContext> implement
 
     public FileTreeHandler<T> setShowFolder(boolean showFolder) {
         this.showFolder = showFolder;
+        return this;
+    }
+
+    public FileTreeHandler<T> setVersionedPath(boolean versionedPath) {
+        this.versionedPath = versionedPath;
         return this;
     }
 
@@ -265,7 +271,12 @@ public class FileTreeHandler<T extends FileTreeHandler.HandlerContext> implement
     }
 
     protected String decodePath(String path) {
-        byte[] bytes = VERSION_PATTERN.matcher(path).replaceAll("").getBytes(StandardCharsets.UTF_8);
+        byte[] bytes;
+        if (versionedPath)
+            bytes = VERSION_PATTERN.matcher(path).replaceAll("").getBytes(StandardCharsets.UTF_8);
+        else
+            bytes = path.getBytes(StandardCharsets.UTF_8);
+
         int decodedLength = PercentEncoding.decode(bytes, 0, bytes.length, true);
         return new String(bytes, 0, decodedLength, StandardCharsets.UTF_8);
     }
