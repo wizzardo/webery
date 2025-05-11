@@ -59,7 +59,11 @@ public class MultipartHandler implements Handler {
 
         ReadListener listener = createListener((c) -> {
             request.setMultiPartDataPrepared();
-            handler.handle(request, response);
+            try {
+                handler.handle(request, response);
+            } catch (Exception t) {
+                request.connection().server.safeOnError(request.connection(), t);
+            }
             clean(request);
             if (c.server.finishHandling(c))
                 c.server.process(c, ByteBufferProvider.current());

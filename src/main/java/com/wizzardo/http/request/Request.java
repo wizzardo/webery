@@ -214,6 +214,7 @@ public class Request<C extends HttpConnection, R extends Response> {
         multiPartDataPrepared = false;
         multiPartEntryMap = null;
         cookies = null;
+        headers = null;
         multipart = null;
         sessionId = null;
         state = State.READING_HEADERS;

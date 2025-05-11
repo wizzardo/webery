@@ -261,6 +261,7 @@ public class FallbackServerSocket<T extends HttpConnection> extends EpollServer<
                 } catch (Exception e) {
                     e.printStackTrace();
                     IOTools.close(this);
+                    return false;
                 } finally {
                     writer.set(null);
                 }

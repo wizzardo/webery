@@ -174,19 +174,22 @@ public class HttpConnection<H extends AbstractHttpServer, Q extends Request, S e
             buffer.clear();
             return false;
         }
-        if (!keepAlive || request.response().status().code > 300) {
+
+        inputStream = null;
+        outputStream = null;
+        onRead((ReadListener<Connection>) null);
+        onWrite((WriteListener<Connection>) null);
+        requestReader.clear();
+        request.reset();
+
+//        if (!keepAlive || request.response().status().code > 300) {
+        if (!keepAlive) {
             buffer.clear();
             flush();
             setCloseOnFinishWriting(true);
             return false;
         }
 
-        inputStream = null;
-        outputStream = null;
-        onRead((ReadListener<Connection>) null);
-        onWrite((WriteListener<Connection>) null);
-        request.reset();
-        requestReader.clear();
         if (buffer.hasRemaining()) {
             handleHeaders(buffer);
         } else {
