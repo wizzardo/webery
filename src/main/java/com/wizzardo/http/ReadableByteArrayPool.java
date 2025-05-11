@@ -11,7 +11,7 @@ import java.lang.ref.SoftReference;
  */
 public class ReadableByteArrayPool {
     private static final Pool<PooledReadableByteArray> pool = new PoolBuilder<PooledReadableByteArray>()
-            .queue(PoolBuilder.createThreadLocalQueueSupplier())
+            .queue(PoolBuilder.createSharedQueueSupplier())
             .supplier(() -> new PooledReadableByteArray(new byte[10240]))
             .holder(SoftHolder::new)
             .resetter(PooledReadableByteArray::reset)
