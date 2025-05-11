@@ -3,17 +3,17 @@ package com.wizzardo.http;
 import com.wizzardo.http.mapping.UrlMapping;
 import com.wizzardo.http.request.Header;
 import com.wizzardo.http.response.Response;
-import com.wizzardo.tools.http.HttpClient;
+import com.wizzardo.tools.io.IOTools;
+import com.wizzardo.tools.misc.Unchecked;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 
 /**
  * Created by wizzardo on 06.03.15.
  */
 public class MimeProvider {
-    private static final String APACHE_MIME_TYPES_URL = "https://svn.apache.org/viewvc/httpd/httpd/branches/2.4.x/docs/conf/mime.types?view=co";
-
     private UrlMapping<Holder> types = new UrlMapping<>();
 
     public MimeProvider() {
@@ -25,7 +25,7 @@ public class MimeProvider {
     }
 
     protected void init() throws IOException {
-        String data = HttpClient.createRequest(APACHE_MIME_TYPES_URL).get().asString();
+        String data = Unchecked.call(() -> new String(IOTools.bytes(MimeProvider.class.getResourceAsStream("/mime.types")), StandardCharsets.UTF_8));
         for (String s : data.split("[\r\n]")) {
             if (s.startsWith("#"))
                 continue;
